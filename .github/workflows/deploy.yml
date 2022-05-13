@@ -1,16 +1,20 @@
 name: Deploy
 
-on: [push]
+on:
+  push:
+    branches:
+      - release
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: prod
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v3.0.2
+      - uses: actions/setup-node@v3.1.1
       - run: npm install
       - run: npm run build
-      - uses: fleekhq/action-deploy@v1
-        with:
-          apiKey: ${{ secrets.FLEEK_API_KEY }}
-      - run: echo "Deploy url is ${{ steps.deploy.outputs.deployUrl }}"
+      - env:
+          FLEEK_API_KEY: ${{ secrets.FLEEK_API_KEY }}
+        run: npx fleek site:deploy
