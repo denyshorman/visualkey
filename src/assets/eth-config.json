@@ -1,0 +1,149 @@
+{
+  "chains": [
+    {
+      "name": "Ethereum",
+      "currency": "ETH",
+      "chainId": 1,
+      "blockExplorerUrl": "https://etherscan.io/address/:address",
+      "rpcUrls": [
+        "https://eth.public-rpc.com",
+        "https://rpc.ankr.com/eth",
+        "https://nodes.mewapi.io/rpc/eth",
+        "https://eth-rpc.gateway.pokt.network",
+        "https://cloudflare-eth.com",
+        "https://main-rpc.linkpool.io",
+        "https://mainnet.eth.cloud.ava.do",
+        "https://mainnet-nethermind.blockscout.com",
+        "https://ethereumnodelight.app.runonflux.io",
+        "https://api.mycryptoapi.com/eth",
+        "https://rpc.flashbots.net"
+      ]
+    },
+    {
+      "name": "BSC",
+      "currency": "BNB",
+      "chainId": 56,
+      "blockExplorerUrl": "https://bscscan.com/address/:address",
+      "rpcUrls": [
+        "https://bscrpc.com",
+        "https://bsc-dataseed.binance.org",
+        "https://bsc-dataseed1.defibit.io",
+        "https://bsc-dataseed1.ninicoin.io",
+        "https://bsc-dataseed2.defibit.io",
+        "https://bsc-dataseed3.defibit.io",
+        "https://bsc-dataseed4.defibit.io",
+        "https://bsc-dataseed2.ninicoin.io",
+        "https://bsc-dataseed3.ninicoin.io",
+        "https://bsc-dataseed4.ninicoin.io",
+        "https://bsc-dataseed1.binance.org",
+        "https://bsc-dataseed2.binance.org",
+        "https://bsc-dataseed3.binance.org",
+        "https://bsc-dataseed4.binance.org",
+        "https://bsc-mainnet.gateway.pokt.network",
+        "https://rpc.ankr.com/bsc"
+      ]
+    },
+    {
+      "name": "Polygon",
+      "currency": "MATIC",
+      "chainId": 137,
+      "blockExplorerUrl": "https://polygonscan.com/address/:address",
+      "rpcUrls": [
+        "https://polygon-rpc.com",
+        "https://rpc-mainnet.matic.network",
+        "https://rpc-mainnet.maticvigil.com",
+        "https://rpc-mainnet.matic.quiknode.pro",
+        "https://poly-rpc.gateway.pokt.network",
+        "https://rpc.ankr.com/polygon",
+        "https://matic-mainnet.chainstacklabs.com",
+        "https://matic-mainnet-full-rpc.bwarelabs.com",
+        "https://matic-mainnet-archive-rpc.bwarelabs.com"
+      ]
+    },
+    {
+      "name": "Avalance",
+      "currency": "AVAX",
+      "chainId": 43114,
+      "blockExplorerUrl": "https://snowtrace.io/address/:address",
+      "rpcUrls": [
+        "https://api.avax.network/ext/bc/C/rpc",
+        "https://avalanche.public-rpc.com",
+        "https://rpc.ankr.com/avalanche",
+        "https://avax.rpcgator.com",
+        "https://avax-mainnet.gateway.pokt.network/v1/lb/605238bf6b986eea7cf36d5e/ext/bc/C/rpc"
+      ]
+    },
+    {
+      "name": "Arbitrum",
+      "currency": "AETH",
+      "chainId": 42161,
+      "blockExplorerUrl": "https://arbiscan.io/address/:address",
+      "rpcUrls": [
+        "https://arb1.arbitrum.io/rpc",
+        "https://rpc.ankr.com/arbitrum",
+        "https://arbitrum.public-rpc.com"
+      ]
+    },
+    {
+      "name": "Fantom",
+      "currency": "FTM",
+      "chainId": 250,
+      "blockExplorerUrl": "https://ftmscan.com/address/:address",
+      "rpcUrls": [
+        "https://rpc.ftm.tools",
+        "https://rpc.ankr.com/fantom",
+        "https://ftm.rpcgator.com"
+      ]
+    },
+    {
+      "name": "Gnosis",
+      "currency": "xDAI",
+      "chainId": 100,
+      "blockExplorerUrl": "https://blockscout.com/xdai/mainnet/address/:address",
+      "rpcUrls": [
+        "https://rpc.gnosischain.com",
+        "https://rpc.xdaichain.com",
+        "https://gnosis.public-rpc.com",
+        "https://xdai.poanetwork.dev",
+        "https://xdai-rpc.gateway.pokt.network"
+      ]
+    },
+    {
+      "name": "Fuse",
+      "currency": "Fuse",
+      "chainId": 122,
+      "blockExplorerUrl": "https://explorer.fuse.io/address/:address",
+      "rpcUrls": [
+        "https://fuse-rpc.gateway.pokt.network"
+      ]
+    },
+    {
+      "name": "Optimism",
+      "currency": "ETH",
+      "chainId": 10,
+      "blockExplorerUrl": "https://optimistic.etherscan.io/address/:address",
+      "rpcUrls": [
+        "https://mainnet.optimism.io"
+      ]
+    },
+    {
+      "name": "Aurora",
+      "currency": "ETH",
+      "chainId": 1313161554,
+      "blockExplorerUrl": "https://aurorascan.dev/address/:address",
+      "rpcUrls": [
+        "https://mainnet.aurora.dev"
+      ]
+    },
+    {
+      "name": "Celo",
+      "currency": "CELO",
+      "chainId": 42220,
+      "blockExplorerUrl": "https://explorer.celo.org/address/:address",
+      "rpcUrls": [
+        "https://forno.celo.org",
+        "https://rpc.ankr.com/celo"
+      ]
+    }
+  ]
+}

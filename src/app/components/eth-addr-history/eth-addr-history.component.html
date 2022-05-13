@@ -1,0 +1,37 @@
+<div class="flex flex-column h-full row-gap-1">
+  <div class="flex flex-wrap gap-1">
+    <button class="app-text-btn" [class.selected]="showActive === true" (click)="showActive = !showActive">
+      Only active addresses
+    </button>
+    <select class="app-select" id="currencyUnitOptions" [(ngModel)]="selectedCurrencyUnit">
+      <option *ngFor="let o of currencyUnitOptions" [ngValue]="o.value">{{ o.name }}</option>
+    </select>
+    <button (click)="clearAll()" class="app-icon-btn">
+      <fa-icon [icon]="icons.faEraser"></fa-icon>
+    </button>
+    <button (click)="autoFit()" class="app-icon-btn">
+      <fa-icon [icon]="icons.faDownLeftAndUpRightToCenter"></fa-icon>
+    </button>
+    <button (click)="autoSize()" class="app-icon-btn">
+      <fa-icon [icon]="icons.faUpRightAndDownLeftFromCenter"></fa-icon>
+    </button>
+    <button class="app-icon-btn">
+      <fa-icon [icon]="icons.faFileCsv"></fa-icon>
+    </button>
+    <div
+      class="inline-flex align-items-center history-grid-stat-block"
+      pTooltip="Displayed/Generated"
+      tooltipPosition="top"
+      [showDelay]="800"
+    >
+      {{ displayedRowCount }}/{{ pkGeneratedCount }}
+    </div>
+  </div>
+  <div class="flex-grow-1">
+    <ag-grid-angular
+      #historyGrid
+      class="ag-theme-balham-dark h-full w-full history-grid-min-height"
+      [gridOptions]="gridOptions"
+    ></ag-grid-angular>
+  </div>
+</div>

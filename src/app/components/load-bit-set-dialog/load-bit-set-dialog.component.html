@@ -1,0 +1,23 @@
+<p-dialog [(visible)]="visible" position="bottom" [style]="{ width: '50vw' }" header="Load Custom Key">
+  <input
+    type="text"
+    pInputText
+    autofocus
+    class="p-inputtext-sm w-full mb-1"
+    placeholder="0x1234567..."
+    [(ngModel)]="bitSetString"
+    (keyup.enter)="loadKey()"
+    [class.ng-invalid]="!valid && bitSetString && bitSetString.length > 0"
+  />
+  <small class="block mt-1 p-error" *ngIf="!valid && bitSetString && bitSetString.length > 0">Key is not valid</small>
+  <p-checkbox class="mt-1" [(ngModel)]="instantBitSetChange" [binary]="true" label="Show instantly"></p-checkbox>
+  <small class="block mt-2">
+    Hint: Key supports binary (0b1010100110...), decimal (12345678...), and hex (0x1234567...) formats
+  </small>
+  <small class="block mt-1">Hint: Key must be in range {{ min }} - 0x{{ max.toString(16) }} (exclusive)</small>
+
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" styleClass="p-button-text" (click)="visible = false"></p-button>
+    <p-button label="Ok" styleClass="p-button-text" (click)="loadKey()" [disabled]="!valid"></p-button>
+  </ng-template>
+</p-dialog>

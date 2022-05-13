@@ -1,0 +1,85 @@
+@import 'variables';
+
+* {
+  font-family: monospace;
+}
+
+body {
+  margin: 0;
+  background-color: black;
+  color: $appColorYellow;
+}
+
+.app-color-green {
+  color: $appColorGreen;
+}
+
+.app-bg-green {
+  background-color: $appColorGreen;
+}
+
+.app-color-yellow {
+  color: $appColorYellow;
+}
+
+.app-bg-yellow {
+  background-color: $appColorYellow;
+}
+
+.app-icon-btn {
+  background-color: $btnBgColor;
+  color: $btnColor;
+  border: 1px solid $btnBorderColor;
+  cursor: pointer;
+  width: $btnHeight;
+  height: $btnHeight;
+  font-size: 1rem;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background-color: black;
+  }
+
+  &.selected {
+    background-color: $btnSelectedBgColor;
+    color: black;
+
+    &.cursor-default-hover:hover {
+      cursor: default;
+    }
+  }
+}
+
+.app-text-btn {
+  background-color: $btnBgColor;
+  color: $btnColor;
+  border: 1px solid $btnBorderColor;
+  cursor: pointer;
+  height: $btnHeight;
+  font-size: 0.85rem;
+  padding: 0 0.5rem;
+  display: flex;
+  align-items: center;
+
+  &:hover {
+    background-color: black;
+  }
+
+  &.selected {
+    background-color: $appColorYellow;
+    color: black;
+    font-weight: bold;
+  }
+}
+
+.app-select {
+  background-color: $btnBgColor;
+  color: $btnColor;
+  border: 1px solid $btnBorderColor;
+  height: $btnHeight;
+  font-size: 1rem;
+  padding: 0 0.3rem;
+}

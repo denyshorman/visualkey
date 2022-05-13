@@ -1,0 +1,44 @@
+<div class="flex flex-column row-gap-3 align-items-center h-screen overflow-auto m-0 px-2 py-2 lg:px-8 lg:py-5">
+  <div>
+    <app-bit-set
+      [size]="pkSize"
+      [cols]="pkCols"
+      [(bitSet)]="pk"
+      [bitSize]="bitSize"
+      [mouseEnterStrategy]="mouseEnterStrategy"
+      [falseStateColor]="pkFalseStateColor"
+      [trueStateColor]="pkTrueStateColor"
+      [mouseMoveDisabled]="mouseMoveDisabled"
+    ></app-bit-set>
+
+    <app-bit-set
+      class="ml-4"
+      [class.hidden]="!addressVisible"
+      [class.address-not-valid]="!pkValid"
+      [size]="addressSize"
+      [cols]="addressCols"
+      [(bitSet)]="address"
+      [bitSize]="bitSize"
+      [mouseEnterStrategy]="mouseEnterStrategy"
+      [falseStateColor]="addressFalseStateColor"
+      [trueStateColor]="addressTrueStateColor"
+      [readOnly]="true"
+    ></app-bit-set>
+  </div>
+  <div>
+    <app-bit-set-controller
+      [size]="pkSize"
+      [(bitSet)]="pk"
+      [keyRangeStart]="pkMin"
+      [keyRangeEnd]="pkMax"
+      [(mouseEnterStrategy)]="mouseEnterStrategy"
+      [(mouseMoveDisabled)]="mouseMoveDisabled"
+    ></app-bit-set-controller>
+  </div>
+  <div class="align-self-stretch">
+    <app-eth-info [privateKey]="pk"></app-eth-info>
+  </div>
+  <div class="flex-grow-1 align-self-stretch">
+    <app-eth-addr-history></app-eth-addr-history>
+  </div>
+</div>

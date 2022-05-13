@@ -1,0 +1,19 @@
+<div
+  class="bit-set"
+  (contextmenu)="$event.preventDefault()"
+  (touchmove)="touchMove($event)"
+  (touchstart)="touchStart($event)"
+>
+  <app-bit
+    *ngFor="let bit of bitsArray"
+    [(state)]="bit.value"
+    [mouseEnterStrategy]="mouseEnterStrategy"
+    [style.grid-row]="bit.pos[0]"
+    [style.grid-column]="bit.pos[1]"
+    [size]="bitSize"
+    [trueStateColor]="trueStateColor"
+    [falseStateColor]="falseStateColor"
+    [readOnly]="readOnly"
+    [mouseMoveDisabled]="mouseMoveDisabled"
+  ></app-bit>
+</div>

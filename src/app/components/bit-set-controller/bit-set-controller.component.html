@@ -1,0 +1,48 @@
+<div class="inline-flex flex-wrap justify-content-center gap-1">
+  <button (click)="clearAll()" class="app-icon-btn">
+    <fa-icon [icon]="icons.faSquare" [style.color]="'#ff0040'"></fa-icon>
+  </button>
+  <button (click)="setAll()" class="app-icon-btn">
+    <fa-icon [icon]="icons.faSquare" [style.color]="'#30ff12'"></fa-icon>
+  </button>
+  <button
+    (click)="random()"
+    (appLongPress)="longRandom()"
+    [appLongPressThreshold]="250"
+    [appLongPressInterval]="1000"
+    [class.selected]="longRandomActive"
+    class="app-icon-btn"
+  >
+    <fa-icon [icon]="icons.faShuffle"></fa-icon>
+  </button>
+  <button (click)="rotateLeft()" (appLongPress)="rotateLeft()" [appLongPressThreshold]="150" class="app-icon-btn">
+    <fa-icon [icon]="icons.faAnglesLeft"></fa-icon>
+  </button>
+  <button (click)="rotateRight()" (appLongPress)="rotateRight()" [appLongPressThreshold]="150" class="app-icon-btn">
+    <fa-icon [icon]="icons.faAnglesRight"></fa-icon>
+  </button>
+  <button (click)="openLoadBitSetDialog()" class="app-icon-btn">
+    <fa-icon [icon]="icons.faKey"></fa-icon>
+  </button>
+  <div class="inline-flex flex-nowrap">
+    <button
+      *ngFor="let item of mouseEnterStrategies"
+      [class.selected]="item.value === mouseEnterStrategy"
+      [class.cursor-default-hover]="item.value === mouseEnterStrategy"
+      (click)="mouseEnterStrategy = item.value"
+      class="app-icon-btn"
+    >
+      <fa-icon [icon]="item.icon"></fa-icon>
+    </button>
+  </div>
+  <button (click)="lock()" class="app-icon-btn" [class.selected]="mouseMoveDisabled">
+    <fa-icon [icon]="icons.faLock"></fa-icon>
+  </button>
+</div>
+
+<app-load-bit-set-modal
+  (bitSetChange)="bitSet = $event"
+  [(visible)]="loadBitSetDialogVisible"
+  [min]="keyRangeStart"
+  [max]="keyRangeEnd"
+></app-load-bit-set-modal>

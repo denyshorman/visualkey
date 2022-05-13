@@ -1,0 +1,12 @@
+<div
+  class="bit"
+  (mouseenter)="mouseEnter($event)"
+  (mousedown)="mouseDown()"
+  (touchstart)="touchIgnore($event)"
+  (touchend)="touchIgnore($event)"
+  (touchcancel)="touchIgnore($event)"
+  (touchmove)="touchIgnore($event)"
+  [style.width.px]="size"
+  [style.height.px]="size"
+  [style.background-color]="state ? trueStateColor : falseStateColor"
+></div>

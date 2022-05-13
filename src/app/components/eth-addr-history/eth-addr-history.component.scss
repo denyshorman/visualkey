@@ -1,0 +1,14 @@
+@import '~src/styles/variables';
+
+.history-grid-min-height {
+  min-height: 250px;
+}
+
+.history-grid-stat-block {
+  color: $btnColor;
+  border: 1px solid $btnBorderColor;
+  background: $btnBgColor;
+  padding: 0 0.5rem;
+  height: 100%;
+  user-select: none;
+}

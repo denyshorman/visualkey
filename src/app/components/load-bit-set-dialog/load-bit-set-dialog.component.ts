@@ -1,0 +1,64 @@
+import { Component, EventEmitter, Input, Output } from '@angular/core';
+
+@Component({
+  selector: 'app-load-bit-set-modal',
+  templateUrl: './load-bit-set-dialog.component.html',
+  styleUrls: ['./load-bit-set-dialog.component.scss'],
+})
+export class LoadBitSetDialogComponent {
+  @Output() bitSetChange = new EventEmitter<bigint>();
+  @Output() visibleChange = new EventEmitter<boolean>();
+  @Input() min = BigInt(0);
+  @Input() max = BigInt(0);
+  valid = false;
+  instantBitSetChange = false;
+
+  private _visible = false;
+
+  @Input()
+  get visible(): boolean {
+    return this._visible;
+  }
+
+  set visible(visible: boolean) {
+    if (this._visible != visible) {
+      this._visible = visible;
+      this.visibleChange.emit(visible);
+
+      if (!visible) {
+        this.bitSetString = undefined;
+        this.valid = false;
+      }
+    }
+  }
+
+  private _bitSetString?: string;
+
+  get bitSetString(): string | undefined {
+    return this._bitSetString;
+  }
+
+  set bitSetString(bitSetStr: string | undefined) {
+    this._bitSetString = bitSetStr;
+
+    if (bitSetStr) {
+      try {
+        const num = BigInt(bitSetStr);
+        this.valid = num >= this.min && num < this.max;
+
+        if (this.instantBitSetChange && this.valid) {
+          this.bitSetChange.emit(num);
+        }
+      } catch (e) {
+        this.valid = false;
+      }
+    }
+  }
+
+  loadKey() {
+    if (!this.valid) return;
+    const bitSet = BigInt(this.bitSetString!);
+    this.bitSetChange.emit(bitSet);
+    this.visible = false;
+  }
+}
