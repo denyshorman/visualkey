@@ -1,0 +1,14 @@
+{
+  "site": {
+    "id": "591ed39d-d169-45a4-b38c-354ba33783b8",
+    "team": "30120b1e-3667-45ac-a514-9a642496bace",
+    "platform": "ipfs",
+    "source": "ipfs",
+    "name": "blockchain-pk-database"
+  },
+  "build": {
+    "baseDir": "dist",
+    "publicDir": "blockchain-pk-database",
+    "rootDir": ""
+  }
+}
