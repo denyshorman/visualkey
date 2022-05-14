@@ -4,7 +4,7 @@
     "team": "30120b1e-3667-45ac-a514-9a642496bace",
     "platform": "ipfs",
     "source": "ipfs",
-    "name": "blockchain-pk-database"
+    "name": "pkdb"
   },
   "build": {
     "baseDir": "dist",
