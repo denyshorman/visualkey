@@ -25,6 +25,7 @@ import { RippleModule } from 'primeng/ripple';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { LongPressDirective } from './directives/long-press.directive';
 import { TooltipModule } from 'primeng/tooltip';
+import { NgxGoogleAnalyticsModule } from 'ngx-google-analytics';
 
 @NgModule({
   declarations: [
@@ -38,6 +39,7 @@ import { TooltipModule } from 'primeng/tooltip';
     LongPressDirective,
   ],
   imports: [
+    NgxGoogleAnalyticsModule.forRoot('G-08E5MRDEMV'),
     BrowserModule,
     BrowserAnimationsModule,
     PanelModule,
