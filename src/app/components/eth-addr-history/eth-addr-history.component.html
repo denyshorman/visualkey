@@ -1,6 +1,6 @@
 <div class="flex flex-column h-full row-gap-1">
   <div class="flex flex-wrap gap-1">
-    <button class="app-text-btn" [class.selected]="showActive === true" (click)="showActive = !showActive">
+    <button class="app-text-btn" [class.selected]="showActive === true" (click)="showOnlyActive()">
       Only active addresses
     </button>
     <select class="app-select hidden md:block" id="currencyUnitOptions" [(ngModel)]="selectedCurrencyUnit">
@@ -15,7 +15,7 @@
     <button (click)="autoSize()" class="app-icon-btn">
       <fa-icon [icon]="icons.faUpRightAndDownLeftFromCenter"></fa-icon>
     </button>
-    <button class="app-icon-btn">
+    <button class="app-icon-btn" (click)="download()">
       <fa-icon [icon]="icons.faFileCsv"></fa-icon>
     </button>
     <div

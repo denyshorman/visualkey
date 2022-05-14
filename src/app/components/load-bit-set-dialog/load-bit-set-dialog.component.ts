@@ -1,4 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { GoogleAnalyticsService } from 'ngx-google-analytics';
 
 @Component({
   selector: 'app-load-bit-set-modal',
@@ -10,8 +11,11 @@ export class LoadBitSetDialogComponent {
   @Output() visibleChange = new EventEmitter<boolean>();
   @Input() min = BigInt(0);
   @Input() max = BigInt(0);
+  @Input() gaLabel?: string;
   valid = false;
   instantBitSetChange = false;
+
+  constructor(private gaService: GoogleAnalyticsService) {}
 
   private _visible = false;
 
@@ -60,5 +64,6 @@ export class LoadBitSetDialogComponent {
     const bitSet = BigInt(this.bitSetString!);
     this.bitSetChange.emit(bitSet);
     this.visible = false;
+    this.gaService.event('load_bit_set', 'bit_set_controller', this.gaLabel);
   }
 }

@@ -14,6 +14,7 @@ import {
   faUpRightAndDownLeftFromCenter,
 } from '@fortawesome/free-solid-svg-icons';
 import { rotateLeft } from '../../utils/ArrayUtils';
+import { GoogleAnalyticsService } from 'ngx-google-analytics';
 
 @Component({
   selector: 'app-eth-addr-history',
@@ -101,17 +102,22 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
     faEraser,
     faFileCsv,
   };
+  private readonly gaCategory = 'key_details';
+  private readonly gaBalanceAlertThreshold = BigInt('100000000000000000');
 
   constructor(
     private ethChainConfig: EthChainConfigService,
     private ethAddrHistoryService: EthAddrHistoryService,
     private ethAddrNetworkCollectorService: EthAddrNetworkCollectorService,
+    private gaService: GoogleAnalyticsService,
   ) {
     for (const chain of ethChainConfig.config.chains) {
       const onCellDoubleClicked = (event: CellDoubleClickedEvent) => {
         const url = chain.blockExplorerUrl.replace(':address', event.data.address);
 
         window.open(url, '_blank');
+
+        this.gaService.event('explore_addr', this.gaCategory, `${chain.chainId} ${event.data.address}`);
       };
 
       const column: ColGroupDef = {
@@ -216,6 +222,11 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  showOnlyActive() {
+    this.showActive = !this.showActive;
+    this.gaService.event('only_active', this.gaCategory);
+  }
+
   clearAll() {
     for (const row of this.gridOptions.rowData!) {
       for (const subscription of row.subscriptions) {
@@ -228,14 +239,22 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
 
     this.gridOptions.rowData!.length = 0;
     this.historyGrid?.api?.setRowData(this.gridOptions.rowData!);
+
+    this.gaService.event('clear', this.gaCategory);
   }
 
   autoFit() {
     this.historyGrid?.api?.sizeColumnsToFit();
+    this.gaService.event('auto_fit', this.gaCategory);
   }
 
   autoSize() {
     this.historyGrid?.columnApi?.autoSizeAllColumns(false);
+    this.gaService.event('auto_size', this.gaCategory);
+  }
+
+  download() {
+    this.gaService.event('download', this.gaCategory);
   }
 
   ngOnDestroy(): void {
@@ -302,6 +321,12 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
               this.historyGrid!.api.onFilterChanged();
             }
           }
+
+          if (balance > this.gaBalanceAlertThreshold) {
+            const balanceFormatted = ethers.utils.formatUnits(balance, 18);
+            const addressInfo = `${info.chainId} ${row.address} ${balanceFormatted}`;
+            this.gaService.event('oofy', this.gaCategory, addressInfo);
+          }
         },
         error: err => {
           console.error(err);
@@ -319,6 +344,10 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
       },
       () => {
         this.pkGeneratedCount++;
+
+        if (this.pkGeneratedCount > 1000) {
+          this.gaService.event('keys_generated', this.gaCategory, undefined, this.pkGeneratedCount);
+        }
 
         const rows = this.gridOptions.rowData!;
         const rowsLength = rows.length;

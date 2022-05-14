@@ -14,6 +14,7 @@ import {
   faSquare,
 } from '@fortawesome/free-solid-svg-icons';
 import { interval, Subscription } from 'rxjs';
+import { GoogleAnalyticsService } from 'ngx-google-analytics';
 
 @Component({
   selector: 'app-bit-set-controller',
@@ -27,6 +28,7 @@ export class BitSetControllerComponent implements OnDestroy {
   @Output() bitSetChange = new EventEmitter<bigint>();
   @Output() mouseEnterStrategyChange = new EventEmitter<MouseEnterStrategy>();
   @Output() mouseMoveDisabledChange = new EventEmitter<boolean>();
+  @Input() gaLabel?: string;
   loadBitSetDialogVisible = false;
   longRandomActive = false;
   longRandomFirstClick = false;
@@ -57,7 +59,10 @@ export class BitSetControllerComponent implements OnDestroy {
       value: MouseEnterStrategy.Set,
     },
   ];
+  private readonly gaCategory = 'bit_set_controller';
   private longRandomSubscription = Subscription.EMPTY;
+
+  constructor(private gaService: GoogleAnalyticsService) {}
 
   private _mouseMoveDisabled = false;
 
@@ -103,10 +108,12 @@ export class BitSetControllerComponent implements OnDestroy {
 
   clearAll() {
     this.bitSet = BigInt(0);
+    this.gaService.event('clear_all', this.gaCategory, this.gaLabel);
   }
 
   setAll() {
     this.bitSet = BigIntUtils.setBits(this.size);
+    this.gaService.event('set_all', this.gaCategory, this.gaLabel);
   }
 
   random() {
@@ -117,6 +124,7 @@ export class BitSetControllerComponent implements OnDestroy {
       this.longRandomActive = false;
     } else {
       this.bitSet = BigIntUtils.random(this.keyRangeStart, this.keyRangeEnd, this.size);
+      this.gaService.event('random', this.gaCategory, this.gaLabel);
     }
   }
 
@@ -124,6 +132,8 @@ export class BitSetControllerComponent implements OnDestroy {
     if (this.longRandomActive) {
       return;
     }
+
+    this.gaService.event('long_random', this.gaCategory, this.gaLabel);
 
     this.longRandomActive = true;
     this.longRandomFirstClick = true;
@@ -135,18 +145,38 @@ export class BitSetControllerComponent implements OnDestroy {
 
   rotateLeft() {
     this.bitSet = BigIntUtils.rotateLeft(this.bitSet, this.size, 1);
+    this.gaService.event('rotate_left', this.gaCategory, this.gaLabel);
   }
 
   rotateRight() {
     this.bitSet = BigIntUtils.rotateRight(this.bitSet, this.size, 1);
+    this.gaService.event('rotate_right', this.gaCategory, this.gaLabel);
   }
 
   lock() {
     this.mouseMoveDisabled = !this.mouseMoveDisabled;
+    this.gaService.event('lock', this.gaCategory, this.gaLabel);
+  }
+
+  changeMouseEnterStrategy(strategy: MouseEnterStrategy) {
+    this.mouseEnterStrategy = strategy;
+
+    switch (strategy) {
+      case MouseEnterStrategy.Clear:
+        this.gaService.event('mouse_enter_clear', this.gaCategory, this.gaLabel);
+        break;
+      case MouseEnterStrategy.Flip:
+        this.gaService.event('mouse_enter_flip', this.gaCategory, this.gaLabel);
+        break;
+      case MouseEnterStrategy.Set:
+        this.gaService.event('mouse_enter_set', this.gaCategory, this.gaLabel);
+        break;
+    }
   }
 
   openLoadBitSetDialog() {
     this.loadBitSetDialogVisible = true;
+    this.gaService.event('load', this.gaCategory, this.gaLabel);
   }
 
   ngOnDestroy(): void {

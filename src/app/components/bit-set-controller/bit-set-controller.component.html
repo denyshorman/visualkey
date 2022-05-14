@@ -29,7 +29,7 @@
       *ngFor="let item of mouseEnterStrategies"
       [class.selected]="item.value === mouseEnterStrategy"
       [class.cursor-default-hover]="item.value === mouseEnterStrategy"
-      (click)="mouseEnterStrategy = item.value"
+      (click)="changeMouseEnterStrategy(item.value)"
       class="app-icon-btn"
     >
       <fa-icon [icon]="item.icon"></fa-icon>
@@ -46,4 +46,5 @@
   [(visible)]="loadBitSetDialogVisible"
   [min]="keyRangeStart"
   [max]="keyRangeEnd"
+  [gaLabel]="gaLabel"
 ></app-load-bit-set-modal>
