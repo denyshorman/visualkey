@@ -5,7 +5,7 @@ import {
   DefaultFalseStateColor,
   DefaultMouseEnterStrategy,
   DefaultTrueStateColor,
-} from '../../components/bit/bit.component';
+} from '../../components/bit-set/bit-set.component';
 import { BigIntUtils } from '../../utils/BigIntUtils';
 
 @Component({

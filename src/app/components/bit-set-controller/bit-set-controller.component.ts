@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core';
 import { BigIntUtils } from '../../utils/BigIntUtils';
-import { DefaultMouseEnterStrategy, MouseEnterStrategy } from '../bit/bit.component';
+import { DefaultMouseEnterStrategy, MouseEnterStrategy } from '../bit-set/bit-set.component';
 import { faSquareMinus, faSquarePlus } from '@fortawesome/free-regular-svg-icons';
 import {
   faAnglesLeft,

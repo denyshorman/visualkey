@@ -41,6 +41,7 @@
 </div>
 
 <app-load-bit-set-modal
+  *ngIf="loadBitSetDialogVisible"
   (bitSetChange)="bitSet = $event"
   [(visible)]="loadBitSetDialogVisible"
   [min]="keyRangeStart"

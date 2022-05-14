@@ -2,7 +2,6 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppComponent } from './app.component';
-import { BitComponent } from './components/bit/bit.component';
 import { BitSetComponent } from './components/bit-set/bit-set.component';
 import { EthInfoComponent } from './components/eth-info/eth-info.component';
 import { PanelModule } from 'primeng/panel';
@@ -30,7 +29,6 @@ import { TooltipModule } from 'primeng/tooltip';
 @NgModule({
   declarations: [
     AppComponent,
-    BitComponent,
     BitSetComponent,
     EthInfoComponent,
     EthAddrGeneratorComponent,

@@ -4,16 +4,15 @@
   (touchmove)="touchMove($event)"
   (touchstart)="touchStart($event)"
 >
-  <app-bit
+  <div
+    class="bit"
     *ngFor="let bit of bitsArray"
-    [(state)]="bit.value"
-    [mouseEnterStrategy]="mouseEnterStrategy"
+    (mouseenter)="mouseEnter($event, bit)"
+    (mousedown)="mouseDown(bit)"
+    [style.width.px]="bitSize"
+    [style.height.px]="bitSize"
+    [style.background-color]="bit.value ? trueStateColor : falseStateColor"
     [style.grid-row]="bit.pos[0]"
     [style.grid-column]="bit.pos[1]"
-    [size]="bitSize"
-    [trueStateColor]="trueStateColor"
-    [falseStateColor]="falseStateColor"
-    [readOnly]="readOnly"
-    [mouseMoveDisabled]="mouseMoveDisabled"
-  ></app-bit>
+  ></div>
 </div>
