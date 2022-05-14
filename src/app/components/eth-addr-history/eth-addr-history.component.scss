@@ -9,6 +9,6 @@
   border: 1px solid $btnBorderColor;
   background: $btnBgColor;
   padding: 0 0.5rem;
-  height: 100%;
+  height: $btnHeight;
   user-select: none;
 }

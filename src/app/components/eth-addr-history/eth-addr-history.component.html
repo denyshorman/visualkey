@@ -3,7 +3,7 @@
     <button class="app-text-btn" [class.selected]="showActive === true" (click)="showActive = !showActive">
       Only active addresses
     </button>
-    <select class="app-select" id="currencyUnitOptions" [(ngModel)]="selectedCurrencyUnit">
+    <select class="app-select hidden md:block" id="currencyUnitOptions" [(ngModel)]="selectedCurrencyUnit">
       <option *ngFor="let o of currencyUnitOptions" [ngValue]="o.value">{{ o.name }}</option>
     </select>
     <button (click)="clearAll()" class="app-icon-btn">
