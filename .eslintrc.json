@@ -34,7 +34,6 @@
         "prefer-const": "error",
         "radix": "error",
         "require-await": "error",
-        "no-useless-constructor": "error",
         "arrow-parens": ["error", "as-needed"],
         "arrow-spacing": "error",
         "dot-location": ["error", "property"],
