@@ -345,8 +345,8 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
       () => {
         this.pkGeneratedCount++;
 
-        if (this.pkGeneratedCount > 1000) {
-          this.gaService.event('keys_generated', this.gaCategory, undefined, this.pkGeneratedCount);
+        if ((this.pkGeneratedCount & 1023) == 0) {
+          this.gaService.event('total_generated', this.gaCategory, undefined, this.pkGeneratedCount);
         }
 
         const rows = this.gridOptions.rowData!;
