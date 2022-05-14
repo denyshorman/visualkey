@@ -12,6 +12,9 @@ jobs:
       name: prod
     steps:
       - uses: actions/checkout@v3.0.2
+        with:
+          lfs: true
+      - run: git lfs checkout
       - uses: actions/setup-node@v3.1.1
       - run: npm install
       - run: npm run build
