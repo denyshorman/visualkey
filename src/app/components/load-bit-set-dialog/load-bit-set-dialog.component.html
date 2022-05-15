@@ -1,4 +1,11 @@
-<p-dialog [(visible)]="visible" position="bottom" [style]="{ width: '50vw' }" header="Load Custom Key">
+<p-dialog
+  [(visible)]="visible"
+  position="bottom"
+  [breakpoints]="breakpoints"
+  [style]="{ width: '50vw' }"
+  [contentStyle]="{ paddingBottom: '0.5rem' }"
+  header="Load Custom Key"
+>
   <input
     type="text"
     pInputText
@@ -10,11 +17,19 @@
     [class.ng-invalid]="!valid && bitSetString && bitSetString.length > 0"
   />
   <small class="block mt-1 p-error" *ngIf="!valid && bitSetString && bitSetString.length > 0">Key is not valid</small>
-  <p-checkbox class="mt-1" [(ngModel)]="instantBitSetChange" [binary]="true" label="Show instantly"></p-checkbox>
-  <small class="block mt-2">
-    Hint: Key supports binary (0b1010100110...), decimal (12345678...), and hex (0x1234567...) formats
-  </small>
-  <small class="block mt-1">Hint: Key must be in range {{ min }} - 0x{{ max.toString(16) }} (exclusive)</small>
+  <button
+    class="app-text-btn mt-1"
+    [class.selected]="instantBitSetChange === true"
+    (click)="instantBitSetChange = !instantBitSetChange"
+  >
+    Show instantly
+  </button>
+  <div class="overflow-auto white-space-nowrap">
+    <small class="block mt-2">
+      Hint: Key supports binary (0b1010100110...), decimal (12345678...), and hex (0x1234567...) formats
+    </small>
+    <small class="block mt-1 mb-3">Hint: Key must be in range {{ min }} - 0x{{ max.toString(16) }} (exclusive)</small>
+  </div>
 
   <ng-template pTemplate="footer">
     <p-button label="Cancel" styleClass="p-button-text" (click)="visible = false"></p-button>

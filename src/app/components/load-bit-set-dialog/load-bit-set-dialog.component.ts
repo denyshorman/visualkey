@@ -15,6 +15,13 @@ export class LoadBitSetDialogComponent {
   valid = false;
   instantBitSetChange = false;
 
+  breakpoints = {
+    '1360px': '70vw',
+    '1280px': '75vw',
+    '1024px': '80vw',
+    '640px': '95vw',
+  };
+
   constructor(private gaService: GoogleAnalyticsService) {}
 
   private _visible = false;
