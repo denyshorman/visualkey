@@ -10,7 +10,7 @@ import { ethers } from 'ethers';
 import {
   faDownLeftAndUpRightToCenter,
   faEraser,
-  faFileCsv,
+  faDownload,
   faUpRightAndDownLeftFromCenter,
 } from '@fortawesome/free-solid-svg-icons';
 import { rotateLeft } from '../../utils/ArrayUtils';
@@ -100,7 +100,7 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
     faUpRightAndDownLeftFromCenter,
     faDownLeftAndUpRightToCenter,
     faEraser,
-    faFileCsv,
+    faDownload,
   };
   private readonly gaCategory = 'key_details';
   private readonly gaBalanceAlertThreshold = BigInt('100000000000000000');
@@ -254,6 +254,7 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
   }
 
   download() {
+    this.historyGrid?.api.exportDataAsCsv();
     this.gaService.event('download', this.gaCategory);
   }
 
