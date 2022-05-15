@@ -26,6 +26,7 @@ import { SelectButtonModule } from 'primeng/selectbutton';
 import { LongPressDirective } from './directives/long-press.directive';
 import { TooltipModule } from 'primeng/tooltip';
 import { NgxGoogleAnalyticsModule } from 'ngx-google-analytics';
+import { environment } from '../environments/environment';
 
 @NgModule({
   declarations: [
@@ -39,7 +40,7 @@ import { NgxGoogleAnalyticsModule } from 'ngx-google-analytics';
     LongPressDirective,
   ],
   imports: [
-    NgxGoogleAnalyticsModule.forRoot('G-08E5MRDEMV'),
+    NgxGoogleAnalyticsModule.forRoot(environment.gaMeasurementId),
     BrowserModule,
     BrowserAnimationsModule,
     PanelModule,

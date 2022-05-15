@@ -6,6 +6,8 @@ import { environment } from './environments/environment';
 
 if (environment.production) {
   enableProdMode();
+} else {
+  (window as any)[`ga-disable-${environment.gaMeasurementId}`] = true;
 }
 
 platformBrowserDynamic()
