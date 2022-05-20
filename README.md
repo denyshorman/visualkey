@@ -40,7 +40,7 @@ The tool instantly shows balances for a selected address.
 Since the tool allows you to generate all possible private keys and addresses, there is a chance that you will find an active address.  
 You have to be very, very lucky to find an address with a large balance. It's a free lottery. Anyone can play it for free. In other words, zero investment - unlimited income.
 
-## How does it work ?
+## How does it work?
 
 The tool displays the square (private key) and the rectangle (address).  
 The private key consists of 256 small squares, and the address consists of 160 squares.  
@@ -80,5 +80,5 @@ The same is true for an address.
 
 ## Contributions
 
-Found an issue or have a proposal ?  
+Found an issue or have a proposal?  
 Feel free to open a ticket or submit a pull request!
