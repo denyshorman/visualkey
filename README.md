@@ -2,6 +2,8 @@
 
 A convenient tool to visually generate a private key and address with automatic balance and activity check across several EVM-compatible blockchains.
 
+![image](https://user-images.githubusercontent.com/18450062/169537786-8c3decf1-6d57-41b6-bc64-8aedbf5b1bd5.png)
+
 ## Motivation
 
 To receive or send tokens in a blockchain, one needs to have an address.  
