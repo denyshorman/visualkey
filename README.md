@@ -7,13 +7,14 @@ A convenient tool to visually generate a private key and address with automatic 
 ## Motivation
 
 To receive or send tokens in a blockchain, one needs to have an address.  
-The next reasonable question for a new user is how to get this address?  
+But how to get this address?  
 The answer to this question is both simple and difficult.  
 Simply put, an address in Ethereum is a regular number.  
 10, 256, 1122233, etc - these numbers are valid addresses in Ethereum.  
-The next step is to pick up any random number and ask your friend to send some tokens to this number (address).  
-Sounds simple, doesn't it?  
-When you receive some tokens at a newly generated address, the next step is to spend them.  
+The next reasonable step for a newcomer would be to pick up any random number (address) to receive tokens.  
+Sounds simple, doesn't it?
+
+When you receive some tokens at a newly generated address, one of the options would be to spend them.  
 And here come some difficulties.  
 If you could simply pick up any random number as an address and share it with anyone, why couldn't someone else do it?  
 You need to somehow protect your address from being used by others.  
@@ -37,8 +38,8 @@ Share the address with others to receive tokens, and keep your private key a sec
 
 [Visual key](https://visualkey.link) tool allows you to visually pick up a private key number and also visually see how this number is transformed to an address.  
 The tool instantly shows balances for a selected address.  
-Since the tool allows you to generate all possible private keys and addresses, there is a chance that you will find an active address.  
-You have to be very, very lucky to find an address with a large balance. It's a free lottery. Anyone can play it for free. In other words, zero investment - unlimited income.
+Since it is possible to generate all possible private keys and addresses, there is a chance that you will find an active address.  
+You have to be very, very lucky to find an address with a large balance. It can be treated as a free lottery.  
 
 ## How does it work?
 
