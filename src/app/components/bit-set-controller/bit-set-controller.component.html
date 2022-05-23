@@ -15,10 +15,10 @@
   >
     <fa-icon [icon]="icons.faShuffle"></fa-icon>
   </button>
-  <button (click)="rotateLeft()" (appLongPress)="rotateLeft()" [appLongPressThreshold]="150" class="app-icon-btn">
+  <button (click)="rotateLeft()" (appLongPress)="rotateLeftLong()" [appLongPressThreshold]="150" class="app-icon-btn">
     <fa-icon [icon]="icons.faAnglesLeft"></fa-icon>
   </button>
-  <button (click)="rotateRight()" (appLongPress)="rotateRight()" [appLongPressThreshold]="150" class="app-icon-btn">
+  <button (click)="rotateRight()" (appLongPress)="rotateRightLong()" [appLongPressThreshold]="150" class="app-icon-btn">
     <fa-icon [icon]="icons.faAnglesRight"></fa-icon>
   </button>
   <button (click)="openLoadBitSetDialog()" class="app-icon-btn">

@@ -153,6 +153,16 @@ export class BitSetControllerComponent implements OnDestroy {
     this.gaService.event('rotate_right', this.gaCategory, this.gaLabel);
   }
 
+  rotateLeftLong() {
+    this.bitSet = BigIntUtils.rotateLeft(this.bitSet, this.size, 1);
+    this.gaService.event('rotate_left_long', this.gaCategory, this.gaLabel);
+  }
+
+  rotateRightLong() {
+    this.bitSet = BigIntUtils.rotateRight(this.bitSet, this.size, 1);
+    this.gaService.event('rotate_right_long', this.gaCategory, this.gaLabel);
+  }
+
   lock() {
     this.mouseMoveDisabled = !this.mouseMoveDisabled;
     this.gaService.event('lock', this.gaCategory, this.gaLabel);
