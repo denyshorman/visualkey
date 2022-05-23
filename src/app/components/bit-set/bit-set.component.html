@@ -1,14 +1,16 @@
 <div
   class="bit-set"
   (contextmenu)="$event.preventDefault()"
-  (touchmove)="touchMove($event)"
-  (touchstart)="touchStart($event)"
+  (touchmove)="bitSetTouchMove($event)"
+  (touchstart)="bitSetTouchStart($event)"
+  (mouseenter)="bitSetMouseEnter()"
+  (mouseleave)="bitSetMouseLeave()"
 >
   <div
     class="bit"
     *ngFor="let bit of bitsArray"
-    (mouseenter)="mouseEnter($event, bit)"
-    (mousedown)="mouseDown(bit)"
+    (mouseenter)="bitMouseEnter($event, bit)"
+    (mousedown)="bitMouseDown(bit)"
     [style.width.px]="bitSize"
     [style.height.px]="bitSize"
     [style.background-color]="bit.value ? trueStateColor : falseStateColor"

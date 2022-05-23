@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { BigIntUtils } from '../../utils/BigIntUtils';
+import { GoogleAnalyticsService } from 'ngx-google-analytics';
 
 @Component({
   selector: 'app-bit-set',
@@ -17,8 +18,12 @@ export class BitSetComponent implements OnChanges {
   @Input() mouseEnterStrategy = DefaultMouseEnterStrategy;
   @Input() readOnly = false;
   @Input() mouseMoveDisabled = false;
+  @Input() gaLabel?: string;
   bitsArray: BitInfo[] = [];
   private prevTouchElem?: Element;
+  private readonly gaCategory = 'bit_set';
+
+  constructor(private gaService: GoogleAnalyticsService) {}
 
   private static isLeftButtonPressed(e: MouseEvent): boolean {
     return e.buttons === 1 || e.button === 1;
@@ -34,7 +39,7 @@ export class BitSetComponent implements OnChanges {
     }
   }
 
-  touchMove(e: TouchEvent) {
+  bitSetTouchMove(e: TouchEvent) {
     if (this.readOnly) {
       return;
     }
@@ -50,7 +55,7 @@ export class BitSetComponent implements OnChanges {
     }
   }
 
-  touchStart(e: TouchEvent) {
+  bitSetTouchStart(e: TouchEvent) {
     if (this.readOnly) {
       return;
     }
@@ -64,7 +69,23 @@ export class BitSetComponent implements OnChanges {
     this.prevTouchElem = undefined;
   }
 
-  mouseEnter(e: MouseEvent, bit: BitInfo) {
+  bitSetMouseEnter() {
+    if (this.readOnly) {
+      return;
+    }
+
+    this.gaService.event('bitset_enter', this.gaCategory, this.gaLabel);
+  }
+
+  bitSetMouseLeave() {
+    if (this.readOnly) {
+      return;
+    }
+
+    this.gaService.event('bitset_leave', this.gaCategory, this.gaLabel);
+  }
+
+  bitMouseEnter(e: MouseEvent, bit: BitInfo) {
     if (this.readOnly || (this.mouseMoveDisabled && !BitSetComponent.isLeftButtonPressed(e))) {
       return;
     } else {
@@ -72,7 +93,7 @@ export class BitSetComponent implements OnChanges {
     }
   }
 
-  mouseDown(bit: BitInfo) {
+  bitMouseDown(bit: BitInfo) {
     if (this.readOnly) {
       return;
     }
