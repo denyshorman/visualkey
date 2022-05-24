@@ -7,7 +7,11 @@ import { environment } from './environments/environment';
 if (environment.production) {
   enableProdMode();
 } else {
-  (window as any)[`ga-disable-${environment.gaMeasurementId}`] = true;
+  const queryParams = new URLSearchParams(location.search);
+
+  if (queryParams.has('disablega')) {
+    (window as any)[`ga-disable-${environment.gaMeasurementId}`] = true;
+  }
 }
 
 platformBrowserDynamic()
