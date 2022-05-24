@@ -1,8 +1,8 @@
 <div class="inline-flex flex-wrap justify-content-center gap-1">
-  <button (click)="clearAll()" class="app-icon-btn">
+  <button (click)="clearAll()" class="app-icon-btn" pTooltip="Clear all" tooltipPosition="bottom" [showDelay]="700">
     <fa-icon [icon]="icons.faSquare" [style.color]="'#ff0040'"></fa-icon>
   </button>
-  <button (click)="setAll()" class="app-icon-btn">
+  <button (click)="setAll()" class="app-icon-btn" pTooltip="Set all" tooltipPosition="bottom" [showDelay]="700">
     <fa-icon [icon]="icons.faSquare" [style.color]="'#30ff12'"></fa-icon>
   </button>
   <button
@@ -21,7 +21,13 @@
   <button (click)="rotateRight()" (appLongPress)="rotateRightLong()" [appLongPressThreshold]="150" class="app-icon-btn">
     <fa-icon [icon]="icons.faAnglesRight"></fa-icon>
   </button>
-  <button (click)="openLoadBitSetDialog()" class="app-icon-btn">
+  <button
+    (click)="openLoadBitSetDialog()"
+    class="app-icon-btn"
+    pTooltip="Load custom key"
+    tooltipPosition="bottom"
+    [showDelay]="700"
+  >
     <fa-icon [icon]="icons.faKey"></fa-icon>
   </button>
   <div class="inline-flex flex-nowrap">
@@ -31,11 +37,21 @@
       [class.cursor-default-hover]="item.value === mouseEnterStrategy"
       (click)="changeMouseEnterStrategy(item.value)"
       class="app-icon-btn"
+      [pTooltip]="item.tooltip"
+      tooltipPosition="bottom"
+      [showDelay]="700"
     >
       <fa-icon [icon]="item.icon"></fa-icon>
     </button>
   </div>
-  <button (click)="lock()" class="app-icon-btn" [class.selected]="mouseMoveDisabled">
+  <button
+    (click)="lock()"
+    class="app-icon-btn"
+    [class.selected]="mouseMoveDisabled"
+    pTooltip="Disable state change moving the mouse"
+    tooltipPosition="bottom"
+    [showDelay]="700"
+  >
     <fa-icon [icon]="icons.faLock"></fa-icon>
   </button>
 </div>

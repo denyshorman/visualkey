@@ -21,6 +21,9 @@
     class="app-text-btn mt-1"
     [class.selected]="instantBitSetChange === true"
     (click)="instantBitSetChange = !instantBitSetChange"
+    pTooltip="Display number instantly while typing"
+    tooltipPosition="bottom"
+    [showDelay]="700"
   >
     Show instantly
   </button>

@@ -49,14 +49,17 @@ export class BitSetControllerComponent implements OnDestroy {
     {
       icon: faMinus,
       value: MouseEnterStrategy.Clear,
+      tooltip: 'Mouse clears',
     },
     {
       icon: faPlusMinus,
       value: MouseEnterStrategy.Flip,
+      tooltip: 'Mouse flips',
     },
     {
       icon: faPlus,
       value: MouseEnterStrategy.Set,
+      tooltip: 'Mouse sets',
     },
   ];
   private readonly gaCategory = 'bit_set_controller';

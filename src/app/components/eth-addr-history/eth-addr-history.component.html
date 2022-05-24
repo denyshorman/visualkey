@@ -3,19 +3,38 @@
     <button class="app-text-btn" [class.selected]="showActive === true" (click)="showOnlyActive()">
       Only active addresses
     </button>
-    <select class="app-select hidden md:block" id="currencyUnitOptions" [(ngModel)]="selectedCurrencyUnit">
+    <select
+      class="app-select hidden md:block"
+      id="currencyUnitOptions"
+      [(ngModel)]="selectedCurrencyUnit"
+      pTooltip="Balance formatting"
+      tooltipPosition="top"
+      [showDelay]="500"
+    >
       <option *ngFor="let o of currencyUnitOptions" [ngValue]="o.value">{{ o.name }}</option>
     </select>
-    <button (click)="clearAll()" class="app-icon-btn">
+    <button (click)="clearAll()" class="app-icon-btn" pTooltip="Clear" tooltipPosition="top" [showDelay]="500">
       <fa-icon [icon]="icons.faEraser"></fa-icon>
     </button>
-    <button (click)="autoFit()" class="app-icon-btn">
+    <button
+      (click)="autoFit()"
+      class="app-icon-btn"
+      pTooltip="Shrink columns to fit screen"
+      tooltipPosition="top"
+      [showDelay]="500"
+    >
       <fa-icon [icon]="icons.faDownLeftAndUpRightToCenter"></fa-icon>
     </button>
-    <button (click)="autoSize()" class="app-icon-btn">
+    <button
+      (click)="autoSize()"
+      class="app-icon-btn"
+      pTooltip="Expand columns to fit content"
+      tooltipPosition="top"
+      [showDelay]="500"
+    >
       <fa-icon [icon]="icons.faUpRightAndDownLeftFromCenter"></fa-icon>
     </button>
-    <button class="app-icon-btn" (click)="download()">
+    <button class="app-icon-btn" (click)="download()" pTooltip="Export" tooltipPosition="top" [showDelay]="500">
       <fa-icon [icon]="icons.faDownload"></fa-icon>
     </button>
     <div
