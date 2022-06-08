@@ -19,6 +19,7 @@ jobs:
       - uses: actions/setup-node@v3.1.1
       - run: npm install
       - run: npm run build
+      - run: npm run minify-index
       - env:
           FLEEK_API_KEY: ${{ secrets.FLEEK_API_KEY }}
-        run: npx fleek site:deploy
+        run: npm run deploy
