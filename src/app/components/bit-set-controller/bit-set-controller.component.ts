@@ -12,6 +12,7 @@ import {
   faPlusMinus,
   faShuffle,
   faSquare,
+  faRepeat,
 } from '@fortawesome/free-solid-svg-icons';
 import { interval, Subscription } from 'rxjs';
 import { GoogleAnalyticsService } from 'ngx-google-analytics';
@@ -44,6 +45,7 @@ export class BitSetControllerComponent implements OnDestroy {
     faPlusMinus,
     faSquare,
     faLock,
+    faRepeat,
   };
   mouseEnterStrategies = [
     {
@@ -164,6 +166,11 @@ export class BitSetControllerComponent implements OnDestroy {
   rotateRightLong() {
     this.bitSet = BigIntUtils.rotateRight(this.bitSet, this.size, 1);
     this.gaService.event('rotate_right_long', this.gaCategory, this.gaLabel);
+  }
+
+  invert() {
+    this.bitSet = BigIntUtils.invert(this.bitSet, this.size);
+    this.gaService.event('invert', this.gaCategory, this.gaLabel);
   }
 
   lock() {

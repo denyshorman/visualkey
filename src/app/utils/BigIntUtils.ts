@@ -11,6 +11,11 @@ export class BigIntUtils {
     }
   }
 
+  static invertBit(num: bigint, pos: number): bigint {
+    const bit = BigIntUtils.getBit(num, pos);
+    return BigIntUtils.setBit(num, pos, !bit);
+  }
+
   static setBits(count: number): bigint {
     let value = BigInt(0);
     for (let i = 0; i < count; i++) {
@@ -65,5 +70,13 @@ export class BigIntUtils {
       i++;
     }
     return rnd;
+  }
+
+  static invert(num: bigint, bitsCount: number): bigint {
+    let inverted = num;
+    for (let bitIndex = 0; bitIndex < bitsCount; bitIndex++) {
+      inverted = BigIntUtils.invertBit(inverted, bitIndex);
+    }
+    return inverted;
   }
 }

@@ -21,6 +21,9 @@
   <button (click)="rotateRight()" (appLongPress)="rotateRightLong()" [appLongPressThreshold]="150" class="app-icon-btn">
     <fa-icon [icon]="icons.faAnglesRight"></fa-icon>
   </button>
+  <button (click)="invert()" class="app-icon-btn" pTooltip="Invert" tooltipPosition="bottom" [showDelay]="700">
+    <fa-icon [icon]="icons.faRepeat"></fa-icon>
+  </button>
   <button
     (click)="openLoadBitSetDialog()"
     class="app-icon-btn"
