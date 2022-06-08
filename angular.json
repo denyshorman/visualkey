@@ -7,7 +7,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "blockchain-pk-database": {
+    "visualkey": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -24,7 +24,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/blockchain-pk-database",
+            "outputPath": "dist/visualkey",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
@@ -71,10 +71,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "blockchain-pk-database:build:production"
+              "browserTarget": "visualkey:build:production"
             },
             "development": {
-              "browserTarget": "blockchain-pk-database:build:development"
+              "browserTarget": "visualkey:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -82,7 +82,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "blockchain-pk-database:build"
+            "browserTarget": "visualkey:build"
           }
         },
         "test": {
@@ -107,5 +107,5 @@
       }
     }
   },
-  "defaultProject": "blockchain-pk-database"
+  "defaultProject": "visualkey"
 }

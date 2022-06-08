@@ -8,7 +8,7 @@
   },
   "build": {
     "baseDir": "dist",
-    "publicDir": "blockchain-pk-database",
+    "publicDir": "visualkey",
     "rootDir": ""
   }
 }

@@ -17,7 +17,7 @@ module.exports = function (config) {
       suppressAll: true,
     },
     coverageReporter: {
-      dir: require('path').join(__dirname, './coverage/blockchain-pk-database'),
+      dir: require('path').join(__dirname, './coverage/visualkey'),
       subdir: '.',
       reporters: [{ type: 'html' }, { type: 'text-summary' }],
     },
