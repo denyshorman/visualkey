@@ -144,6 +144,16 @@
         "https://forno.celo.org",
         "https://rpc.ankr.com/celo"
       ]
+    },
+    {
+      "name": "Cronos",
+      "currency": "CRO",
+      "chainId": 25,
+      "blockExplorerUrl": "https://cronoscan.com/address/:address",
+      "rpcUrls": [
+        "https://evm.cronos.org",
+        "https://evm-cronos.crypto.org"
+      ]
     }
   ]
 }
