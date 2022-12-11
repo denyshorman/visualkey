@@ -20,7 +20,7 @@
       ]
     },
     {
-      "name": "BSC",
+      "name": "BNB Chain",
       "currency": "BNB",
       "chainId": 56,
       "blockExplorerUrl": "https://bscscan.com/address/:address",
