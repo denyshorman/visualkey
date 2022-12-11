@@ -37,6 +37,15 @@
     <button class="app-icon-btn" (click)="download()" pTooltip="Export" tooltipPosition="top" [showDelay]="500">
       <fa-icon [icon]="icons.faDownload"></fa-icon>
     </button>
+    <button
+      class="app-icon-btn align-self-end"
+      (click)="viewSourceCode()"
+      pTooltip="Source code"
+      tooltipPosition="top"
+      [showDelay]="500"
+    >
+      <fa-icon [icon]="icons.faGithub"></fa-icon>
+    </button>
     <div
       class="inline-flex align-items-center history-grid-stat-block"
       pTooltip="Displayed/Generated"

@@ -13,8 +13,10 @@ import {
   faDownload,
   faUpRightAndDownLeftFromCenter,
 } from '@fortawesome/free-solid-svg-icons';
+import { faGithub } from '@fortawesome/free-brands-svg-icons';
 import { rotateLeft } from '../../utils/ArrayUtils';
 import { GoogleAnalyticsService } from 'ngx-google-analytics';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-eth-addr-history',
@@ -101,6 +103,7 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
     faDownLeftAndUpRightToCenter,
     faEraser,
     faDownload,
+    faGithub,
   };
   private readonly gaCategory = 'key_details';
   private readonly gaBalanceAlertThreshold = BigInt('100000000000000000');
@@ -256,6 +259,11 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
   download() {
     this.historyGrid?.api.exportDataAsCsv();
     this.gaService.event('download', this.gaCategory);
+  }
+
+  viewSourceCode() {
+    this.gaService.event('view_source_code', this.gaCategory);
+    window.open(environment.sourceCodeRepositoryUrl, '_blank');
   }
 
   ngOnDestroy(): void {
