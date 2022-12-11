@@ -50,7 +50,7 @@ Below the square and rectangle, the private key and address are displayed as num
 A number can be formatted in a different formats but the most popular are
  - [binary](https://en.wikipedia.org/wiki/Binary_number) - 0b10111
  - [decimal](https://en.wikipedia.org/wiki/Decimal) - 23
- - [hex](https://en.wikipedia.org/wiki/Hexadecimal) - 0x17
+ - [hexdecimal](https://en.wikipedia.org/wiki/Hexadecimal) - 0x17
 
 These are different formats of the number 23.
 
@@ -64,6 +64,7 @@ The same is true for an address.
 - Set a private key to the lowest (red button) or the largest number (green button)
 - Generate a random private key (hold the random button to automate the random key generation)
 - Left and Right rotation of a private key (hold the button to automate rotation)
+- Invert private key
 - Load custom private key in a binary, decimal, or hexadecimal formats
 - Move the mouse over a private key square to change the state of a small square ([bit](https://en.wikipedia.org/wiki/Bit))
 - Change the mouse over strategy
@@ -78,8 +79,3 @@ The same is true for an address.
 - Auto size columns to fit content
 - Filter any column to find any specific value (e.g. to find an address with a specific prefix)
 - Sort the table by any column
-
-## Contributions
-
-Found an issue or have a proposal?  
-Feel free to open a ticket or submit a pull request!
