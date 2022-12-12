@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@angular/animations": "^15.0.3",
-    "@angular/cdk": "^13.3.7",
+    "@angular/cdk": "^15.0.2",
     "@angular/common": "^15.0.3",
     "@angular/compiler": "^15.0.3",
     "@angular/core": "^15.0.3",
@@ -34,7 +34,7 @@
     "ethers": "^5.7.2",
     "ngx-google-analytics": "^14.0.1",
     "primeflex": "^3.3.0",
-    "primeng": "^15.0.0-rc.1",
+    "primeng": "^15.0.0",
     "rxjs": "~7.6.0",
     "tslib": "^2.4.1",
     "zone.js": "~0.12.0"
