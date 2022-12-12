@@ -30,6 +30,7 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
     enableCellTextSelection: true,
     ensureDomOrder: true,
     suppressCellFocus: true,
+    suppressRowHoverHighlight: true,
     context: {
       selectedCurrencyUnit: 18,
     },
