@@ -9,11 +9,11 @@ import { asyncScheduler, observeOn, Subscription } from 'rxjs';
 import { ethers } from 'ethers';
 import {
   faDownLeftAndUpRightToCenter,
-  faEraser,
+  faTrashCan,
   faDownload,
   faUpRightAndDownLeftFromCenter,
+  faCode,
 } from '@fortawesome/free-solid-svg-icons';
-import { faGithub } from '@fortawesome/free-brands-svg-icons';
 import { rotateLeft } from '../../utils/ArrayUtils';
 import { GoogleAnalyticsService } from 'ngx-google-analytics';
 import { environment } from '../../../environments/environment';
@@ -101,9 +101,9 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
   icons = {
     faUpRightAndDownLeftFromCenter,
     faDownLeftAndUpRightToCenter,
-    faEraser,
+    faTrashCan,
     faDownload,
-    faGithub,
+    faCode,
   };
   private readonly gaCategory = 'key_details';
   private readonly gaBalanceAlertThreshold = BigInt('100000000000000000');

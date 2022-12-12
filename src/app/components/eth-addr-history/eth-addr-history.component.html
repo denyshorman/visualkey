@@ -1,58 +1,69 @@
 <div class="flex flex-column h-full row-gap-1">
-  <div class="flex flex-wrap gap-1">
-    <button class="app-text-btn" [class.selected]="showActive === true" (click)="showOnlyActive()">
-      Only active addresses
-    </button>
-    <select
-      class="app-select hidden md:block"
-      id="currencyUnitOptions"
-      [(ngModel)]="selectedCurrencyUnit"
-      pTooltip="Balance formatting"
-      tooltipPosition="top"
-      [showDelay]="500"
-    >
-      <option *ngFor="let o of currencyUnitOptions" [ngValue]="o.value">{{ o.name }}</option>
-    </select>
-    <button (click)="clearAll()" class="app-icon-btn" pTooltip="Clear" tooltipPosition="top" [showDelay]="500">
-      <fa-icon [icon]="icons.faEraser"></fa-icon>
-    </button>
-    <button
-      (click)="autoFit()"
-      class="app-icon-btn"
-      pTooltip="Shrink columns to fit screen"
-      tooltipPosition="top"
-      [showDelay]="500"
-    >
-      <fa-icon [icon]="icons.faDownLeftAndUpRightToCenter"></fa-icon>
-    </button>
-    <button
-      (click)="autoSize()"
-      class="app-icon-btn"
-      pTooltip="Expand columns to fit content"
-      tooltipPosition="top"
-      [showDelay]="500"
-    >
-      <fa-icon [icon]="icons.faUpRightAndDownLeftFromCenter"></fa-icon>
-    </button>
-    <button class="app-icon-btn" (click)="download()" pTooltip="Export" tooltipPosition="top" [showDelay]="500">
-      <fa-icon [icon]="icons.faDownload"></fa-icon>
-    </button>
-    <button
-      class="app-icon-btn align-self-end"
-      (click)="viewSourceCode()"
-      pTooltip="Source code"
-      tooltipPosition="top"
-      [showDelay]="500"
-    >
-      <fa-icon [icon]="icons.faGithub"></fa-icon>
-    </button>
-    <div
-      class="inline-flex align-items-center history-grid-stat-block"
-      pTooltip="Displayed/Generated"
-      tooltipPosition="top"
-      [showDelay]="800"
-    >
-      {{ displayedRowCount }}/{{ pkGeneratedCount }}
+  <div class="flex flex-nowrap justify-content-between row-gap-1">
+    <div class="flex flex-nowrap column-gap-1 overflow-auto">
+      <button class="app-text-btn flex-shrink-0" [class.selected]="showActive === true" (click)="showOnlyActive()">
+        Only active addresses
+      </button>
+      <select
+        class="app-select hidden md:block flex-shrink-0"
+        id="currencyUnitOptions"
+        [(ngModel)]="selectedCurrencyUnit"
+        pTooltip="Balance formatting"
+        tooltipPosition="top"
+        [showDelay]="500"
+      >
+        <option *ngFor="let o of currencyUnitOptions" [ngValue]="o.value">{{ o.name }}</option>
+      </select>
+      <button
+        (click)="clearAll()"
+        class="app-icon-btn flex-shrink-0"
+        pTooltip="Clear the table"
+        tooltipPosition="top"
+        [showDelay]="500"
+      >
+        <fa-icon [icon]="icons.faTrashCan"></fa-icon>
+      </button>
+      <button
+        (click)="autoFit()"
+        class="app-icon-btn flex-shrink-0"
+        pTooltip="Shrink columns to fit screen"
+        tooltipPosition="top"
+        [showDelay]="500"
+      >
+        <fa-icon [icon]="icons.faDownLeftAndUpRightToCenter"></fa-icon>
+      </button>
+      <button
+        (click)="autoSize()"
+        class="app-icon-btn flex-shrink-0"
+        pTooltip="Expand columns to fit content"
+        tooltipPosition="top"
+        [showDelay]="500"
+      >
+        <fa-icon [icon]="icons.faUpRightAndDownLeftFromCenter"></fa-icon>
+      </button>
+      <button
+        class="app-icon-btn flex-shrink-0"
+        (click)="download()"
+        pTooltip="Export"
+        tooltipPosition="top"
+        [showDelay]="500"
+      >
+        <fa-icon [icon]="icons.faDownload"></fa-icon>
+      </button>
+      <div
+        class="inline-flex align-items-center history-grid-stat-block"
+        pTooltip="Displayed/Generated"
+        tooltipPosition="top"
+        [showDelay]="800"
+      >
+        {{ displayedRowCount }}/{{ pkGeneratedCount }}
+      </div>
+    </div>
+    <div class="hidden sm:flex flex-nowrap column-gap-1 overflow-auto">
+      <button class="app-text-btn flex-shrink-0 column-gap-2" (click)="viewSourceCode()">
+        <fa-icon [icon]="icons.faCode"></fa-icon>
+        <span>Source code</span>
+      </button>
     </div>
   </div>
   <div class="flex-grow-1">
