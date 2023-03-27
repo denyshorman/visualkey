@@ -3,8 +3,19 @@ import { ethers } from 'ethers';
 import { EthChainConfigService } from '../config/eth-chain-config.service';
 import { environment } from '../../environments/environment';
 import { rotateLeft } from '../utils/ArrayUtils';
-import { BehaviorSubject, firstValueFrom, merge, Observable, timer } from 'rxjs';
-import { filter } from 'rxjs/operators';
+import {
+  BehaviorSubject,
+  defer,
+  firstValueFrom,
+  from,
+  merge,
+  Observable,
+  raceWith,
+  throwError,
+  timeout,
+  timer,
+} from 'rxjs';
+import { filter, switchMap } from 'rxjs/operators';
 import { NetworkStatusService } from './network-status.service';
 
 @Injectable({
@@ -106,7 +117,21 @@ export class EthNodeClientService {
             continue mainLoop;
           }
 
-          const res = await func(provider);
+          if (canceled.value) {
+            break mainLoop;
+          }
+
+          const res = await firstValueFrom(
+            from(defer(() => func(provider))).pipe(
+              raceWith(
+                canceled.pipe(
+                  filter(Boolean),
+                  switchMap(() => throwError(() => new Error('Canceled'))),
+                ),
+              ),
+              timeout(5000),
+            ),
+          );
 
           if (i > 0 && provider === providers[i]) {
             rotateLeft(providers, i);
