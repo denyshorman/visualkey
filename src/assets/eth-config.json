@@ -16,7 +16,8 @@
         "https://mainnet-nethermind.blockscout.com",
         "https://ethereumnodelight.app.runonflux.io",
         "https://api.mycryptoapi.com/eth",
-        "https://rpc.flashbots.net"
+        "https://rpc.flashbots.net",
+        "https://ethereum.publicnode.com"
       ]
     },
     {
@@ -92,7 +93,10 @@
       "rpcUrls": [
         "https://rpc.ftm.tools",
         "https://rpc.ankr.com/fantom",
-        "https://ftm.rpcgator.com"
+        "https://ftm.rpcgator.com",
+        "https://rpcapi.fantom.network",
+        "https://fantom.publicnode.com",
+        "https://fantom-mainnet.public.blastapi.io"
       ]
     },
     {
@@ -114,7 +118,9 @@
       "chainId": 122,
       "blockExplorerUrl": "https://explorer.fuse.io/address/:address",
       "rpcUrls": [
-        "https://fuse-rpc.gateway.pokt.network"
+        "https://fuse-rpc.gateway.pokt.network",
+        "https://rpc.fuse.io",
+        "https://fuse-mainnet.chainstacklabs.com"
       ]
     },
     {
@@ -123,7 +129,12 @@
       "chainId": 10,
       "blockExplorerUrl": "https://optimistic.etherscan.io/address/:address",
       "rpcUrls": [
-        "https://mainnet.optimism.io"
+        "https://mainnet.optimism.io",
+        "https://optimism.blockpi.network/v1/rpc/public",
+        "https://optimism-mainnet.public.blastapi.io",
+        "https://endpoints.omniatech.io/v1/op/mainnet/public",
+        "https://rpc.ankr.com/optimism",
+        "https://1rpc.io/op"
       ]
     },
     {
@@ -132,7 +143,8 @@
       "chainId": 1313161554,
       "blockExplorerUrl": "https://aurorascan.dev/address/:address",
       "rpcUrls": [
-        "https://mainnet.aurora.dev"
+        "https://mainnet.aurora.dev",
+        "https://endpoints.omniatech.io/v1/aurora/mainnet/public"
       ]
     },
     {
@@ -142,7 +154,8 @@
       "blockExplorerUrl": "https://explorer.celo.org/address/:address",
       "rpcUrls": [
         "https://forno.celo.org",
-        "https://rpc.ankr.com/celo"
+        "https://rpc.ankr.com/celo",
+        "https://1rpc.io/celo"
       ]
     },
     {
@@ -152,7 +165,9 @@
       "blockExplorerUrl": "https://cronoscan.com/address/:address",
       "rpcUrls": [
         "https://evm.cronos.org",
-        "https://evm-cronos.crypto.org"
+        "https://evm-cronos.crypto.org",
+        "https://cronos-evm.publicnode.com",
+        "https://cronos.blockpi.network/v1/rpc/public"
       ]
     }
   ]
