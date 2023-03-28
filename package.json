@@ -4,7 +4,7 @@
   "author": {
     "name": "Denys Horman"
   },
-  "license": "BSD-3-Clause",
+  "license": "CC BY-NC-ND 4.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --host 0.0.0.0 --open --disable-host-check",
