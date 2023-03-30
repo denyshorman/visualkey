@@ -3,18 +3,7 @@ import { ethers } from 'ethers';
 import { EthChainConfigService } from '../config/eth-chain-config.service';
 import { environment } from '../../environments/environment';
 import { rotateLeft } from '../utils/ArrayUtils';
-import {
-  BehaviorSubject,
-  defer,
-  firstValueFrom,
-  from,
-  merge,
-  Observable,
-  raceWith,
-  throwError,
-  timeout,
-  timer,
-} from 'rxjs';
+import { BehaviorSubject, defer, firstValueFrom, merge, Observable, raceWith, throwError, timeout, timer } from 'rxjs';
 import { filter, switchMap } from 'rxjs/operators';
 import { NetworkStatusService } from './network-status.service';
 
@@ -122,7 +111,7 @@ export class EthNodeClientService {
           }
 
           const res = await firstValueFrom(
-            from(defer(() => func(provider))).pipe(
+            defer(() => func(provider)).pipe(
               raceWith(
                 canceled.pipe(
                   filter(Boolean),
