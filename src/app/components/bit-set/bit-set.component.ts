@@ -1,41 +1,103 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnChanges,
+  Output,
+  Renderer2,
+  SimpleChanges,
+  ViewChild,
+} from '@angular/core';
 import { BigIntUtils } from '../../utils/BigIntUtils';
 import { GoogleAnalyticsService } from 'ngx-google-analytics';
 
 @Component({
   selector: 'app-bit-set',
-  templateUrl: './bit-set.component.html',
+  template: `
+    <div
+      #bitSet
+      class="bit-set"
+      (contextmenu)="$event.preventDefault()"
+      (touchmove)="bitSetTouchMove($event)"
+      (touchstart)="bitSetTouchStart($event)"
+      (mouseenter)="bitSetMouseEnter()"
+      (mouseleave)="bitSetMouseLeave()"
+    ></div>
+  `,
   styleUrls: ['./bit-set.component.scss'],
 })
-export class BitSetComponent implements OnChanges {
-  @Input() bitSet = BigInt(0);
+export class BitSetComponent implements OnChanges, AfterViewInit {
   @Output() bitSetChange = new EventEmitter<bigint>();
   @Input() cols!: number;
   @Input() size!: number;
-  @Input() bitSize = DefaultBitSize;
   @Input() falseStateColor = DefaultFalseStateColor;
   @Input() trueStateColor = DefaultTrueStateColor;
   @Input() mouseEnterStrategy = DefaultMouseEnterStrategy;
   @Input() readOnly = false;
   @Input() mouseMoveDisabled = false;
   @Input() gaLabel?: string;
-  bitsArray: BitInfo[] = [];
-  private prevTouchElem?: Element;
+  @ViewChild('bitSet') bitSetGui?: ElementRef<HTMLDivElement>;
+
+  private prevTouchBitGui?: Element;
   private readonly gaCategory = 'bit_set';
 
-  constructor(private gaService: GoogleAnalyticsService) {}
+  constructor(private renderer: Renderer2, private gaService: GoogleAnalyticsService) {}
+
+  private _bitSet = BigInt(0);
+
+  get bitSet(): bigint {
+    return this._bitSet;
+  }
+
+  @Input()
+  set bitSet(bitSet: bigint) {
+    if (this._bitSet === bitSet) {
+      return;
+    }
+
+    this._bitSet = bitSet;
+
+    if (this.bitSetGui) {
+      for (let bitIndex = 0; bitIndex < this.size; bitIndex++) {
+        this.updateBitColorGui(bitIndex);
+      }
+    }
+  }
+
+  private _bitSize = DefaultBitSize;
+
+  get bitSize(): number {
+    return this._bitSize;
+  }
+
+  @Input()
+  set bitSize(bitSize: number) {
+    if (this._bitSize === bitSize) {
+      return;
+    }
+
+    this._bitSize = bitSize;
+
+    if (this.bitSetGui) {
+      for (let bitIndex = 0; bitIndex < this.size; bitIndex++) {
+        this.updateBitSizeGui(bitIndex);
+      }
+    }
+  }
 
   private static isLeftButtonPressed(e: MouseEvent): boolean {
     return e.buttons === 1 || e.button === 1;
   }
 
+  ngAfterViewInit(): void {
+    this.createBitSetGui();
+  }
+
   ngOnChanges(changes: SimpleChanges) {
     if (changes['cols'] || changes['size']) {
-      this.bitsArray = this.newBitsArray();
-    }
-
-    if (changes['bitSet']) {
-      this.updateBitsArray();
+      this.createBitSetGui();
     }
   }
 
@@ -48,8 +110,8 @@ export class BitSetComponent implements OnChanges {
 
     for (let i = 0; i < e.touches.length; i++) {
       const el = document.elementFromPoint(e.touches[i].pageX, e.touches[i].pageY);
-      if (el && this.prevTouchElem != el) {
-        this.prevTouchElem = el;
+      if (el && this.prevTouchBitGui != el) {
+        this.prevTouchBitGui = el;
         el.dispatchEvent(new MouseEvent('mouseenter', { buttons: 1 }));
       }
     }
@@ -62,11 +124,11 @@ export class BitSetComponent implements OnChanges {
 
     e.preventDefault();
 
-    if (this.prevTouchElem === undefined) {
+    if (this.prevTouchBitGui === undefined) {
       e.target?.dispatchEvent(new MouseEvent('mousedown'));
     }
 
-    this.prevTouchElem = undefined;
+    this.prevTouchBitGui = undefined;
   }
 
   bitSetMouseEnter() {
@@ -85,83 +147,93 @@ export class BitSetComponent implements OnChanges {
     this.gaService.event('bitset_leave', this.gaCategory, this.gaLabel);
   }
 
-  bitMouseEnter(e: MouseEvent, bit: BitInfo) {
+  bitMouseEnter(e: MouseEvent, bitIndex: number) {
     if (this.readOnly || (this.mouseMoveDisabled && !BitSetComponent.isLeftButtonPressed(e))) {
       return;
-    } else {
-      this.changeBitState(bit);
     }
+
+    this.updateBitAndNotify(bitIndex);
   }
 
-  bitMouseDown(bit: BitInfo) {
+  bitMouseDown(bitIndex: number) {
     if (this.readOnly) {
       return;
     }
 
-    this.changeBitState(bit);
+    this.updateBitAndNotify(bitIndex);
   }
 
-  private newBitsArray(): BitInfo[] {
-    const size = this.size;
-    const bitsArray = new Array(size);
-    const that = this;
-
-    for (let i = 0; i < size; i++) {
-      bitsArray[i] = {
-        pos: [Math.floor(i / this.cols) + 1, (i % this.cols) + 1],
-        valueCache: BigIntUtils.getBit(that.bitSet, size - i - 1),
-        get value(): boolean {
-          return bitsArray[i].valueCache;
-        },
-        set value(bit: boolean) {
-          const bitSet = BigIntUtils.setBit(that.bitSet, size - i - 1, bit);
-          if (bitSet != that.bitSet) {
-            bitsArray[i].valueCache = bit;
-            that.bitSet = bitSet;
-            that.bitSetChange.emit(that.bitSet);
-          }
-        },
-      } as BitInfo;
-    }
-
-    return bitsArray;
+  private updateBitAndNotify(bitIndex: number) {
+    this.updateBit(this.size - bitIndex - 1);
+    this.updateBitColorGui(bitIndex);
+    this.bitSetChange.emit(this._bitSet);
   }
 
-  private updateBitsArray() {
-    let bitSet = this.bitSet;
-    let i = this.size - 1;
-    while (bitSet > 0) {
-      this.bitsArray[i].valueCache = (bitSet & BigInt(1)) > 0;
-      bitSet = bitSet >> BigInt(1);
-      i--;
+  private createBitSetGui() {
+    if (this.bitSetGui === undefined) {
+      return;
     }
-    while (i >= 0) {
-      this.bitsArray[i].valueCache = false;
-      i--;
+
+    this.bitSetGui!.nativeElement.innerHTML = '';
+
+    for (let bitIndex = 0; bitIndex < this.size; bitIndex++) {
+      this.createBitGui(bitIndex);
     }
   }
 
-  private changeBitState(bit: BitInfo) {
+  private createBitGui(bitIndex: number) {
+    const rowIndex = Math.floor(bitIndex / this.cols) + 1;
+    const colIndex = (bitIndex % this.cols) + 1;
+
+    const bitState = BigIntUtils.getBit(this._bitSet, this.size - bitIndex - 1);
+    const bitColor = this.getBitColor(bitState);
+    const bitSize = this._bitSize + 'px';
+
+    const bit = this.renderer.createElement('div');
+    this.renderer.setAttribute(bit, 'class', 'bit');
+    this.renderer.setStyle(bit, 'grid-row', rowIndex.toString());
+    this.renderer.setStyle(bit, 'grid-column', colIndex.toString());
+    this.renderer.setStyle(bit, 'width', bitSize);
+    this.renderer.setStyle(bit, 'height', bitSize);
+    this.renderer.setStyle(bit, 'background-color', bitColor);
+    this.renderer.listen(bit, 'mouseenter', (e: MouseEvent) => this.bitMouseEnter(e, bitIndex));
+    this.renderer.listen(bit, 'mousedown', () => this.bitMouseDown(bitIndex));
+    this.renderer.appendChild(this.bitSetGui!.nativeElement, bit);
+  }
+
+  private updateBitColorGui(bitIndex: number) {
+    const bitState = BigIntUtils.getBit(this._bitSet, this.size - bitIndex - 1);
+    const bitColor = this.getBitColor(bitState);
+    const bit = this.bitSetGui!.nativeElement.children[bitIndex];
+    this.renderer.setStyle(bit, 'background-color', bitColor);
+  }
+
+  private updateBitSizeGui(bitIndex: number) {
+    const bitSize = this._bitSize + 'px';
+    const bit = this.bitSetGui!.nativeElement.children[bitIndex];
+    this.renderer.setStyle(bit, 'width', bitSize);
+    this.renderer.setStyle(bit, 'height', bitSize);
+  }
+
+  private updateBit(bitIndex: number) {
     switch (this.mouseEnterStrategy) {
       case MouseEnterStrategy.Set:
-        bit.value = true;
+        this._bitSet = BigIntUtils.setBit(this._bitSet, bitIndex, true);
         break;
       case MouseEnterStrategy.Clear:
-        bit.value = false;
+        this._bitSet = BigIntUtils.setBit(this._bitSet, bitIndex, false);
         break;
       case MouseEnterStrategy.Flip:
-        bit.value = !bit.value;
+        this._bitSet = BigIntUtils.invertBit(this._bitSet, bitIndex);
         break;
       default:
         throw new Error(`Unrecognized mouse enter strategy ${this.mouseEnterStrategy}`);
     }
   }
-}
 
-interface BitInfo {
-  pos: Array<number>;
-  value: boolean;
-  valueCache: boolean;
+  private getBitColor(bitValue: boolean): string {
+    return bitValue ? this.trueStateColor : this.falseStateColor;
+  }
 }
 
 export enum MouseEnterStrategy {
