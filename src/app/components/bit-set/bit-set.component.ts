@@ -35,7 +35,6 @@ export class BitSetComponent implements OnChanges, AfterViewInit {
   @Input() falseStateColor = DefaultFalseStateColor;
   @Input() trueStateColor = DefaultTrueStateColor;
   @Input() mouseEnterStrategy = DefaultMouseEnterStrategy;
-  @Input() readOnly = false;
   @Input() mouseMoveDisabled = false;
   @Input() gaLabel?: string;
   @ViewChild('bitSet') bitSetGui?: ElementRef<HTMLDivElement>;
@@ -44,6 +43,25 @@ export class BitSetComponent implements OnChanges, AfterViewInit {
   private readonly gaCategory = 'bit_set';
 
   constructor(private renderer: Renderer2, private gaService: GoogleAnalyticsService) {}
+
+  private _readOnly = false;
+
+  get readOnly(): boolean {
+    return this._readOnly;
+  }
+
+  @Input()
+  set readOnly(readOnly: boolean) {
+    if (this._readOnly === readOnly) {
+      return;
+    }
+
+    this._readOnly = readOnly;
+
+    if (this.bitSetGui) {
+      this.updateCursorGui();
+    }
+  }
 
   private _bitSet = BigInt(0);
 
@@ -81,6 +99,8 @@ export class BitSetComponent implements OnChanges, AfterViewInit {
     this._bitSize = bitSize;
 
     if (this.bitSetGui) {
+      this.updateCursorGui();
+
       for (let bitIndex = 0; bitIndex < this.size; bitIndex++) {
         this.updateBitSizeGui(bitIndex);
       }
@@ -102,7 +122,7 @@ export class BitSetComponent implements OnChanges, AfterViewInit {
   }
 
   bitSetTouchMove(e: TouchEvent) {
-    if (this.readOnly) {
+    if (this._readOnly) {
       return;
     }
 
@@ -118,7 +138,7 @@ export class BitSetComponent implements OnChanges, AfterViewInit {
   }
 
   bitSetTouchStart(e: TouchEvent) {
-    if (this.readOnly) {
+    if (this._readOnly) {
       return;
     }
 
@@ -132,7 +152,7 @@ export class BitSetComponent implements OnChanges, AfterViewInit {
   }
 
   bitSetMouseEnter() {
-    if (this.readOnly) {
+    if (this._readOnly) {
       return;
     }
 
@@ -140,7 +160,7 @@ export class BitSetComponent implements OnChanges, AfterViewInit {
   }
 
   bitSetMouseLeave() {
-    if (this.readOnly) {
+    if (this._readOnly) {
       return;
     }
 
@@ -148,7 +168,7 @@ export class BitSetComponent implements OnChanges, AfterViewInit {
   }
 
   bitMouseEnter(e: MouseEvent, bitIndex: number) {
-    if (this.readOnly || (this.mouseMoveDisabled && !BitSetComponent.isLeftButtonPressed(e))) {
+    if (this._readOnly || (this.mouseMoveDisabled && !BitSetComponent.isLeftButtonPressed(e))) {
       return;
     }
 
@@ -156,7 +176,7 @@ export class BitSetComponent implements OnChanges, AfterViewInit {
   }
 
   bitMouseDown(bitIndex: number) {
-    if (this.readOnly) {
+    if (this._readOnly) {
       return;
     }
 
@@ -175,6 +195,7 @@ export class BitSetComponent implements OnChanges, AfterViewInit {
     }
 
     this.bitSetGui!.nativeElement.innerHTML = '';
+    this.updateCursorGui();
 
     for (let bitIndex = 0; bitIndex < this.size; bitIndex++) {
       this.createBitGui(bitIndex);
@@ -213,6 +234,19 @@ export class BitSetComponent implements OnChanges, AfterViewInit {
     const bit = this.bitSetGui!.nativeElement.children[bitIndex];
     this.renderer.setStyle(bit, 'width', bitSize);
     this.renderer.setStyle(bit, 'height', bitSize);
+  }
+
+  private updateCursorGui() {
+    if (!this._readOnly) {
+      const sz = this.bitSize * 0.75;
+      const xyr = sz / 2;
+      const cursorSvg = `<svg xmlns='http://www.w3.org/2000/svg' width='${sz}' height='${sz}'><circle cx='${xyr}' cy='${xyr}' r='${xyr}' fill='black' fill-opacity='0.8' shape-rendering='geometricPrecision'/></svg>`;
+      const cursor = `url("data:image/svg+xml;utf8,${cursorSvg}") ${xyr} ${xyr}, default`;
+
+      this.renderer.setStyle(this.bitSetGui!.nativeElement, 'cursor', cursor);
+    } else {
+      this.renderer.setStyle(this.bitSetGui!.nativeElement, 'cursor', 'default');
+    }
   }
 
   private updateBit(bitIndex: number) {
