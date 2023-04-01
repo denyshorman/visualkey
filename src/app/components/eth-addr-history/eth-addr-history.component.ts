@@ -43,6 +43,7 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
       resizable: true,
       sortable: true,
       filter: true,
+      minWidth: 30,
     },
     columnDefs: [
       {
