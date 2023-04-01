@@ -36,6 +36,7 @@
       [(mouseEnterStrategy)]="mouseEnterStrategy"
       [(mouseMoveDisabled)]="mouseMoveDisabled"
       (longRandomActiveChange)="pkReadOnly = $event"
+      [randomBitSetGenInterval]="randomBitSetGenInterval"
       [gaLabel]="'eth_pk'"
     ></app-bit-set-controller>
   </div>
@@ -43,6 +44,6 @@
     <app-eth-info [privateKey]="pk"></app-eth-info>
   </div>
   <div class="flex-grow-1 align-self-stretch">
-    <app-eth-addr-history></app-eth-addr-history>
+    <app-eth-addr-history [(networkRequestEnabled)]="networkRequestEnabled"></app-eth-addr-history>
   </div>
 </div>

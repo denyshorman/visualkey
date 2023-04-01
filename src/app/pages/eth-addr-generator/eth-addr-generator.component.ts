@@ -7,6 +7,7 @@ import {
   DefaultTrueStateColor,
 } from '../../components/bit-set/bit-set.component';
 import { BigIntUtils } from '../../utils/BigIntUtils';
+import { DefaultRandomBitSetGenInterval } from '../../components/bit-set-controller/bit-set-controller.component';
 
 @Component({
   selector: 'app-eth-addr-generator',
@@ -31,11 +32,28 @@ export class EthAddrGeneratorComponent {
   pkValid!: boolean;
   addressVisible = false;
   pkReadOnly = false;
+  randomBitSetGenInterval = DefaultRandomBitSetGenInterval;
 
   constructor(private ethAddrGenHistoryService: EthAddrHistoryService) {
     this.changeBitSize();
     this.pk = BigIntUtils.random(this.pkMin, this.pkMin, this.pkSize);
     this.pkValid = true;
+  }
+
+  private _networkRequestEnabled = true;
+
+  get networkRequestEnabled(): boolean {
+    return this._networkRequestEnabled;
+  }
+
+  set networkRequestEnabled(enabled: boolean) {
+    this._networkRequestEnabled = enabled;
+
+    if (enabled) {
+      this.randomBitSetGenInterval = DefaultRandomBitSetGenInterval;
+    } else {
+      this.randomBitSetGenInterval = 0;
+    }
   }
 
   private _pk!: bigint;

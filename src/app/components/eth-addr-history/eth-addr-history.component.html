@@ -50,6 +50,17 @@
       >
         <fa-icon [icon]="icons.faDownload"></fa-icon>
       </button>
+      <button
+        *ngIf="!prodEnvironment"
+        class="app-text-btn flex-shrink-0"
+        (click)="toggleNetworkRequestStatus()"
+        [pTooltip]="networkRequestEnabled ? 'Network enabled' : 'Network disabled'"
+        tooltipPosition="top"
+        [showDelay]="500"
+        [style.color]="networkRequestEnabled ? 'initial' : '#ff2c2c'"
+      >
+        <fa-icon [icon]="icons.faWifi"></fa-icon>
+      </button>
       <div
         class="inline-flex align-items-center history-grid-stat-block"
         pTooltip="Displayed/Generated"

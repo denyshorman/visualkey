@@ -26,6 +26,7 @@ export class BitSetControllerComponent implements OnDestroy {
   @Input() size = 256;
   @Input() keyRangeStart = BigInt(0);
   @Input() keyRangeEnd = BigIntUtils.setBits(this.size);
+  @Input() randomBitSetGenInterval = DefaultRandomBitSetGenInterval;
   @Output() bitSetChange = new EventEmitter<bigint>();
   @Output() mouseEnterStrategyChange = new EventEmitter<MouseEnterStrategy>();
   @Output() mouseMoveDisabledChange = new EventEmitter<boolean>();
@@ -154,7 +155,7 @@ export class BitSetControllerComponent implements OnDestroy {
     this.longRandomActive = true;
     this.longRandomFirstClick = true;
 
-    this.longRandomSubscription = interval(100).subscribe(() => {
+    this.longRandomSubscription = interval(this.randomBitSetGenInterval).subscribe(() => {
       this.bitSet = BigIntUtils.random(this.keyRangeStart, this.keyRangeEnd, this.size);
     });
   }
@@ -214,3 +215,5 @@ export class BitSetControllerComponent implements OnDestroy {
     this.longRandomSubscription.unsubscribe();
   }
 }
+
+export const DefaultRandomBitSetGenInterval = 100;

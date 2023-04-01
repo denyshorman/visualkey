@@ -1,22 +1,24 @@
-import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, Input, OnDestroy, Output, ViewChild } from '@angular/core';
 import { EthAddrNetworkCollectorService } from '../../services/eth-addr-network-collector.service';
 import { EthAddrHistoryService } from '../../services/eth-addr-history.service';
 import { EthAddressUtils } from '../../utils/EthAddressUtils';
 import { CellDoubleClickedEvent, ColGroupDef, GridOptions } from 'ag-grid-community';
 import { AgGridAngular } from 'ag-grid-angular';
 import { EthChainConfigService } from '../../config/eth-chain-config.service';
-import { asyncScheduler, observeOn, Subscription } from 'rxjs';
+import { asyncScheduler, BehaviorSubject, observeOn, Subscription } from 'rxjs';
 import { ethers } from 'ethers';
 import {
-  faDownLeftAndUpRightToCenter,
-  faTrashCan,
-  faDownload,
-  faUpRightAndDownLeftFromCenter,
   faCode,
+  faDownLeftAndUpRightToCenter,
+  faDownload,
+  faTrashCan,
+  faUpRightAndDownLeftFromCenter,
+  faWifi,
 } from '@fortawesome/free-solid-svg-icons';
 import { rotateLeft } from '../../utils/ArrayUtils';
 import { GoogleAnalyticsService } from 'ngx-google-analytics';
 import { environment } from '../../../environments/environment';
+import { filter, first, switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-eth-addr-history',
@@ -24,7 +26,10 @@ import { environment } from '../../../environments/environment';
   styleUrls: ['./eth-addr-history.component.scss'],
 })
 export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
+  private static readonly WaitingForResponseChar: string = '-';
+
   @ViewChild('historyGrid') historyGrid?: AgGridAngular;
+  readonly prodEnvironment = environment.production;
   readonly gridOptions: GridOptions = {
     suppressDragLeaveHidesColumns: true,
     enableCellTextSelection: true,
@@ -105,6 +110,7 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
     faTrashCan,
     faDownload,
     faCode,
+    faWifi,
   };
   private readonly gaCategory = 'key_details';
   private readonly gaBalanceAlertThreshold = BigInt('100000000000000000');
@@ -135,7 +141,7 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
             onCellDoubleClicked: onCellDoubleClicked,
             valueFormatter: params => {
               if (params.value === undefined) {
-                return '-';
+                return EthAddrHistoryComponent.WaitingForResponseChar;
               } else {
                 return params.value;
               }
@@ -162,7 +168,7 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
             onCellDoubleClicked: onCellDoubleClicked,
             valueFormatter: params => {
               if (params.value === undefined) {
-                return '-';
+                return EthAddrHistoryComponent.WaitingForResponseChar;
               } else if (params.value == 0) {
                 return '0';
               } else {
@@ -175,6 +181,20 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
 
       this.gridOptions.columnDefs!.push(column);
     }
+  }
+
+  private _networkRequestEnabled = true;
+
+  @Output() networkRequestEnabledChange = new BehaviorSubject<boolean>(this._networkRequestEnabled);
+
+  get networkRequestEnabled(): boolean {
+    return this._networkRequestEnabled;
+  }
+
+  @Input()
+  set networkRequestEnabled(enabled: boolean) {
+    this._networkRequestEnabled = enabled;
+    this.networkRequestEnabledChange.next(enabled);
   }
 
   get selectedCurrencyUnit(): number {
@@ -262,6 +282,15 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
     this.gaService.event('download', this.gaCategory);
   }
 
+  toggleNetworkRequestStatus() {
+    this.networkRequestEnabled = !this.networkRequestEnabled;
+
+    this.gaService.event(
+      this.networkRequestEnabled ? 'enable_network_request' : 'disable_network_request',
+      this.gaCategory,
+    );
+  }
+
   viewSourceCode() {
     this.gaService.event('view_source_code', this.gaCategory);
     window.open(environment.sourceCodeRepositoryUrl, '_blank');
@@ -291,57 +320,69 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
     };
 
     for (const info of chainsInfo) {
-      const txCountSubscription = info.txCount.pipe(observeOn(asyncScheduler)).subscribe({
-        next: txCount => {
-          const rowNode = this.historyGrid!.api.getRowNode(row.privateKey);
-          const col = `txCount${info.chainId}`;
+      const txCountSubscription = this.networkRequestEnabledChange
+        .pipe(
+          filter(Boolean),
+          first(),
+          switchMap(() => info.txCount.pipe(observeOn(asyncScheduler))),
+        )
+        .subscribe({
+          next: txCount => {
+            const rowNode = this.historyGrid!.api.getRowNode(row.privateKey);
+            const col = `txCount${info.chainId}`;
 
-          if (rowNode === undefined) {
-            row[col] = txCount;
-            row.active = row.active || txCount > 0;
-          } else {
-            rowNode.setDataValue(col, txCount);
-            if (!rowNode.data.active && txCount > 0) {
-              rowNode.setDataValue('active', true);
+            if (rowNode === undefined) {
+              row[col] = txCount;
+              row.active = row.active || txCount > 0;
+            } else {
+              rowNode.setDataValue(col, txCount);
+              if (!rowNode.data.active && txCount > 0) {
+                rowNode.setDataValue('active', true);
+              }
+              if (this.historyGrid!.api.isAnyFilterPresent()) {
+                this.historyGrid!.api.onFilterChanged();
+              }
             }
-            if (this.historyGrid!.api.isAnyFilterPresent()) {
-              this.historyGrid!.api.onFilterChanged();
-            }
-          }
-        },
-        error: err => {
-          console.error(err);
-        },
-      });
+          },
+          error: err => {
+            console.error(err);
+          },
+        });
 
-      const balanceSubscription = info.balance.pipe(observeOn(asyncScheduler)).subscribe({
-        next: balance => {
-          const rowNode = this.historyGrid!.api.getRowNode(row.privateKey);
-          const col = `balance${info.chainId}`;
+      const balanceSubscription = this.networkRequestEnabledChange
+        .pipe(
+          filter(Boolean),
+          first(),
+          switchMap(() => info.balance.pipe(observeOn(asyncScheduler))),
+        )
+        .subscribe({
+          next: balance => {
+            const rowNode = this.historyGrid!.api.getRowNode(row.privateKey);
+            const col = `balance${info.chainId}`;
 
-          if (rowNode === undefined) {
-            row[col] = balance;
-            row.active = row.active || balance > 0;
-          } else {
-            rowNode.setDataValue(col, balance);
-            if (!rowNode.data.active && balance > 0) {
-              rowNode.setDataValue('active', true);
+            if (rowNode === undefined) {
+              row[col] = balance;
+              row.active = row.active || balance > 0;
+            } else {
+              rowNode.setDataValue(col, balance);
+              if (!rowNode.data.active && balance > 0) {
+                rowNode.setDataValue('active', true);
+              }
+              if (this.historyGrid!.api.isAnyFilterPresent()) {
+                this.historyGrid!.api.onFilterChanged();
+              }
             }
-            if (this.historyGrid!.api.isAnyFilterPresent()) {
-              this.historyGrid!.api.onFilterChanged();
-            }
-          }
 
-          if (balance > this.gaBalanceAlertThreshold) {
-            const balanceFormatted = ethers.utils.formatUnits(balance, 18);
-            const addressInfo = `${info.chainId} ${row.address} ${balanceFormatted}`;
-            this.gaService.event('oofy', this.gaCategory, addressInfo);
-          }
-        },
-        error: err => {
-          console.error(err);
-        },
-      });
+            if (balance > this.gaBalanceAlertThreshold) {
+              const balanceFormatted = ethers.utils.formatUnits(balance, 18);
+              const addressInfo = `${info.chainId} ${row.address} ${balanceFormatted}`;
+              this.gaService.event('oofy', this.gaCategory, addressInfo);
+            }
+          },
+          error: err => {
+            console.error(err);
+          },
+        });
 
       row.subscriptions.push(txCountSubscription);
       row.subscriptions.push(balanceSubscription);
