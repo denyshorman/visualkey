@@ -82,6 +82,7 @@
     </button>
   </div>
   <button
+    *ngIf="deviceType !== 'touchOnly'"
     (click)="lock()"
     class="app-icon-btn"
     [class.selected]="mouseMoveDisabled"

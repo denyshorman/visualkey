@@ -16,6 +16,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { interval, Subscription } from 'rxjs';
 import { GoogleAnalyticsService } from 'ngx-google-analytics';
+import { deviceType } from 'detect-it';
 
 @Component({
   selector: 'app-bit-set-controller',
@@ -65,6 +66,7 @@ export class BitSetControllerComponent implements OnDestroy {
       tooltip: 'Mouse sets',
     },
   ];
+  deviceType = deviceType;
   private readonly gaCategory = 'bit_set_controller';
   private longRandomSubscription = Subscription.EMPTY;
 
