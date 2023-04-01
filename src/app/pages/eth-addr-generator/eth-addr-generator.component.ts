@@ -30,6 +30,7 @@ export class EthAddrGeneratorComponent {
   mouseMoveDisabled = false;
   pkValid!: boolean;
   addressVisible = false;
+  pkReadOnly = false;
 
   constructor(private ethAddrGenHistoryService: EthAddrHistoryService) {
     this.changeBitSize();

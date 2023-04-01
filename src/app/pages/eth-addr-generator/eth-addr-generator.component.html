@@ -5,6 +5,7 @@
       [cols]="pkCols"
       [(bitSet)]="pk"
       [bitSize]="bitSize"
+      [readOnly]="pkReadOnly"
       [mouseEnterStrategy]="mouseEnterStrategy"
       [falseStateColor]="pkFalseStateColor"
       [trueStateColor]="pkTrueStateColor"
@@ -34,6 +35,7 @@
       [keyRangeEnd]="pkMax"
       [(mouseEnterStrategy)]="mouseEnterStrategy"
       [(mouseMoveDisabled)]="mouseMoveDisabled"
+      (longRandomActiveChange)="pkReadOnly = $event"
       [gaLabel]="'eth_pk'"
     ></app-bit-set-controller>
   </div>

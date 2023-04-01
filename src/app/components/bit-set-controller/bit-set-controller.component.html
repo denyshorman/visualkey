@@ -1,8 +1,22 @@
 <div class="inline-flex flex-wrap justify-content-center gap-1">
-  <button (click)="clearAll()" class="app-icon-btn" pTooltip="Clear all" tooltipPosition="bottom" [showDelay]="700">
+  <button
+    (click)="clearAll()"
+    class="app-icon-btn"
+    pTooltip="Clear all"
+    tooltipPosition="bottom"
+    [showDelay]="700"
+    [disabled]="longRandomActive"
+  >
     <fa-icon [icon]="icons.faSquare" [style.color]="'#ff0040'"></fa-icon>
   </button>
-  <button (click)="setAll()" class="app-icon-btn" pTooltip="Set all" tooltipPosition="bottom" [showDelay]="700">
+  <button
+    (click)="setAll()"
+    class="app-icon-btn"
+    pTooltip="Set all"
+    tooltipPosition="bottom"
+    [showDelay]="700"
+    [disabled]="longRandomActive"
+  >
     <fa-icon [icon]="icons.faSquare" [style.color]="'#30ff12'"></fa-icon>
   </button>
   <button
@@ -15,13 +29,32 @@
   >
     <fa-icon [icon]="icons.faShuffle"></fa-icon>
   </button>
-  <button (click)="rotateLeft()" (appLongPress)="rotateLeftLong()" [appLongPressThreshold]="150" class="app-icon-btn">
+  <button
+    (click)="rotateLeft()"
+    (appLongPress)="rotateLeftLong()"
+    [appLongPressThreshold]="150"
+    class="app-icon-btn"
+    [disabled]="longRandomActive"
+  >
     <fa-icon [icon]="icons.faAnglesLeft"></fa-icon>
   </button>
-  <button (click)="rotateRight()" (appLongPress)="rotateRightLong()" [appLongPressThreshold]="150" class="app-icon-btn">
+  <button
+    (click)="rotateRight()"
+    (appLongPress)="rotateRightLong()"
+    [appLongPressThreshold]="150"
+    class="app-icon-btn"
+    [disabled]="longRandomActive"
+  >
     <fa-icon [icon]="icons.faAnglesRight"></fa-icon>
   </button>
-  <button (click)="invert()" class="app-icon-btn" pTooltip="Invert" tooltipPosition="bottom" [showDelay]="700">
+  <button
+    (click)="invert()"
+    class="app-icon-btn"
+    pTooltip="Invert"
+    tooltipPosition="bottom"
+    [showDelay]="700"
+    [disabled]="longRandomActive"
+  >
     <fa-icon [icon]="icons.faRepeat"></fa-icon>
   </button>
   <button
@@ -30,6 +63,7 @@
     pTooltip="Load custom key"
     tooltipPosition="bottom"
     [showDelay]="700"
+    [disabled]="longRandomActive"
   >
     <fa-icon [icon]="icons.faKey"></fa-icon>
   </button>

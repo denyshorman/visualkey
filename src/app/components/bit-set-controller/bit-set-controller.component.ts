@@ -29,9 +29,9 @@ export class BitSetControllerComponent implements OnDestroy {
   @Output() bitSetChange = new EventEmitter<bigint>();
   @Output() mouseEnterStrategyChange = new EventEmitter<MouseEnterStrategy>();
   @Output() mouseMoveDisabledChange = new EventEmitter<boolean>();
+  @Output() longRandomActiveChange = new EventEmitter<boolean>();
   @Input() gaLabel?: string;
   loadBitSetDialogVisible = false;
-  longRandomActive = false;
   longRandomFirstClick = false;
   icons = {
     faSquareMinus,
@@ -68,6 +68,17 @@ export class BitSetControllerComponent implements OnDestroy {
   private longRandomSubscription = Subscription.EMPTY;
 
   constructor(private gaService: GoogleAnalyticsService) {}
+
+  private _longRandomActive = false;
+
+  get longRandomActive(): boolean {
+    return this._longRandomActive;
+  }
+
+  set longRandomActive(value: boolean) {
+    this._longRandomActive = value;
+    this.longRandomActiveChange.emit(value);
+  }
 
   private _mouseMoveDisabled = false;
 
