@@ -12,11 +12,11 @@ jobs:
       name: prod
       url: https://visualkey.link
     steps:
-      - uses: actions/checkout@v3.0.2
+      - uses: actions/checkout@v3.5.0
         with:
           lfs: true
       - run: git lfs checkout
-      - uses: actions/setup-node@v3.1.1
+      - uses: actions/setup-node@v3.6.0
       - run: npm install
       - run: npm run build
       - run: npm run minify-index
