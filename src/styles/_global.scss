@@ -38,6 +38,7 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  user-select: none;
 
   &:hover {
     background-color: black;
@@ -71,6 +72,7 @@ body {
   padding: 0 0.5rem;
   display: flex;
   align-items: center;
+  user-select: none;
 
   &:hover {
     background-color: black;
@@ -90,4 +92,6 @@ body {
   height: $btnHeight;
   font-size: 1rem;
   padding: 0 0.3rem;
+  border-radius: 0;
+  user-select: none;
 }

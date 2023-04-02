@@ -57,7 +57,7 @@
         [pTooltip]="networkRequestEnabled ? 'Network enabled' : 'Network disabled'"
         tooltipPosition="top"
         [showDelay]="500"
-        [style.color]="networkRequestEnabled ? 'initial' : '#ff2c2c'"
+        [class.network-disabled]="!networkRequestEnabled"
       >
         <fa-icon [icon]="icons.faWifi"></fa-icon>
       </button>
