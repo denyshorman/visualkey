@@ -1,9 +1,4 @@
-# Blockchain Private Key Database
-
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 13.3.4.
-
-ng new visualkey --commit false --package-manager npm --routing false --skip-git true --skip-install true
---style scss
+# Developer Guide
 
 ## Development server
 
