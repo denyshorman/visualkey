@@ -20,28 +20,38 @@
     <fa-icon [icon]="icons.faSquare" [style.color]="'#30ff12'"></fa-icon>
   </button>
   <button
-    (click)="random()"
-    (appLongPress)="longRandom()"
-    [appLongPressThreshold]="250"
-    [appLongPressInterval]="1000"
+    appLongPress
+    (shortClick)="random()"
+    (press)="longRandom()"
+    [threshold]="250"
     [class.selected]="longRandomActive"
     class="app-icon-btn"
   >
     <fa-icon [icon]="icons.faShuffle"></fa-icon>
   </button>
   <button
-    (click)="rotateLeft()"
-    (appLongPress)="rotateLeftLong()"
-    [appLongPressThreshold]="150"
+    appLongPress
+    [intervalEmit]="true"
+    (shortClick)="rotateLeft()"
+    (pressStarted)="rotateLeftLongStarted()"
+    (press)="rotateLeftLong()"
+    (pressEnded)="rotateLeftLongEnded()"
+    [threshold]="150"
+    [interval]="50"
     class="app-icon-btn"
     [disabled]="longRandomActive"
   >
     <fa-icon [icon]="icons.faAnglesLeft"></fa-icon>
   </button>
   <button
-    (click)="rotateRight()"
-    (appLongPress)="rotateRightLong()"
-    [appLongPressThreshold]="150"
+    appLongPress
+    [intervalEmit]="true"
+    (shortClick)="rotateRight()"
+    (pressStarted)="rotateRightLongStarted()"
+    (press)="rotateRightLong()"
+    (pressEnded)="rotateRightLongEnded()"
+    [threshold]="150"
+    [interval]="50"
     class="app-icon-btn"
     [disabled]="longRandomActive"
   >

@@ -1,53 +1,78 @@
-import { Directive, ElementRef, EventEmitter, Input, OnDestroy, Output } from '@angular/core';
-import { concat, EMPTY, fromEvent, merge, of, Subscription, timer } from 'rxjs';
-import { filter, first, map, switchMap } from 'rxjs/operators';
+import { Directive, EventEmitter, HostListener, Input, OnDestroy, Output } from '@angular/core';
 
 @Directive({
   selector: '[appLongPress]',
 })
 export class LongPressDirective implements OnDestroy {
-  @Input('appLongPressThreshold') threshold = 500;
-  @Input('appLongPressInterval') interval = 100;
-  @Output() appLongPress = new EventEmitter<void>();
+  @Input() threshold = 500;
+  @Input() interval = 100;
+  @Input() intervalEmit = false;
+  @Output() shortClick = new EventEmitter<void>();
+  @Output() pressStarted = new EventEmitter<void>();
+  @Output() pressEnded = new EventEmitter<void>();
+  @Output() press = new EventEmitter<void>();
 
-  private longPressSubscription = Subscription.EMPTY;
+  private pressTimeoutId: NodeJS.Timeout | undefined = undefined;
+  private pressIntervalId: NodeJS.Timeout | undefined = undefined;
 
-  constructor(private elementRef: ElementRef) {
-    const mouseDown = fromEvent<MouseEvent>(elementRef.nativeElement, 'mousedown').pipe(
-      filter(event => event.button == 0),
-      map(() => true),
-    );
+  @HostListener('mousedown')
+  onMouseDown() {
+    this.down();
+  }
 
-    const mouseUp = merge(
-      fromEvent<MouseEvent>(window, 'mouseup'),
-      fromEvent<MouseEvent>(elementRef.nativeElement, 'mouseup'),
-      fromEvent<MouseEvent>(elementRef.nativeElement, 'mouseleave'),
-    ).pipe(
-      filter(event => event.button == 0),
-      map(() => false),
-      first(),
-    );
+  @HostListener('mouseup')
+  onMouseUp() {
+    this.up();
+  }
 
-    const mouseClick = mouseDown.pipe(switchMap(value => merge(concat(of(value), mouseUp))));
+  @HostListener('mouseleave')
+  onMouseLeave() {
+    this.up(false);
+  }
 
-    const touchStart = fromEvent<TouchEvent>(elementRef.nativeElement, 'touchstart').pipe(map(() => true));
+  @HostListener('touchstart', ['$event'])
+  onTouchStart(e: TouchEvent) {
+    this.down();
+    e.preventDefault();
+  }
 
-    const touchEnd = merge(
-      fromEvent<TouchEvent>(window, 'touchend'),
-      fromEvent<TouchEvent>(elementRef.nativeElement, 'touchend'),
-    ).pipe(
-      map(() => false),
-      first(),
-    );
-
-    const touch = touchStart.pipe(switchMap(value => merge(concat(of(value), touchEnd))));
-
-    this.longPressSubscription = merge(mouseClick, touch)
-      .pipe(switchMap(state => (state ? timer(this.threshold, this.interval) : EMPTY)))
-      .subscribe(() => this.appLongPress.emit());
+  @HostListener('touchend', ['$event'])
+  onTouchEnd(e: TouchEvent) {
+    this.up();
+    e.preventDefault();
   }
 
   ngOnDestroy(): void {
-    this.longPressSubscription.unsubscribe();
+    clearTimeout(this.pressTimeoutId);
+    clearInterval(this.pressIntervalId);
+  }
+
+  private down() {
+    this.pressTimeoutId = setTimeout(() => {
+      this.pressTimeoutId = undefined;
+
+      if (this.intervalEmit) {
+        this.pressStarted.emit();
+        this.press.emit();
+        this.pressIntervalId = setInterval(() => this.press.emit(), this.interval);
+      } else {
+        this.press.emit();
+      }
+    }, this.threshold);
+  }
+
+  private up(shortClickEmit: boolean = true) {
+    if (this.pressTimeoutId !== undefined) {
+      clearTimeout(this.pressTimeoutId);
+      this.pressTimeoutId = undefined;
+
+      if (shortClickEmit) {
+        this.shortClick.emit();
+      }
+    } else if (this.intervalEmit && this.pressIntervalId !== undefined) {
+      clearInterval(this.pressIntervalId);
+      this.pressIntervalId = undefined;
+      this.pressEnded.emit();
+    }
   }
 }

@@ -136,23 +136,22 @@ export class BitSetControllerComponent implements OnDestroy {
   }
 
   random() {
-    if (this.longRandomFirstClick) {
-      this.longRandomFirstClick = false;
-    } else if (this.longRandomActive) {
-      this.longRandomSubscription.unsubscribe();
-      this.longRandomActive = false;
-    } else {
-      this.bitSet = BigIntUtils.random(this.keyRangeStart, this.keyRangeEnd, this.size);
-      this.gaService.event('random', this.gaCategory, this.gaLabel);
+    if (this.longRandomActive) {
+      this.stopLongRandom();
+      return;
     }
+
+    this.bitSet = BigIntUtils.random(this.keyRangeStart, this.keyRangeEnd, this.size);
+    this.gaService.event('random', this.gaCategory, this.gaLabel);
   }
 
   longRandom() {
     if (this.longRandomActive) {
+      this.stopLongRandom();
       return;
     }
 
-    this.gaService.event('long_random', this.gaCategory, this.gaLabel);
+    this.gaService.event('long_random_start', this.gaCategory, this.gaLabel);
 
     this.longRandomActive = true;
     this.longRandomFirstClick = true;
@@ -160,6 +159,12 @@ export class BitSetControllerComponent implements OnDestroy {
     this.longRandomSubscription = interval(this.randomBitSetGenInterval).subscribe(() => {
       this.bitSet = BigIntUtils.random(this.keyRangeStart, this.keyRangeEnd, this.size);
     });
+  }
+
+  stopLongRandom() {
+    this.longRandomSubscription.unsubscribe();
+    this.longRandomActive = false;
+    this.gaService.event('long_random_stop', this.gaCategory, this.gaLabel);
   }
 
   rotateLeft() {
@@ -172,14 +177,28 @@ export class BitSetControllerComponent implements OnDestroy {
     this.gaService.event('rotate_right', this.gaCategory, this.gaLabel);
   }
 
+  rotateLeftLongStarted() {
+    this.gaService.event('rotate_left_long_started', this.gaCategory, this.gaLabel);
+  }
+
   rotateLeftLong() {
     this.bitSet = BigIntUtils.rotateLeft(this.bitSet, this.size, 1);
-    this.gaService.event('rotate_left_long', this.gaCategory, this.gaLabel);
+  }
+
+  rotateLeftLongEnded() {
+    this.gaService.event('rotate_left_long_ended', this.gaCategory, this.gaLabel);
+  }
+
+  rotateRightLongStarted() {
+    this.gaService.event('rotate_right_long_started', this.gaCategory, this.gaLabel);
   }
 
   rotateRightLong() {
     this.bitSet = BigIntUtils.rotateRight(this.bitSet, this.size, 1);
-    this.gaService.event('rotate_right_long', this.gaCategory, this.gaLabel);
+  }
+
+  rotateRightLongEnded() {
+    this.gaService.event('rotate_right_long_ended', this.gaCategory, this.gaLabel);
   }
 
   invert() {
