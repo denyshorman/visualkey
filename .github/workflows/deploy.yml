@@ -20,6 +20,7 @@ jobs:
       - run: npm install
       - run: npm run build
       - run: npm run minify-index
+      - run: npm run fix-ngsw-path
       - env:
           FLEEK_API_KEY: ${{ secrets.FLEEK_API_KEY }}
         run: npm run deploy
