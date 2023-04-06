@@ -42,6 +42,12 @@ export class LongPressDirective implements OnDestroy {
     e.preventDefault();
   }
 
+  @HostListener('touchcancel', ['$event'])
+  onTouchCancel(e: TouchEvent) {
+    this.up(false);
+    e.preventDefault();
+  }
+
   ngOnDestroy(): void {
     clearTimeout(this.pressTimeoutId);
     clearInterval(this.pressIntervalId);
