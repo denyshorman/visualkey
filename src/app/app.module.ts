@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { isDevMode, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppComponent } from './app.component';
@@ -27,6 +27,7 @@ import { LongPressDirective } from './directives/long-press.directive';
 import { TooltipModule } from 'primeng/tooltip';
 import { NgxGoogleAnalyticsModule } from 'ngx-google-analytics';
 import { environment } from '../environments/environment';
+import { ServiceWorkerModule } from '@angular/service-worker';
 
 @NgModule({
   declarations: [
@@ -58,6 +59,10 @@ import { environment } from '../environments/environment';
     RippleModule,
     SelectButtonModule,
     TooltipModule,
+    ServiceWorkerModule.register('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000',
+    }),
   ],
   providers: [],
   bootstrap: [AppComponent],
