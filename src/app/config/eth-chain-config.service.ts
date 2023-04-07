@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-import ethConfig from '../../assets/eth-config.json';
+import ethConfig from './eth-config.json';
 
 @Injectable({
   providedIn: 'root',
