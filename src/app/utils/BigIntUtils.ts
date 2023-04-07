@@ -60,15 +60,30 @@ export class BigIntUtils {
   }
 
   static random(min: bigint, max: bigint, bitsCount?: number): bigint {
-    // Primitive number generator
     const size = bitsCount ?? BigIntUtils.bitsCount(max);
-    let rnd = BigInt(0);
-    let i = 0;
-    while (i < size) {
-      const rndBit = (Math.floor(Math.random() * 10) & 1) > 0;
-      rnd = BigIntUtils.setBit(rnd, i, rndBit);
-      i++;
+
+    const byteCount = Math.ceil(size / 8);
+    const rndBytes = new Uint8Array(byteCount);
+    const crypto = window.crypto || (window as any).msCrypto;
+
+    if (crypto) {
+      crypto.getRandomValues(rndBytes);
+    } else {
+      for (let i = 0; i < rndBytes.length; i++) {
+        rndBytes[i] = Math.floor(Math.random() * 256);
+      }
     }
+
+    let rnd = 0n;
+
+    for (let i = 0; i < rndBytes.length; i++) {
+      rnd = (rnd << 8n) | BigInt(rndBytes[i]);
+    }
+
+    if (rnd >= max || rnd < min) {
+      rnd = min + (rnd % (max - min));
+    }
+
     return rnd;
   }
 
