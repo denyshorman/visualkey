@@ -36,7 +36,7 @@ export class EthAddrGeneratorComponent {
 
   constructor(private ethAddrGenHistoryService: EthAddrHistoryService) {
     this.changeBitSize();
-    this.pk = BigIntUtils.random(this.pkMin, this.pkMin, this.pkSize);
+    this.pk = BigIntUtils.random(this.pkMin, this.pkMax, this.pkSize);
     this.pkValid = true;
   }
 
