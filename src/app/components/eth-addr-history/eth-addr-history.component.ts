@@ -137,7 +137,7 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
           {
             headerName: 'TX',
             field: `txCount${chain.chainId}`,
-            filter: 'agNumberColumnFilter',
+            filter: false,
             width: 70,
             onCellDoubleClicked: onCellDoubleClicked,
             valueFormatter: params => {
@@ -151,21 +151,8 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
           {
             headerName: chain.currency,
             field: `balance${chain.chainId}`,
-            filter: 'agNumberColumnFilter',
+            filter: false,
             width: 70,
-            filterParams: {
-              numberParser: (text: string | null) => {
-                if (text == null) {
-                  return null;
-                }
-
-                try {
-                  return ethers.utils.parseUnits(text, this.selectedCurrencyUnit).toBigInt();
-                } catch (e) {
-                  return null;
-                }
-              },
-            },
             onCellDoubleClicked: onCellDoubleClicked,
             valueFormatter: params => {
               if (params.value === undefined) {
