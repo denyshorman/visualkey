@@ -1,6 +1,6 @@
 {
-  "name": "Visualkey",
-  "short_name": "Visualkey",
+  "name": "VisualKey",
+  "short_name": "VisualKey",
   "description": "A convenient tool to visually generate a private key and address with automatic balance and activity check across several EVM-compatible blockchains.",
   "display": "standalone",
   "orientation": "any",
