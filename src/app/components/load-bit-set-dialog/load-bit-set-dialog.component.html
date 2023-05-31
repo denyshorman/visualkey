@@ -6,30 +6,32 @@
   [contentStyle]="{ paddingBottom: '0.5rem' }"
   header="Load Custom Key"
 >
-  <input
-    type="text"
-    pInputText
-    autofocus
-    class="p-inputtext-sm w-full mb-1"
-    placeholder="0x1234567..."
-    [(ngModel)]="bitSetString"
-    (keyup.enter)="loadKey()"
-    [class.ng-invalid]="!valid && bitSetString && bitSetString.length > 0"
-  />
+  <div class="flex flex-row flex-nowrap column-gap-1 row-gap-1">
+    <input
+      type="text"
+      pInputText
+      autofocus
+      class="flex-grow-1"
+      placeholder="0x1234567..."
+      [(ngModel)]="bitSetString"
+      (keyup.enter)="loadKey()"
+      [class.ng-invalid]="!valid && bitSetString && bitSetString.length > 0"
+    />
+
+    <button
+      class="app-icon-btn flex-shrink-1"
+      [class.selected]="instantBitSetChange"
+      (click)="instantBitSetChange = !instantBitSetChange"
+      pTooltip="Enable real-time number display during input"
+      tooltipPosition="bottom"
+    >
+      <fa-icon [icon]="icons.faBoltLightning"></fa-icon>
+    </button>
+  </div>
   <small class="block mt-1 p-error" *ngIf="!valid && bitSetString && bitSetString.length > 0">Key is not valid</small>
-  <button
-    class="app-text-btn mt-1"
-    [class.selected]="instantBitSetChange === true"
-    (click)="instantBitSetChange = !instantBitSetChange"
-    pTooltip="Display number instantly while typing"
-    tooltipPosition="bottom"
-    [showDelay]="700"
-  >
-    Show instantly
-  </button>
   <div class="overflow-auto white-space-nowrap">
     <small class="block mt-2">
-      Hint: Key supports binary (0b1010100110...), decimal (12345678...), and hex (0x1234567...) formats
+      Hint: Key supports binary (0b1010100110...), decimal (12345678...), and hexadecimal (0x1a3b4c5f...) formats
     </small>
     <small class="block mt-1 mb-3">Hint: Key must be in range {{ min }} - 0x{{ max.toString(16) }} (exclusive)</small>
   </div>

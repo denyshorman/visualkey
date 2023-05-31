@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { GoogleAnalyticsService } from 'ngx-google-analytics';
+import { faBoltLightning } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-load-bit-set-modal',
@@ -20,6 +21,10 @@ export class LoadBitSetDialogComponent {
     '1280px': '75vw',
     '1024px': '80vw',
     '640px': '95vw',
+  };
+
+  icons = {
+    faBoltLightning,
   };
 
   constructor(private gaService: GoogleAnalyticsService) {}
