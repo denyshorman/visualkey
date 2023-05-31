@@ -1,29 +1,38 @@
 import { EventEmitter, Injectable } from '@angular/core';
 import { EthAddressUtils } from '../utils/EthAddressUtils';
-import { ethers } from 'ethers';
 
 @Injectable({
   providedIn: 'root',
 })
-export class EthAddrHistoryService {
-  readonly history: Map<bigint, EthInfo> = new Map<bigint, EthInfo>();
+export class AddrHistoryService {
+  readonly history: Map<bigint, Key> = new Map<bigint, Key>();
   readonly pkAdded = new EventEmitter<bigint>();
 
-  addAddress(pk: bigint) {
+  private latestPk?: Key;
+
+  // TODO: Limit the history size
+  add(pk: bigint) {
     if (EthAddressUtils.isPkValid(pk)) {
       if (this.history.has(pk)) {
-        const info = this.history.get(pk);
-        info!.addedTime = Date.now();
+        const key = this.history.get(pk)!;
+        key.addedTime = Date.now();
+        this.latestPk = key;
       } else {
-        this.history.set(pk, new EthInfo(pk));
+        const key = new Key(pk);
+        this.latestPk = key;
+        this.history.set(pk, key);
         this.pkAdded.emit(pk);
       }
     }
   }
+
+  latest(): Key | undefined {
+    return this.latestPk;
+  }
 }
 
-class EthInfo {
-  privateKey: bigint;
+export class Key {
+  readonly privateKey: bigint;
   addedTime: number;
 
   constructor(privateKey: bigint) {
@@ -35,8 +44,7 @@ class EthInfo {
 
   get publicKey(): string {
     if (!this._publicKey) {
-      const privateKeyStr = EthAddressUtils.bigIntToPkHex(this.privateKey);
-      this._publicKey = ethers.utils.computePublicKey(privateKeyStr);
+      this._publicKey = EthAddressUtils.pkToPublicKey(this.privateKey);
     }
 
     return this._publicKey;
@@ -46,7 +54,7 @@ class EthInfo {
 
   get address(): string {
     if (!this._address) {
-      this._address = ethers.utils.computeAddress(this.publicKey);
+      this._address = EthAddressUtils.publicKeyToAddress(this.publicKey);
     }
 
     return this._address;

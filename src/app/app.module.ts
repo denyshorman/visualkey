@@ -1,6 +1,5 @@
 import { isDevMode, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-
 import { AppComponent } from './app.component';
 import { BitSetComponent } from './components/bit-set/bit-set.component';
 import { EthInfoComponent } from './components/eth-info/eth-info.component';
@@ -28,6 +27,12 @@ import { TooltipModule } from 'primeng/tooltip';
 import { NgxGoogleAnalyticsModule } from 'ngx-google-analytics';
 import { environment } from '../environments/environment';
 import { ServiceWorkerModule } from '@angular/service-worker';
+import { NftDialogComponent } from './components/nft/nft-dialog/nft-dialog.component';
+import { HttpClientModule } from '@angular/common/http';
+import { NftListComponent } from './components/nft/nft-list/nft-list.component';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
+import { ProgressBarModule } from 'primeng/progressbar';
 
 @NgModule({
   declarations: [
@@ -38,17 +43,21 @@ import { ServiceWorkerModule } from '@angular/service-worker';
     EthAddrHistoryComponent,
     BitSetControllerComponent,
     LoadBitSetDialogComponent,
+    NftDialogComponent,
     LongPressDirective,
+    NftListComponent,
   ],
   imports: [
     NgxGoogleAnalyticsModule.forRoot(environment.gaMeasurementId),
     BrowserModule,
+    HttpClientModule,
     BrowserAnimationsModule,
     PanelModule,
     CardModule,
     MenubarModule,
     TableModule,
     DialogModule,
+    ToastModule,
     ButtonModule,
     InputTextModule,
     FormsModule,
@@ -59,12 +68,13 @@ import { ServiceWorkerModule } from '@angular/service-worker';
     RippleModule,
     SelectButtonModule,
     TooltipModule,
+    ProgressBarModule,
     ServiceWorkerModule.register('ngsw-worker.js', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000',
     }),
   ],
-  providers: [],
+  providers: [MessageService],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

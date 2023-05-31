@@ -1,12 +1,12 @@
 import { AfterViewInit, Component, Input, OnDestroy, Output, ViewChild } from '@angular/core';
-import { EthAddrNetworkCollectorService } from '../../services/eth-addr-network-collector.service';
-import { EthAddrHistoryService } from '../../services/eth-addr-history.service';
+import { AddrNetworkCollectorService } from '../../services/addr-network-collector.service';
+import { AddrHistoryService } from '../../services/addr-history.service';
 import { EthAddressUtils } from '../../utils/EthAddressUtils';
 import { CellDoubleClickedEvent, ColGroupDef, GridOptions } from 'ag-grid-community';
 import { AgGridAngular } from 'ag-grid-angular';
-import { EthChainConfigService } from '../../config/eth-chain-config.service';
+import { ChainRegion, ChainsConfigService } from '../../config/chains-config.service';
 import { asyncScheduler, BehaviorSubject, observeOn, Subscription } from 'rxjs';
-import { ethers } from 'ethers';
+import { formatUnits } from 'viem';
 import {
   faCode,
   faDownLeftAndUpRightToCenter,
@@ -117,12 +117,16 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
   private readonly gaBalanceAlertThreshold = BigInt('100000000000000000');
 
   constructor(
-    private ethChainConfig: EthChainConfigService,
-    private ethAddrHistoryService: EthAddrHistoryService,
-    private ethAddrNetworkCollectorService: EthAddrNetworkCollectorService,
+    private chainsConfigService: ChainsConfigService,
+    private addrHistoryService: AddrHistoryService,
+    private addrNetworkCollectorService: AddrNetworkCollectorService,
     private gaService: GoogleAnalyticsService,
   ) {
-    for (const chain of ethChainConfig.config.chains) {
+    for (const chain of chainsConfigService.chains) {
+      if (chain.region !== ChainRegion.Prod) {
+        continue;
+      }
+
       const onCellDoubleClicked = (event: CellDoubleClickedEvent) => {
         const url = chain.blockExplorerUrl.replace(':address', event.data.address);
 
@@ -160,7 +164,7 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
               } else if (params.value == 0) {
                 return '0';
               } else {
-                return ethers.utils.formatUnits(params.value, params.context.selectedCurrencyUnit);
+                return formatUnits(params.value, params.context.selectedCurrencyUnit);
               }
             },
           },
@@ -193,7 +197,7 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
     this.gridOptions.context.selectedCurrencyUnit = currencyUnit;
 
     this.historyGrid?.api?.refreshCells({
-      columns: this.ethChainConfig.config.chains.map(chain => `balance${chain.chainId}`),
+      columns: this.chainsConfigService.chains.map(chain => `balance${chain.chainId}`),
     });
   }
 
@@ -225,11 +229,11 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    for (const pk of this.ethAddrNetworkCollectorService.pkInfo.keys()) {
+    for (const pk of this.addrNetworkCollectorService.pkInfo.keys()) {
       this.addToHistory(pk);
     }
 
-    this.ethAddrNetworkCollectorService.pkInfoAdded.subscribe(pk => {
+    this.addrNetworkCollectorService.pkInfoAdded.subscribe(pk => {
       this.addToHistory(pk);
     });
   }
@@ -245,8 +249,8 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
         subscription.unsubscribe();
       }
 
-      this.ethAddrNetworkCollectorService.pkInfo.delete(row.privateKeyDecimal);
-      this.ethAddrHistoryService.history.delete(row.privateKeyDecimal);
+      this.addrNetworkCollectorService.pkInfo.delete(row.privateKeyDecimal);
+      this.addrHistoryService.history.delete(row.privateKeyDecimal);
     }
 
     this.gridOptions.rowData!.length = 0;
@@ -293,9 +297,9 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
   }
 
   private addToHistory(pk: bigint) {
-    const address = this.ethAddrHistoryService.history.get(pk)!.address;
-    const addedTime = this.ethAddrHistoryService.history.get(pk)!.addedTime;
-    const chainsInfo = this.ethAddrNetworkCollectorService.pkInfo.get(pk)!.chainsInfo;
+    const address = this.addrHistoryService.history.get(pk)!.address;
+    const addedTime = this.addrHistoryService.history.get(pk)!.addedTime;
+    const chainsInfo = this.addrNetworkCollectorService.pkInfo.get(pk)!.chainsInfo;
 
     const row: any = {
       privateKey: EthAddressUtils.bigIntToPkHex(pk),
@@ -362,7 +366,7 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
             }
 
             if (balance > this.gaBalanceAlertThreshold) {
-              const balanceFormatted = ethers.utils.formatUnits(balance, 18);
+              const balanceFormatted = formatUnits(balance, 18);
               const addressInfo = `${info.chainId} ${row.address} ${balanceFormatted}`;
               this.gaService.event('oofy', this.gaCategory, addressInfo);
             }
@@ -427,8 +431,8 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
             remove: [removedRow],
           },
           () => {
-            this.ethAddrNetworkCollectorService.pkInfo.delete(removedRow.privateKeyDecimal);
-            this.ethAddrHistoryService.history.delete(removedRow.privateKeyDecimal);
+            this.addrNetworkCollectorService.pkInfo.delete(removedRow.privateKeyDecimal);
+            this.addrHistoryService.history.delete(removedRow.privateKeyDecimal);
           },
         );
       },

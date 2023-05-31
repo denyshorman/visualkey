@@ -1,0 +1,35 @@
+[
+  "function totalSupply() public view returns (uint256)",
+  "function balanceOf(address owner) public view returns (uint256)",
+  "function ownerOf(uint256 token) public view returns (address)",
+  "function tokenByIndex(uint256 index) external view returns (uint256)",
+  "function tokenOfOwnerByIndex(address owner, uint256 index) external view returns (uint256)",
+  "function mint(uint256 token, uint256 price, address receiver, uint256 deadline, bytes memory signature) external payable",
+  "function lock(uint256 token) external",
+  "function getLock(uint256 token) external view returns (TokenLock memory)",
+
+  "struct TokenLock { address lockedBy; uint256 timestamp; }",
+
+  "event Transfer(address indexed from, address indexed to, uint256 indexed token)",
+  "event Approval(address indexed owner, address indexed delegate, uint256 indexed token)",
+  "event ApprovalForAll(address indexed owner, address indexed operator, bool approved)",
+  "event Donation(address indexed supporter, uint256 amount)",
+  "event TokenWithdrawal(address indexed receiver, uint256 amount)",
+  "event Erc20TokenWithdrawal(address indexed receiver, address indexed token, uint256 amount)",
+  "event Erc721TokenWithdrawal(address indexed receiver, address indexed token, uint256 tokenId)",
+
+  "error Unauthorized()",
+  "error OwnerInvalid()",
+  "error SignerInvalid()",
+  "error DelegateInvalid()",
+  "error OperatorInvalid()",
+  "error ReceiverInvalid()",
+  "error TransferRejected()",
+  "error TokenInvalid(uint256 token)",
+  "error TokenExists(uint256 token)",
+  "error TokenDoesNotExist(uint256 token)",
+  "error InsufficientFunds(uint256 actual, uint256 expected)",
+  "error IndexOutOfBounds(uint256 index, uint256 length)",
+  "error SignatureInvalid(bytes signature)",
+  "error SignatureExpired(uint256 blockTimestamp, uint256 expirationTimestamp)"
+]

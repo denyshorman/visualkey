@@ -1,4 +1,4 @@
-@import 'variables';
+@import './variables';
 
 * {
   font-family: monospace;
@@ -85,6 +85,19 @@ body {
   }
 }
 
+.app-label-left {
+  display: flex;
+  align-items: center;
+  background-color: $btnBgColor;
+  color: $btnColor;
+  border: 1px solid $btnBorderColor;
+  border-right: none;
+  height: $btnHeight;
+  font-size: 0.85rem;
+  padding: 0 0.5rem;
+  user-select: none;
+}
+
 .app-select {
   background-color: $btnBgColor;
   color: $btnColor;
@@ -94,4 +107,9 @@ body {
   padding: 0 0.3rem;
   border-radius: 0;
   user-select: none;
+  cursor: pointer;
+
+  &:hover {
+    background-color: black;
+  }
 }

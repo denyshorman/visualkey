@@ -36,7 +36,7 @@ Share the address with others to receive tokens, and keep your private key a sec
 
 ## How can the tool be useful?
 
-[Visual key](https://visualkey.link) tool allows you to visually pick up a private key number and also visually see how this number is transformed to an address.  
+[Visual Key](https://visualkey.link) tool allows you to visually pick up a private key number and also visually see how this number is transformed to an address.  
 The tool instantly shows balances for a selected address.  
 Since it is possible to generate all possible private keys and addresses, there is a chance that you will find an active address.  
 You have to be very, very lucky to find an address with a large balance. It can be treated as a free lottery.  
@@ -50,7 +50,7 @@ Below the square and rectangle, the private key and address are displayed as num
 A number can be formatted in a different formats but the most popular are
  - [binary](https://en.wikipedia.org/wiki/Binary_number) - 0b10111
  - [decimal](https://en.wikipedia.org/wiki/Decimal) - 23
- - [hexdecimal](https://en.wikipedia.org/wiki/Hexadecimal) - 0x17
+ - [hexadecimal](https://en.wikipedia.org/wiki/Hexadecimal) - 0x17
 
 These are different formats of the number 23.
 
@@ -59,23 +59,49 @@ These two colors of a square represent a binary number 0 or 1.
 A private key with 256 squares represents a binary number that can be converted to a decimal or a hexadecimal number.  
 The same is true for an address.
 
-## Features
+## NFT
 
-- Set a private key to the lowest (red button) or the largest number (green button)
-- Generate a random private key (hold the random button to automate the random key generation)
-- Left and Right rotation of a private key (hold the button to automate rotation)
-- Invert private key
-- Load custom private key in a binary, decimal, or hexadecimal formats
-- Move the mouse over a private key square to change the state of a small square ([bit](https://en.wikipedia.org/wiki/Bit))
-- Change the mouse over strategy
-  - Clear - always clears a bit (0 -> 0, 1 -> 0)
-  - Flip - changes the state of a bit to the opposite (0 -> 1, 1 -> 0)
-  - Set - always sets a bit (0 -> 1, 1 -> 1)
-- Disable state change of a bit when the mouse is moving over the square. Click on any bit to change its state instead.
-- Click at "Only active addresses" button to see only active addresses in the grid. Address is active only when it has a positive balance or transaction count in any blockchain.
-- Change a balance formatting between Ether and Wei
-- Clear the table
-- Shrink columns to fit the screen
-- Auto size columns to fit content
-- Filter any column to find any specific value (e.g. to find an address with a specific prefix)
-- Sort the table by any column
+Visual Key has the possibility to create an NFT from a private key number.  
+It basically means that you can pick a number that has a certain unique representation and take ownership of it.
+
+### Visual Key NFT Features:
+
+ - NFT is unique across blockchains.  
+If an NFT is minted in Ethereum, it cannot be minted in other blockchains.
+ - NFT can be transferred from one blockchain to another.  
+If an NFT is minted in Ethereum, it can be transferred to another blockchain.
+ - NFT can be minted in test blockchains.  
+This is useful for users who would like to try out NFT services using free test tokens.
+
+### Why create a Visual Key NFT?
+
+ - The desire to own something unique and scarce in the digital world.
+ - Expression of identity, personality, or taste through an NFT.
+ - Investment in a rare and potentially valuable asset that may appreciate over time.
+ - Speculation on the future value of the NFT and the potential to sell it for a profit.
+ - An option for gifting or as a keepsake.
+ - Enjoyment collecting and trading NFTs.
+ - A unique way to support the project.
+
+### How to get started?
+
+- Visit the [Visual Key](https://visualkey.link) website
+- Create a unique image by interacting with the square or upload your own
+- Click the NFT button
+- Select a chain where you would like to mint a token and click Mint
+- Connect a wallet and confirm the transaction
+- Wait for the confirmation
+- Enjoy your new NFT!
+
+### Links
+
+[Visual Key API Source Code](https://github.com/denyshorman/visualkey-api)  
+[Visual Key Smart Contract Source Code](https://github.com/denyshorman/visualkey-smartcontracts)
+
+Deployed Smart Contracts:
+
+[Polygon](https://polygonscan.com/address/0x1544b6Ba8Ff0C7B5059491A61E321061377052Bf)  
+[BNB Chain](https://bscscan.com/address/0x6dD422EE124204a4A9c38189580266dcD55bC648)
+
+[Ethereum Sepolia](https://sepolia.etherscan.io/address/0xa9Ab50860bbADA427d1844A63cC7a1A7E7D038Cc)  
+[Polygon Mumbai](https://mumbai.polygonscan.com/address/0xA76001F57649F00d92EB66A8BEBf8ffBe2CC1810)

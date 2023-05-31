@@ -1,5 +1,5 @@
 import { Component, HostListener } from '@angular/core';
-import { EthAddrHistoryService } from '../../services/eth-addr-history.service';
+import { AddrHistoryService } from '../../services/addr-history.service';
 import { EthAddressUtils } from '../../utils/EthAddressUtils';
 import {
   DefaultFalseStateColor,
@@ -34,7 +34,7 @@ export class EthAddrGeneratorComponent {
   pkReadOnly = false;
   randomBitSetGenInterval = DefaultRandomBitSetGenInterval;
 
-  constructor(private ethAddrGenHistoryService: EthAddrHistoryService) {
+  constructor(private addrHistoryService: AddrHistoryService) {
     this.changeBitSize();
     this.pk = BigIntUtils.random(this.pkMin, this.pkMax, this.pkSize);
     this.pkValid = true;
@@ -64,9 +64,9 @@ export class EthAddrGeneratorComponent {
 
   set pk(pk: bigint) {
     this._pk = pk;
-    this.ethAddrGenHistoryService.addAddress(pk);
+    this.addrHistoryService.add(pk);
 
-    const ethInfo = this.ethAddrGenHistoryService.history.get(pk);
+    const ethInfo = this.addrHistoryService.history.get(pk);
 
     if (ethInfo === undefined) {
       this.pkValid = false;

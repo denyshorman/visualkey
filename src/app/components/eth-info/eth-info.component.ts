@@ -1,5 +1,4 @@
 import { Component, Input } from '@angular/core';
-import { ethers } from 'ethers';
 import { EthAddressUtils } from '../../utils/EthAddressUtils';
 
 @Component({
@@ -25,7 +24,7 @@ export class EthInfoComponent {
 
     if (this.valid) {
       this.privateKeyHex = EthAddressUtils.bigIntToPkHex(pk!);
-      this.address = ethers.utils.computeAddress(this.privateKeyHex);
+      this.address = EthAddressUtils.privateKeyToAddress(pk!);
     } else {
       this.privateKeyHex = undefined;
       this.address = undefined;

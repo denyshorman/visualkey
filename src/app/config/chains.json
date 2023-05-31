@@ -1,0 +1,240 @@
+[
+  {
+    "chainId": 1,
+    "region": "mainnet",
+    "name": "Ethereum",
+    "currency": "ETH",
+    "blockExplorerUrl": "https://etherscan.io/address/:address",
+    "rpcUrls": [
+      "https://eth.public-rpc.com",
+      "https://rpc.ankr.com/eth",
+      "https://nodes.mewapi.io/rpc/eth",
+      "https://eth-rpc.gateway.pokt.network",
+      "https://cloudflare-eth.com",
+      "https://main-rpc.linkpool.io",
+      "https://mainnet.eth.cloud.ava.do",
+      "https://mainnet-nethermind.blockscout.com",
+      "https://ethereumnodelight.app.runonflux.io",
+      "https://api.mycryptoapi.com/eth",
+      "https://rpc.flashbots.net",
+      "https://ethereum.publicnode.com"
+    ]
+  },
+  {
+    "chainId": 56,
+    "region": "mainnet",
+    "name": "BNB Chain",
+    "currency": "BNB",
+    "blockExplorerUrl": "https://bscscan.com/address/:address",
+    "rpcUrls": [
+      "https://bscrpc.com",
+      "https://bsc-dataseed.binance.org",
+      "https://bsc-dataseed1.defibit.io",
+      "https://bsc-dataseed1.ninicoin.io",
+      "https://bsc-dataseed2.defibit.io",
+      "https://bsc-dataseed3.defibit.io",
+      "https://bsc-dataseed4.defibit.io",
+      "https://bsc-dataseed2.ninicoin.io",
+      "https://bsc-dataseed3.ninicoin.io",
+      "https://bsc-dataseed4.ninicoin.io",
+      "https://bsc-dataseed1.binance.org",
+      "https://bsc-dataseed2.binance.org",
+      "https://bsc-dataseed3.binance.org",
+      "https://bsc-dataseed4.binance.org",
+      "https://bsc-mainnet.gateway.pokt.network",
+      "https://rpc.ankr.com/bsc"
+    ]
+  },
+  {
+    "chainId": 137,
+    "region": "mainnet",
+    "name": "Polygon",
+    "currency": "MATIC",
+    "blockExplorerUrl": "https://polygonscan.com/address/:address",
+    "rpcUrls": [
+      "https://polygon-rpc.com",
+      "https://rpc-mainnet.matic.network",
+      "https://rpc-mainnet.maticvigil.com",
+      "https://rpc-mainnet.matic.quiknode.pro",
+      "https://poly-rpc.gateway.pokt.network",
+      "https://rpc.ankr.com/polygon",
+      "https://matic-mainnet.chainstacklabs.com",
+      "https://matic-mainnet-full-rpc.bwarelabs.com",
+      "https://matic-mainnet-archive-rpc.bwarelabs.com"
+    ]
+  },
+  {
+    "chainId": 43114,
+    "region": "mainnet",
+    "name": "Avalance",
+    "currency": "AVAX",
+    "blockExplorerUrl": "https://snowtrace.io/address/:address",
+    "rpcUrls": [
+      "https://api.avax.network/ext/bc/C/rpc",
+      "https://avalanche.public-rpc.com",
+      "https://rpc.ankr.com/avalanche",
+      "https://avax.rpcgator.com",
+      "https://avax-mainnet.gateway.pokt.network/v1/lb/605238bf6b986eea7cf36d5e/ext/bc/C/rpc"
+    ]
+  },
+  {
+    "chainId": 42161,
+    "region": "mainnet",
+    "name": "Arbitrum",
+    "currency": "AETH",
+    "blockExplorerUrl": "https://arbiscan.io/address/:address",
+    "rpcUrls": [
+      "https://arb1.arbitrum.io/rpc",
+      "https://rpc.ankr.com/arbitrum",
+      "https://arbitrum.public-rpc.com"
+    ]
+  },
+  {
+    "chainId": 250,
+    "region": "mainnet",
+    "name": "Fantom",
+    "currency": "FTM",
+    "blockExplorerUrl": "https://ftmscan.com/address/:address",
+    "rpcUrls": [
+      "https://rpc.ftm.tools",
+      "https://rpc.ankr.com/fantom",
+      "https://ftm.rpcgator.com",
+      "https://rpcapi.fantom.network",
+      "https://fantom.publicnode.com",
+      "https://fantom-mainnet.public.blastapi.io"
+    ]
+  },
+  {
+    "chainId": 100,
+    "region": "mainnet",
+    "name": "Gnosis",
+    "currency": "xDAI",
+    "blockExplorerUrl": "https://blockscout.com/xdai/mainnet/address/:address",
+    "rpcUrls": [
+      "https://rpc.gnosischain.com",
+      "https://rpc.xdaichain.com",
+      "https://gnosis.public-rpc.com",
+      "https://xdai.poanetwork.dev",
+      "https://xdai-rpc.gateway.pokt.network"
+    ]
+  },
+  {
+    "chainId": 122,
+    "region": "mainnet",
+    "name": "Fuse",
+    "currency": "Fuse",
+    "blockExplorerUrl": "https://explorer.fuse.io/address/:address",
+    "rpcUrls": [
+      "https://fuse-rpc.gateway.pokt.network",
+      "https://rpc.fuse.io",
+      "https://fuse-mainnet.chainstacklabs.com"
+    ]
+  },
+  {
+    "chainId": 10,
+    "region": "mainnet",
+    "name": "Optimism",
+    "currency": "ETH",
+    "blockExplorerUrl": "https://optimistic.etherscan.io/address/:address",
+    "rpcUrls": [
+      "https://mainnet.optimism.io",
+      "https://optimism.blockpi.network/v1/rpc/public",
+      "https://optimism-mainnet.public.blastapi.io",
+      "https://endpoints.omniatech.io/v1/op/mainnet/public",
+      "https://rpc.ankr.com/optimism",
+      "https://1rpc.io/op"
+    ]
+  },
+  {
+    "chainId": 1313161554,
+    "region": "mainnet",
+    "name": "Aurora",
+    "currency": "ETH",
+    "blockExplorerUrl": "https://aurorascan.dev/address/:address",
+    "rpcUrls": [
+      "https://mainnet.aurora.dev",
+      "https://endpoints.omniatech.io/v1/aurora/mainnet/public"
+    ]
+  },
+  {
+    "chainId": 42220,
+    "region": "mainnet",
+    "name": "Celo",
+    "currency": "CELO",
+    "blockExplorerUrl": "https://explorer.celo.org/address/:address",
+    "rpcUrls": [
+      "https://forno.celo.org",
+      "https://rpc.ankr.com/celo",
+      "https://1rpc.io/celo"
+    ]
+  },
+  {
+    "chainId": 25,
+    "region": "mainnet",
+    "name": "Cronos",
+    "currency": "CRO",
+    "blockExplorerUrl": "https://cronoscan.com/address/:address",
+    "rpcUrls": [
+      "https://evm.cronos.org",
+      "https://evm-cronos.crypto.org",
+      "https://cronos-evm.publicnode.com",
+      "https://cronos.blockpi.network/v1/rpc/public"
+    ]
+  },
+  {
+    "chainId": 11155111,
+    "region": "testnet",
+    "name": "Ethereum Sepolia",
+    "currency": "ETH",
+    "blockExplorerUrl": "https://sepolia.etherscan.io/address/:address",
+    "rpcUrls": [
+      "https://rpc.sepolia.org",
+      "https://rpc2.sepolia.org",
+      "https://eth-sepolia.public.blastapi.io",
+      "https://ethereum-sepolia.blockpi.network/v1/rpc/public"
+    ]
+  },
+  {
+    "chainId": 97,
+    "region": "testnet",
+    "name": "BNB Chain Test",
+    "currency": "BNB",
+    "blockExplorerUrl": "https://testnet.bscscan.com/address/:address",
+    "rpcUrls": [
+      "https://data-seed-prebsc-1-s1.binance.org:8545",
+      "https://data-seed-prebsc-2-s1.binance.org:8545",
+      "https://data-seed-prebsc-1-s2.binance.org:8545",
+      "https://data-seed-prebsc-2-s2.binance.org:8545",
+      "https://data-seed-prebsc-1-s3.binance.org:8545",
+      "https://data-seed-prebsc-2-s3.binance.org:8545",
+      "https://bsc-testnet.public.blastapi.io",
+      "https://bsc-testnet.publicnode.com"
+    ]
+  },
+  {
+    "chainId": 80001,
+    "region": "testnet",
+    "name": "Polygon Mumbai",
+    "currency": "MATIC",
+    "blockExplorerUrl": "https://mumbai.polygonscan.com/address/:address",
+    "rpcUrls": [
+      "https://rpc.ankr.com/polygon_mumbai",
+      "https://polygon-mumbai-bor.publicnode.com",
+      "https://polygon-mumbai.blockpi.network/v1/rpc/public",
+      "https://rpc-mumbai.maticvigil.com",
+      "https://polygon-testnet.public.blastapi.io",
+      "https://endpoints.omniatech.io/v1/matic/mumbai/public",
+      "https://matic-testnet-archive-rpc.bwarelabs.com"
+    ]
+  },
+  {
+    "chainId": 31337,
+    "region": "localnet",
+    "name": "Hardhat",
+    "currency": "ETH",
+    "blockExplorerUrl": "http://localhost:10000/address/:address",
+    "rpcUrls": [
+      "http://localhost:8545"
+    ]
+  }
+]

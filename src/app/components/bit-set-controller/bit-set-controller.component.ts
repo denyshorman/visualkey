@@ -1,6 +1,11 @@
 import { Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core';
 import { BigIntUtils } from '../../utils/BigIntUtils';
-import { DefaultMouseEnterStrategy, MouseEnterStrategy } from '../bit-set/bit-set.component';
+import {
+  DefaultFalseStateColor,
+  DefaultMouseEnterStrategy,
+  DefaultTrueStateColor,
+  MouseEnterStrategy,
+} from '../bit-set/bit-set.component';
 import { faSquareMinus, faSquarePlus } from '@fortawesome/free-regular-svg-icons';
 import {
   faAnglesLeft,
@@ -10,9 +15,9 @@ import {
   faMinus,
   faPlus,
   faPlusMinus,
+  faRepeat,
   faShuffle,
   faSquare,
-  faRepeat,
 } from '@fortawesome/free-solid-svg-icons';
 import { interval, Subscription } from 'rxjs';
 import { GoogleAnalyticsService } from 'ngx-google-analytics';
@@ -21,7 +26,7 @@ import { primaryInput } from 'detect-it';
 @Component({
   selector: 'app-bit-set-controller',
   templateUrl: './bit-set-controller.component.html',
-  styleUrls: [],
+  styleUrls: ['bit-set-controller.component.scss'],
 })
 export class BitSetControllerComponent implements OnDestroy {
   @Input() size = 256;
@@ -32,8 +37,9 @@ export class BitSetControllerComponent implements OnDestroy {
   @Output() mouseEnterStrategyChange = new EventEmitter<MouseEnterStrategy>();
   @Output() mouseMoveDisabledChange = new EventEmitter<boolean>();
   @Output() longRandomActiveChange = new EventEmitter<boolean>();
-  @Input() gaLabel?: string;
+  @Input({ required: true }) gaLabel!: string;
   loadBitSetDialogVisible = false;
+  nftDialogVisible = false;
   longRandomFirstClick = false;
   icons = {
     faSquareMinus,
@@ -49,23 +55,23 @@ export class BitSetControllerComponent implements OnDestroy {
     faLock,
     faRepeat,
   };
-  mouseEnterStrategies = [
-    {
+  mouseEnterStrategies = {
+    [MouseEnterStrategy.Clear]: {
       icon: faMinus,
-      value: MouseEnterStrategy.Clear,
-      tooltip: 'Mouse clears',
+      color: DefaultFalseStateColor,
+      tooltip: 'Clear Bit',
     },
-    {
+    [MouseEnterStrategy.Flip]: {
       icon: faPlusMinus,
-      value: MouseEnterStrategy.Flip,
-      tooltip: 'Mouse flips',
+      color: undefined,
+      tooltip: 'Flip Bit',
     },
-    {
+    [MouseEnterStrategy.Set]: {
       icon: faPlus,
-      value: MouseEnterStrategy.Set,
-      tooltip: 'Mouse sets',
+      color: DefaultTrueStateColor,
+      tooltip: 'Set Bit',
     },
-  ];
+  };
   primaryInput = primaryInput;
   private readonly gaCategory = 'bit_set_controller';
   private longRandomSubscription = Subscription.EMPTY;
@@ -211,10 +217,14 @@ export class BitSetControllerComponent implements OnDestroy {
     this.gaService.event('lock', this.gaCategory, this.gaLabel);
   }
 
-  changeMouseEnterStrategy(strategy: MouseEnterStrategy) {
-    this.mouseEnterStrategy = strategy;
+  changeMouseEnterStrategy() {
+    if (++this._mouseEnterStrategy >= 3) {
+      this._mouseEnterStrategy = 0;
+    }
 
-    switch (strategy) {
+    this.mouseEnterStrategyChange.emit(this._mouseEnterStrategy);
+
+    switch (this._mouseEnterStrategy) {
       case MouseEnterStrategy.Clear:
         this.gaService.event('mouse_enter_clear', this.gaCategory, this.gaLabel);
         break;
@@ -224,12 +234,19 @@ export class BitSetControllerComponent implements OnDestroy {
       case MouseEnterStrategy.Set:
         this.gaService.event('mouse_enter_set', this.gaCategory, this.gaLabel);
         break;
+      default:
+        throw new Error('Unknown mouse enter strategy');
     }
   }
 
   openLoadBitSetDialog() {
     this.loadBitSetDialogVisible = true;
     this.gaService.event('load', this.gaCategory, this.gaLabel);
+  }
+
+  openNftDialog() {
+    this.nftDialogVisible = true;
+    this.gaService.event('open_nft_dialog', this.gaCategory, this.gaLabel);
   }
 
   ngOnDestroy(): void {

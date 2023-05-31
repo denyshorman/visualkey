@@ -1,0 +1,96 @@
+<p-dialog [(visible)]="visible" [modal]="true" header="VISUAL KEY NFT" [resizable]="false">
+  <div class="flex flex-column row-gap-2 align-items-center">
+    <app-bit-set
+      [size]="pkSize"
+      [cols]="pkCols"
+      [bitSet]="token"
+      [bitSize]="bitSizePx()"
+      [readOnly]="true"
+      [gaLabel]="'token'"
+    />
+
+    <div class="mt-1 align-self-stretch flex flex-row flex-nowrap align-content-center align-items-center column-gap-1">
+      <div class="flex flex-row flex-nowrap flex-grow-1">
+        <div
+          class="app-label-left chain-label"
+          pTooltip="Select a chain where you would like to mint the token"
+          tooltipPosition="bottom"
+        >
+          Chain:
+        </div>
+
+        <p-dropdown
+          [options]="regionChain"
+          [ngModel]="selectedChainId()"
+          (ngModelChange)="selectedChainId.set($event)"
+          [group]="true"
+          appendTo="body"
+          placeholder="Select a chain"
+          styleClass="w-full"
+          class="flex-grow-1"
+        />
+      </div>
+
+      <div>
+        <button
+          class="app-icon-btn"
+          (click)="openWallet()"
+          [ngClass]="{ 'wallet-connected': account().isConnected }"
+          pTooltip="Wallet"
+          tooltipPosition="right"
+          [showDelay]="500"
+          [disabled]="walletOpening()"
+        >
+          <fa-icon [icon]="icons.faAddressCard" />
+        </button>
+      </div>
+    </div>
+
+    <ng-container *ngIf="ownerLoading()">
+      <p-progressBar class="align-self-stretch" mode="indeterminate" color="#5b5b5b" [style]="{ height: '6px' }" />
+    </ng-container>
+
+    <ng-container *ngIf="!ownerLoading()">
+      <div *ngIf="owner() === undefined" class="align-self-stretch flex flex-column row-gap-2">
+        <div class="flex flex-column">
+          <button
+            class="mint-button align-self-stretch text-center p-1 uppercase font-bold select-none"
+            [class.minting]="minting()"
+            [disabled]="minting() || walletOpening() || priceLoading()"
+            (click)="mint()"
+          >
+            <span *ngIf="minting()">minting<span class="pm-anim"></span></span>
+            <span *ngIf="!minting()">mint</span>
+          </button>
+        </div>
+
+        <div *ngIf="account().address !== undefined" class="white-space-nowrap">
+          Price:
+          <span *ngIf="!displayPrice()" class="spinner-anim"></span>
+          <ng-container *ngIf="displayPrice()">{{ priceEther() }}</ng-container>
+          {{ selectedCurrency() }}
+        </div>
+      </div>
+
+      <div
+        *ngIf="owner() !== undefined"
+        class="align-self-stretch flex flex-column row-gap-3"
+        [style.max-width.px]="tokenWidthPx()"
+      >
+        <div class="minted-panel align-self-stretch text-center p-1 font-bold uppercase select-none">minted</div>
+        <div class="flex flex-column row-gap-1 white-space-nowrap overflow-hidden">
+          <div class="overflow-hidden text-overflow-ellipsis">Chain: {{ ownerChainName() }}</div>
+          <div class="overflow-hidden text-overflow-ellipsis">Owner: {{ owner()?.owner }}</div>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</p-dialog>
+
+<p-toast position="bottom-right" [baseZIndex]="5000">
+  <ng-template let-message pTemplate="message">
+    <div class="only-content">
+      <div>{{ message.detail }}</div>
+    </div>
+  </ng-template>
+</p-toast>
