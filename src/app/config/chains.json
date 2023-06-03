@@ -197,7 +197,7 @@
   {
     "chainId": 97,
     "region": "testnet",
-    "name": "BNB Chain Test",
+    "name": "BNB Chain Testnet",
     "currency": "BNB",
     "blockExplorerUrl": "https://testnet.bscscan.com/address/:address",
     "rpcUrls": [

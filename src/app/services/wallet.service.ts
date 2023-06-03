@@ -1,5 +1,5 @@
 import { Injectable, OnDestroy, signal } from '@angular/core';
-import { polygon, bsc, sepolia, polygonMumbai, hardhat } from '@wagmi/chains';
+import { polygon, bsc, sepolia, polygonMumbai, bscTestnet, hardhat } from '@wagmi/chains';
 import { environment } from '../../environments/environment';
 import {
   configureChains,
@@ -24,7 +24,7 @@ export class WalletService implements OnDestroy {
   readonly network = signal<GetNetworkResult | undefined>(undefined);
 
   constructor() {
-    const chains: Chain[] = [polygon, bsc, sepolia, polygonMumbai];
+    const chains: Chain[] = [polygon, bsc, sepolia, polygonMumbai, bscTestnet];
 
     if (!environment.production) {
       chains.push(hardhat);

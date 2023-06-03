@@ -24,6 +24,12 @@
     ]
   },
   {
+    "chainId": 97,
+    "contracts": [
+      "0x7b6b3067e5876a529Aab2b320BA21e7911151a1e"
+    ]
+  },
+  {
     "chainId": 31337,
     "contracts": [
       "0x5FbDB2315678afecb367f032d93F642f64180aa3",
