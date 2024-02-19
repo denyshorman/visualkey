@@ -125,9 +125,9 @@
     "currency": "Fuse",
     "blockExplorerUrl": "https://explorer.fuse.io/address/:address",
     "rpcUrls": [
-      "https://fuse-rpc.gateway.pokt.network",
+      "https://fuse-pokt.nodies.app",
       "https://rpc.fuse.io",
-      "https://fuse-mainnet.chainstacklabs.com"
+      "https://fuse.liquify.com"
     ]
   },
   {
