@@ -1,0 +1,8 @@
+{
+  "sites": [
+    {
+      "slug": "visualkey",
+      "distDir": "dist/visualkey"
+    }
+  ]
+}

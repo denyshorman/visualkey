@@ -1,4 +1,4 @@
-name: Deploy
+name: Deploy to PROD
 
 on:
   push:
@@ -12,15 +12,13 @@ jobs:
       name: prod
       url: https://visualkey.link
     steps:
-      - uses: actions/checkout@v3.5.0
+      - uses: actions/checkout@v4.2.2
         with:
           lfs: true
-      - run: git lfs checkout
-      - uses: actions/setup-node@v3.6.0
-      - run: npm install
-      - run: npm run build
-      - run: npm run minify-index
-      - run: npm run fix-ngsw-path
+      - uses: actions/setup-node@v4.2.0
+      - run: npm ci
+      - run: npm run build:prod
       - env:
-          FLEEK_API_KEY: ${{ secrets.FLEEK_API_KEY }}
+          FLEEK_PROJECT_ID: ${{ secrets.FLEEK_PROJECT_ID }}
+          FLEEK_TOKEN: ${{ secrets.FLEEK_TOKEN }}
         run: npm run deploy
