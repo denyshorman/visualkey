@@ -225,22 +225,6 @@
     ]
   },
   {
-    "chainId": 80001,
-    "region": "testnet",
-    "name": "Polygon Mumbai",
-    "currency": "MATIC",
-    "blockExplorerUrl": "https://mumbai.polygonscan.com/address/:address",
-    "rpcUrls": [
-      "https://rpc.ankr.com/polygon_mumbai",
-      "https://polygon-mumbai-bor.publicnode.com",
-      "https://polygon-mumbai.blockpi.network/v1/rpc/public",
-      "https://rpc-mumbai.maticvigil.com",
-      "https://polygon-testnet.public.blastapi.io",
-      "https://endpoints.omniatech.io/v1/matic/mumbai/public",
-      "https://matic-testnet-archive-rpc.bwarelabs.com"
-    ]
-  },
-  {
     "chainId": 31337,
     "region": "localnet",
     "name": "Hardhat",

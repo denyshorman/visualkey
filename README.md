@@ -105,5 +105,4 @@ Deployed Smart Contracts:
 [BNB Chain](https://bscscan.com/address/0x6dD422EE124204a4A9c38189580266dcD55bC648)
 
 [Ethereum Sepolia](https://sepolia.etherscan.io/address/0xa9Ab50860bbADA427d1844A63cC7a1A7E7D038Cc)  
-[Polygon Mumbai](https://mumbai.polygonscan.com/address/0xA76001F57649F00d92EB66A8BEBf8ffBe2CC1810)  
 [BNB Chain Testnet](https://testnet.bscscan.com/address/0x7b6b3067e5876a529Aab2b320BA21e7911151a1e)  
