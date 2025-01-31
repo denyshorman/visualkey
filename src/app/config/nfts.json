@@ -18,12 +18,6 @@
     ]
   },
   {
-    "chainId": 80001,
-    "contracts": [
-      "0xA76001F57649F00d92EB66A8BEBf8ffBe2CC1810"
-    ]
-  },
-  {
     "chainId": 97,
     "contracts": [
       "0x7b6b3067e5876a529Aab2b320BA21e7911151a1e"
