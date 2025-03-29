@@ -1,0 +1,23 @@
+name: Deploy to DEV
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: dev
+    steps:
+      - uses: actions/checkout@v4.2.2
+        with:
+          lfs: true
+      - uses: actions/setup-node@v4.3.0
+      - run: npm ci
+      - run: npm run build:prod
+      - env:
+          SWA_CLI_DEPLOY_ENV: Development
+          SWA_CLI_DEPLOYMENT_TOKEN: ${{ secrets.SWA_CLI_DEPLOYMENT_TOKEN }}
+        run: npm run deploy
