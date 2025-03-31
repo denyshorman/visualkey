@@ -5,6 +5,7 @@ import {
   ContractFunctionExecutionError,
   createPublicClient,
   fallback,
+  FallbackTransportConfig,
   Hex,
   http,
   parseAbi,
@@ -13,7 +14,6 @@ import {
 } from 'viem';
 import visualKeyContractAbi from '../config/nft-abi.json';
 import { defaultIfEmpty, filter, find, mergeMap } from 'rxjs/operators';
-import { FallbackTransportConfig } from 'viem/src/clients/transports/fallback';
 import { getContractError } from '../utils/ViemUtils';
 
 @Injectable({

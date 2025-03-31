@@ -35,7 +35,7 @@
         <button
           class="app-icon-btn"
           (click)="openWallet()"
-          [ngClass]="{ 'wallet-connected': account().isConnected }"
+          [ngClass]="{ 'wallet-connected': account()?.isConnected }"
           pTooltip="Wallet"
           tooltipPosition="right"
           [showDelay]="500"
@@ -64,7 +64,7 @@
           </button>
         </div>
 
-        <div *ngIf="account().address !== undefined" class="white-space-nowrap">
+        <div *ngIf="account()?.address !== undefined" class="white-space-nowrap">
           Price:
           <span *ngIf="!displayPrice()" class="spinner-anim"></span>
           <ng-container *ngIf="displayPrice()">{{ priceEther() }}</ng-container>
