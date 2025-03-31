@@ -32,9 +32,8 @@
     "@fortawesome/fontawesome-svg-core": "^6.4.0",
     "@fortawesome/free-regular-svg-icons": "^6.4.0",
     "@fortawesome/free-solid-svg-icons": "^6.4.0",
-    "@wagmi/core": "^1.0.8",
-    "@web3modal/ethereum": "^2.4.1",
-    "@web3modal/html": "^2.4.1",
+    "@reown/appkit": "^1.7.1",
+    "@reown/appkit-adapter-wagmi": "^1.7.1",
     "ag-grid-angular": "^29.3.5",
     "ag-grid-community": "^29.3.5",
     "detect-it": "^4.0.1",
@@ -43,7 +42,8 @@
     "primeng": "^16.0.0-rc.2",
     "rxjs": "~7.8.1",
     "tslib": "^2.5.2",
-    "viem": "^0.3.41",
+    "viem": "^2.24.3",
+    "wagmi": "^2.14.16",
     "zone.js": "^0.13.0"
   },
   "devDependencies": {

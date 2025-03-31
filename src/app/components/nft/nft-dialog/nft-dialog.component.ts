@@ -1,7 +1,18 @@
-import { Component, computed, effect, EventEmitter, HostListener, Input, OnInit, Output, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  EventEmitter,
+  HostListener,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+  signal,
+} from '@angular/core';
 import { GoogleAnalyticsService } from 'ngx-google-analytics';
 import { VisualKeyContractService } from '../../../services/visual-key-contract.service';
-import { prepareWriteContract, SwitchChainNotSupportedError, switchNetwork, writeContract } from '@wagmi/core';
+import { simulateContract, SwitchChainNotSupportedError, writeContract } from '@wagmi/core';
 import { VisualKeyApiService, VkApiError, VkApiErrorCode } from '../../../services/visual-key-api.service';
 import { firstValueFrom, from, of, timeout } from 'rxjs';
 import { AddrHistoryService } from '../../../services/addr-history.service';
@@ -20,7 +31,7 @@ import { faAddressCard } from '@fortawesome/free-solid-svg-icons';
   templateUrl: './nft-dialog.component.html',
   styleUrls: ['./nft-dialog.component.scss'],
 })
-export class NftDialogComponent implements OnInit {
+export class NftDialogComponent implements OnInit, OnDestroy {
   token: bigint;
   @Output() visibleChange = new EventEmitter<boolean>();
 
@@ -39,7 +50,7 @@ export class NftDialogComponent implements OnInit {
     return this.bitSizePx() * this.pkCols;
   });
 
-  readonly account = computed(() => this.walletService.account()!);
+  readonly account = computed(() => this.walletService.account());
 
   readonly selectedChainId = signal<number | undefined>(undefined);
 
@@ -73,7 +84,7 @@ export class NftDialogComponent implements OnInit {
       computed(() => {
         return {
           chainId: this.selectedChainId(),
-          receiver: this.account().address,
+          receiver: this.account()?.address,
           time: this.refreshPrice(),
         };
       }),
@@ -291,6 +302,12 @@ export class NftDialogComponent implements OnInit {
     this.recalculateBitSize();
   }
 
+  ngOnDestroy(): void {
+    if (this.walletService.appKit.isOpen()) {
+      this.walletService.appKit.close();
+    }
+  }
+
   async mint() {
     this.messageService.clear();
 
@@ -301,9 +318,9 @@ export class NftDialogComponent implements OnInit {
     }
 
     try {
-      const account = this.account();
+      const account = this.walletService.appKit.getAccount();
 
-      if (!account.isConnected) {
+      if (!account?.isConnected) {
         await this.openWallet();
         return;
       }
@@ -326,13 +343,14 @@ export class NftDialogComponent implements OnInit {
         }),
       );
 
-      const walletChainId = this.walletService.network()?.chain?.id;
+      const walletChainId = this.walletService.appKit.getChainId();
 
       if (walletChainId !== selectedChainId) {
-        await switchNetwork({ chainId: selectedChainId });
+        const network = this.walletService.supportedChains.find(chain => chain.id === selectedChainId);
+        await this.walletService.appKit.switchNetwork(network as any);
       }
 
-      const mintPrep = await prepareWriteContract({
+      const { request } = await simulateContract(this.walletService.wagmiConfig, {
         chainId: selectedChainId,
         address: selectedContract as Hex,
         functionName: 'mint',
@@ -347,7 +365,7 @@ export class NftDialogComponent implements OnInit {
         ],
       });
 
-      const { hash } = await writeContract(mintPrep.request);
+      const hash = await writeContract(this.walletService.wagmiConfig, request);
 
       this.messageService.add({
         severity: 'success',
@@ -386,7 +404,7 @@ export class NftDialogComponent implements OnInit {
           case VkApiErrorCode.InvalidSignature:
             this.messageService.add({
               severity: 'error',
-              detail: `Price signature is invalid. Please clear the cache and reload the page.`,
+              detail: `The Price signature is invalid. Please clear the cache and reload the page.`,
               closable: true,
               sticky: true,
             });
@@ -435,8 +453,8 @@ export class NftDialogComponent implements OnInit {
               detail:
                 `The user ${e.params!['receiver']} has initialized the ` +
                 `token minting process for the token ${e.params!['token']} ` +
-                `in the chain ${e.params!['chainId']}. ` +
-                `Token minting on a different chain is prohibited until ${expireTime}.`,
+                `on chain ${e.params!['chainId']}. ` +
+                `Minting on a different chain is prohibited until ${expireTime}.`,
               closable: true,
               sticky: true,
             });
@@ -445,7 +463,7 @@ export class NftDialogComponent implements OnInit {
             this.messageService.add({
               severity: 'error',
               detail:
-                `The token ${e.params!['token']} can't be minted because it belongs to ${e.params!['lockedBy']} ` +
+                `The token ${e.params!['token']} cannot be minted because it belongs to ${e.params!['lockedBy']} ` +
                 `in the ${e.params!['region']} region and chain ${e.params!['chainId']}. ` +
                 `The owner has initiated the migration process to a different blockchain.`,
               closable: true,
@@ -455,7 +473,7 @@ export class NftDialogComponent implements OnInit {
           case VkApiErrorCode.BadRequest:
             this.messageService.add({
               severity: 'error',
-              detail: `Incorrect request. Please clear the browser cache and reload the page.`,
+              detail: `The request is incorrect. Please clear the browser cache and reload the page.`,
               closable: true,
               sticky: true,
             });
@@ -471,7 +489,7 @@ export class NftDialogComponent implements OnInit {
           case VkApiErrorCode.InternalError:
             this.messageService.add({
               severity: 'error',
-              detail: `Internal error has occurred. Please try again.`,
+              detail: `An internal error has occurred. Please try again.`,
               closable: true,
               sticky: true,
             });
@@ -479,7 +497,7 @@ export class NftDialogComponent implements OnInit {
           default:
             this.messageService.add({
               severity: 'error',
-              detail: `Unknown error has occurred: ${e.code}`,
+              detail: `An unknown error has occurred: ${e.code}`,
               closable: true,
               sticky: true,
             });
@@ -489,7 +507,7 @@ export class NftDialogComponent implements OnInit {
       } else if (e instanceof ContractFunctionExecutionError) {
         this.messageService.add({
           severity: 'error',
-          detail: e.details,
+          detail: `${e.shortMessage}: ${e.details}`,
           closable: true,
           sticky: true,
         });
@@ -519,7 +537,7 @@ export class NftDialogComponent implements OnInit {
       } else {
         this.messageService.add({
           severity: 'error',
-          detail: 'Error has occurred.',
+          detail: 'An error has occurred.',
           closable: true,
           sticky: true,
         });
@@ -539,7 +557,7 @@ export class NftDialogComponent implements OnInit {
     }
 
     try {
-      await firstValueFrom(from(this.walletService.web3Modal.openModal()).pipe(timeout(4000)));
+      await firstValueFrom(from(this.walletService.appKit.open()).pipe(timeout(4000)));
       this.gaService.event('nft_wallet_opened');
     } catch (e) {
       this.messageService.add({

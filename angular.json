@@ -5,7 +5,8 @@
     "packageManager": "npm",
     "schematicCollections": [
       "@angular-eslint/schematics"
-    ]
+    ],
+    "analytics": false
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -35,7 +36,17 @@
             "assets": [
               "src/favicon.ico",
               "src/pwa.json",
-              "src/assets"
+              {
+                "glob": "**/*",
+                "input": "src/assets",
+                "ignore": [".well-known/**/*"],
+                "output": "/assets"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/assets/.well-known",
+                "output": "/.well-known"
+              }
             ],
             "styles": [
               "src/styles.scss"

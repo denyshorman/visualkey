@@ -1,27 +1,19 @@
-import { Injectable, OnDestroy, signal } from '@angular/core';
-import { polygon, bsc, sepolia, bscTestnet, hardhat } from '@wagmi/chains';
+import { Injectable, signal } from '@angular/core';
+import { Chain, polygon, bsc, sepolia, bscTestnet, hardhat } from '@reown/appkit/networks';
 import { environment } from '../../environments/environment';
-import {
-  configureChains,
-  createConfig,
-  getAccount,
-  GetAccountResult,
-  getNetwork,
-  GetNetworkResult,
-  watchAccount,
-  watchNetwork,
-} from '@wagmi/core';
-import { Chain, EthereumClient, w3mConnectors, w3mProvider } from '@web3modal/ethereum';
-import { Web3Modal, Web3ModalConfig } from '@web3modal/html';
+import { Config } from '@wagmi/core';
+import { AppKit, createAppKit, UseAppKitAccountReturn } from '@reown/appkit';
+import { WagmiAdapter } from '@reown/appkit-adapter-wagmi';
 
 @Injectable({
   providedIn: 'root',
 })
-export class WalletService implements OnDestroy {
-  readonly web3Modal: Web3Modal;
+export class WalletService {
+  readonly supportedChains: Chain[];
+  readonly wagmiConfig: Config;
+  readonly appKit: AppKit;
 
-  readonly account = signal<GetAccountResult | undefined>(undefined);
-  readonly network = signal<GetNetworkResult | undefined>(undefined);
+  readonly account = signal<UseAppKitAccountReturn | undefined>(undefined);
 
   constructor() {
     const chains: Chain[] = [polygon, bsc, sepolia, bscTestnet];
@@ -30,50 +22,34 @@ export class WalletService implements OnDestroy {
       chains.push(hardhat);
     }
 
-    const projectId = environment.walletConnectProjectId;
+    this.supportedChains = chains;
 
-    const { publicClient } = configureChains(chains, [w3mProvider({ projectId })]);
+    const projectId = environment.reownProjectId;
 
-    const wagmiConfig = createConfig({
-      autoConnect: true,
-      connectors: w3mConnectors({ projectId, version: 1, chains }),
-      publicClient,
+    const wagmiAdapter = new WagmiAdapter({
+      projectId,
+      networks: chains,
     });
 
-    const web3ModelConfig: Web3ModalConfig = {
+    this.wagmiConfig = wagmiAdapter.wagmiConfig;
+
+    this.appKit = createAppKit({
+      adapters: [wagmiAdapter],
+      networks: chains as any,
       projectId,
+      features: {
+        analytics: true,
+      },
       themeMode: 'dark',
       themeVariables: {
-        '--w3m-z-index': '2500',
-        '--w3m-accent-color': '#9f9f9f',
-        '--w3m-background-color': '#141414',
-        '--w3m-background-border-radius': '0',
-        '--w3m-container-border-radius': '0',
+        '--w3m-z-index': 3301,
       },
-    };
+    });
 
-    const ethereumClient = new EthereumClient(wagmiConfig, chains);
+    this.account.set(this.appKit.getAccount());
 
-    this.web3Modal = new Web3Modal(web3ModelConfig, ethereumClient);
-
-    this.account.set(getAccount());
-    this.network.set(getNetwork());
-
-    this.accountUnwatch = watchAccount(account => {
+    this.appKit.subscribeAccount(account => {
       this.account.set(account);
     });
-
-    this.networkUnwatch = watchNetwork(network => {
-      this.network.set(network);
-    });
   }
-
-  ngOnDestroy(): void {
-    this.accountUnwatch();
-    this.networkUnwatch();
-  }
-
-  private readonly accountUnwatch = () => {};
-
-  private readonly networkUnwatch = () => {};
 }
