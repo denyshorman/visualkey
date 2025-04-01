@@ -32,7 +32,7 @@ export class TxBalanceService {
         params: [address, 'latest'],
       };
 
-      return firstValueFrom(this.httpClient.post<any>(url, request).pipe(map(resp => Number(resp.result))));
+      return firstValueFrom(this.httpClient.post<any>(url, request).pipe(map(resp => this.numberOrThrow(resp.result))));
     });
   }
 
@@ -150,6 +150,16 @@ export class TxBalanceService {
     const online$ = this.networkStatusService.status$.pipe(filter(it => it));
     const canceled$ = canceled.pipe(filter(it => it));
     await firstValueFrom(merge(online$, canceled$));
+  }
+
+  private numberOrThrow(value: any): number {
+    const num = Number(value);
+
+    if (Number.isNaN(num)) {
+      throw new Error(`Invalid number: ${value}`);
+    } else {
+      return num;
+    }
   }
   //#endregion
 }
