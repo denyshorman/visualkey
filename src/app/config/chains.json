@@ -6,13 +6,12 @@
     "currency": "ETH",
     "blockExplorerUrl": "https://etherscan.io/address/:address",
     "rpcUrls": [
-      "https://eth.public-rpc.com",
-      "https://rpc.ankr.com/eth",
-      "https://cloudflare-eth.com",
       "https://rpc.flashbots.net",
       "https://ethereum.publicnode.com",
       "https://eth.drpc.org",
       "https://1rpc.io/eth",
+      "https://0xrpc.io/eth",
+      "https://rpc.payload.de",
       "https://eth.llamarpc.com"
     ]
   },
@@ -23,7 +22,6 @@
     "currency": "BNB",
     "blockExplorerUrl": "https://bscscan.com/address/:address",
     "rpcUrls": [
-      "https://bscrpc.com",
       "https://bsc-dataseed.binance.org",
       "https://bsc-dataseed1.defibit.io",
       "https://bsc-dataseed1.ninicoin.io",
@@ -48,7 +46,7 @@
     "chainId": 137,
     "region": "mainnet",
     "name": "Polygon",
-    "currency": "MATIC",
+    "currency": "POL",
     "blockExplorerUrl": "https://polygonscan.com/address/:address",
     "rpcUrls": [
       "https://polygon-rpc.com",
@@ -96,7 +94,6 @@
     "currency": "FTM",
     "blockExplorerUrl": "https://ftmscan.com/address/:address",
     "rpcUrls": [
-      "https://rpc.ftm.tools",
       "https://rpcapi.fantom.network",
       "https://rpc.fantom.network",
       "https://fantom.publicnode.com",
@@ -123,7 +120,7 @@
     "chainId": 122,
     "region": "mainnet",
     "name": "Fuse",
-    "currency": "Fuse",
+    "currency": "FUSE",
     "blockExplorerUrl": "https://explorer.fuse.io/address/:address",
     "rpcUrls": [
       "https://rpc.fuse.io",
@@ -199,8 +196,6 @@
     "currency": "ETH",
     "blockExplorerUrl": "https://sepolia.etherscan.io/address/:address",
     "rpcUrls": [
-      "https://rpc.sepolia.org",
-      "https://rpc2.sepolia.org",
       "https://eth-sepolia.public.blastapi.io",
       "https://sepolia.drpc.org",
       "https://ethereum-sepolia-rpc.publicnode.com",
