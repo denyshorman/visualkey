@@ -6,6 +6,7 @@ export function getContractError(error: ContractFunctionExecutionError, abi: Abi
     return error.cause.data;
   } else {
     // workaround for Hardhat (viem bug)
+    // eslint-disable-next-line
     const data = (error as any).cause?.cause?.cause?.cause?.cause?.data?.data;
     if (data !== undefined) {
       return decodeErrorResult({ data, abi });

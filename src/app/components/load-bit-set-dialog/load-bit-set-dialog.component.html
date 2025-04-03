@@ -1,43 +1,67 @@
 <p-dialog
   [(visible)]="visible"
   position="bottom"
-  [breakpoints]="breakpoints"
-  [style]="{ width: '50vw' }"
-  [contentStyle]="{ paddingBottom: '0.5rem' }"
-  header="Load Custom Key"
+  header="Load Key"
+  styleClass="w-screen lg:w-4/5 xl:w-2/3 2xl:w-2/3 3xl:w-1/2"
 >
-  <div class="flex flex-row flex-nowrap column-gap-1 row-gap-1">
+  <div class="mt-1 flex flex-row flex-nowrap gap-1">
     <input
+      #bitSetInputTag="ngModel"
+      id="bitSetInput"
+      name="bitSetInput"
       type="text"
       pInputText
-      autofocus
-      class="flex-grow-1"
+      pSize="small"
+      class="grow min-w-px"
       placeholder="0x1234567..."
-      [(ngModel)]="bitSetString"
+      maxlength="258"
+      aria-label="Enter the key"
+      [(ngModel)]="bitSetInput"
       (keyup.enter)="loadKey()"
-      [class.ng-invalid]="!valid && bitSetString && bitSetString.length > 0"
+      [class.ng-invalid]="!bitSetValid()"
     />
-
-    <button
-      class="app-icon-btn flex-shrink-1"
-      [class.selected]="instantBitSetChange"
-      (click)="instantBitSetChange = !instantBitSetChange"
-      pTooltip="Enable real-time number display during input"
+    <p-button
+      variant="outlined"
+      severity="secondary"
+      size="small"
+      styleClass="h-full aspect-square leading-0 select-none"
+      (click)="bitSetInstantUpdate.set(!bitSetInstantUpdate())"
+      pTooltip="Toggle instant preview while typing"
       tooltipPosition="bottom"
+      aria-label="Toggle Instant Preview"
     >
-      <fa-icon [icon]="icons.faBoltLightning"></fa-icon>
-    </button>
+      <fa-icon [icon]="icons.faBoltLightning" [class.text-yellow-500]="bitSetInstantUpdate()"></fa-icon>
+    </p-button>
   </div>
-  <small class="block mt-1 p-error" *ngIf="!valid && bitSetString && bitSetString.length > 0">Key is not valid</small>
-  <div class="overflow-auto white-space-nowrap">
-    <small class="block mt-2">
-      Hint: Key supports binary (0b1010100110...), decimal (12345678...), and hexadecimal (0x1a3b4c5f...) formats
-    </small>
-    <small class="block mt-1 mb-3">Hint: Key must be in range {{ min }} - 0x{{ max.toString(16) }} (exclusive)</small>
+  <div
+    class="mt-3 overflow-auto scrollbar-none whitespace-nowrap text-zinc-500 dark:text-neutral-400 text-xs md:text-sm"
+  >
+    @if (bitSetInputTag.dirty && !bitSetValid()) {
+      <div class="mt-1 mb-1 text-rose-500">Invalid key</div>
+    }
+    <div>
+      Hint: Key supports binary (0b1010100110...), decimal (12345678...), and hexadecimal (0x1a3b4c5f...) formats.
+    </div>
+    <div class="mt-1 mb-3">
+      Hint: Key must be within the range {{ min() }} to 0x{{ max().toString(16) }} (exclusive).
+    </div>
   </div>
 
-  <ng-template pTemplate="footer">
-    <p-button label="Cancel" styleClass="p-button-text" (click)="visible = false"></p-button>
-    <p-button label="Ok" styleClass="p-button-text" (click)="loadKey()" [disabled]="!valid"></p-button>
+  <ng-template #footer>
+    <p-button
+      label="Cancel"
+      variant="outlined"
+      severity="secondary"
+      size="small"
+      (click)="visible.set(false)"
+    ></p-button>
+    <p-button
+      label="Load"
+      variant="outlined"
+      severity="secondary"
+      size="small"
+      (click)="loadKey()"
+      [disabled]="!bitSetValid()"
+    ></p-button>
   </ng-template>
 </p-dialog>

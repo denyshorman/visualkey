@@ -1,22 +1,38 @@
-import { Component, HostListener, OnInit } from '@angular/core';
-import { GoogleAnalyticsService } from 'ngx-google-analytics';
+import { Component, OnInit } from '@angular/core';
+import { AnalyticsService } from './services/analytics.service';
+import { EthAddrGeneratorComponent } from './pages/eth-addr-generator/eth-addr-generator.component';
+import { ThemeService } from './services/theme.service';
 
 @Component({
   selector: 'app-root',
+  imports: [EthAddrGeneratorComponent],
   template: '<app-eth-addr-generator></app-eth-addr-generator>',
-  styleUrls: [],
+  host: {
+    '(window:appinstalled)': 'onAppInstalled()',
+    '(window:keyup)': 'toggleTheme($event)',
+  },
 })
 export class AppComponent implements OnInit {
-  constructor(private gaService: GoogleAnalyticsService) {}
+  constructor(
+    private themeService: ThemeService,
+    private analyticsService: AnalyticsService,
+  ) {}
 
   ngOnInit(): void {
+    this.analyticsService.initialize();
+
     if (window.matchMedia('(display-mode: standalone)').matches) {
-      this.gaService.event('display_mode_standalone');
+      this.analyticsService.trackEvent('app_display_mode_standalone');
     }
   }
 
-  @HostListener('window:appinstalled')
   onAppInstalled() {
-    this.gaService.event('app_installed');
+    this.analyticsService.trackEvent('app_installed');
+  }
+
+  toggleTheme(event: KeyboardEvent) {
+    if (event.key === 't') {
+      this.themeService.toggle();
+    }
   }
 }

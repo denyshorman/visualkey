@@ -1,272 +1,339 @@
 import {
-  AfterViewInit,
+  afterNextRender,
   Component,
+  computed,
+  effect,
   ElementRef,
-  EventEmitter,
-  Input,
+  input,
+  model,
   OnChanges,
-  Output,
-  Renderer2,
+  OnDestroy,
   SimpleChanges,
-  ViewChild,
+  viewChild,
 } from '@angular/core';
-import { BigIntUtils } from '../../utils/BigIntUtils';
-import { GoogleAnalyticsService } from 'ngx-google-analytics';
+import { AnalyticsService } from '../../services/analytics.service';
+import { ThemeService } from '../../services/theme.service';
+import {
+  FromWorkerMessage,
+  FromWorkerMessageType,
+  ToWorkerMessage,
+  UpdateDataPayload,
+  WorkerMessageType,
+} from './bit-set.worker';
 
 @Component({
   selector: 'app-bit-set',
-  template: `
-    <div
-      #bitSet
-      class="bit-set"
-      (contextmenu)="$event.preventDefault()"
-      (touchmove)="bitSetTouchMove($event)"
-      (touchstart)="bitSetTouchStart($event)"
-      (mouseenter)="bitSetMouseEnter()"
-      (mouseleave)="bitSetMouseLeave()"
-    ></div>
-  `,
-  styleUrls: ['./bit-set.component.scss'],
+  host: {
+    class: 'touch-none select-none',
+    '[style.width.px]': 'canvasSize().width',
+    '[style.height.px]': 'canvasSize().height',
+    '[class.cursor-none]': '!readOnly()',
+    '[class.cursor-default]': 'readOnly()',
+    '(contextmenu)': '$event.preventDefault()',
+    '(pointerdown)': 'canvasPointerDown($event)',
+    '(pointerup)': 'canvasPointerUp($event)',
+    '(pointerenter)': 'canvasPointerEnter($event)',
+    '(pointerleave)': 'canvasPointerLeave($event)',
+    '(pointermove)': 'canvasPointerMove($event)',
+    '(pointercancel)': 'canvasPointerCancel($event)',
+    '(wheel)': 'canvasWheel($event)',
+  },
+  template: `<canvas #bitSetCanvas></canvas>`,
 })
-export class BitSetComponent implements OnChanges, AfterViewInit {
-  @Output() bitSetChange = new EventEmitter<bigint>();
-  @Input() cols!: number;
-  @Input() size!: number;
-  @Input() falseStateColor = DefaultFalseStateColor;
-  @Input() trueStateColor = DefaultTrueStateColor;
-  @Input() mouseEnterStrategy = DefaultMouseEnterStrategy;
-  @Input() mouseMoveDisabled = false;
-  @Input() gaLabel?: string;
-  @ViewChild('bitSet') bitSetGui?: ElementRef<HTMLDivElement>;
+export class BitSetComponent implements OnChanges, OnDestroy {
+  readonly gridCols = input.required<number>();
+  readonly bitCount = input.required<number>();
+  readonly mouseEnterStrategy = input(DefaultMouseEnterStrategy);
+  readonly mouseMoveDisabled = input(false);
+  readonly readOnly = input(false);
+  readonly bitSet = model(BigInt(0));
+  readonly bitCellSize = input(DefaultBitSize);
+  readonly bitSetCanvas = viewChild.required<ElementRef<HTMLCanvasElement>>('bitSetCanvas');
 
-  private prevTouchBitGui?: Element;
-  private readonly gaCategory = 'bit_set';
+  readonly canvasSize = computed(() => {
+    const cellSize = this.bitCellSize();
+    const gridCols = this.gridCols();
+    const bitCount = this.bitCount();
+    const width = cellSize * gridCols;
+    const height = cellSize * Math.ceil(bitCount / gridCols);
+    return { width, height };
+  });
 
-  constructor(private renderer: Renderer2, private gaService: GoogleAnalyticsService) {}
+  private readonly colors = computed(() => {
+    this.themeService.theme();
+    const style = getComputedStyle(document.documentElement);
+    const bitColor0 = style.getPropertyValue('--app-bit-color-0').trim();
+    const bitColor1 = style.getPropertyValue('--app-bit-color-1').trim();
+    return { bitColor0, bitColor1 };
+  });
 
-  private _readOnly = false;
+  private worker?: Worker;
+  private activePointerId?: number;
 
-  get readOnly(): boolean {
-    return this._readOnly;
-  }
+  constructor(
+    private analyticsService: AnalyticsService,
+    private themeService: ThemeService,
+  ) {
+    effect(() => {
+      const { bitColor0, bitColor1 } = this.colors();
 
-  @Input()
-  set readOnly(readOnly: boolean) {
-    if (this._readOnly === readOnly) {
-      return;
-    }
+      if (this.worker) {
+        const updateMessage: ToWorkerMessage = {
+          type: WorkerMessageType.UpdateData,
+          payload: {
+            bitColor0,
+            bitColor1,
+          },
+        };
 
-    this._readOnly = readOnly;
-
-    if (this.bitSetGui) {
-      this.updateCursorGui();
-    }
-  }
-
-  private _bitSet = BigInt(0);
-
-  get bitSet(): bigint {
-    return this._bitSet;
-  }
-
-  @Input()
-  set bitSet(bitSet: bigint) {
-    if (this._bitSet === bitSet) {
-      return;
-    }
-
-    this._bitSet = bitSet;
-
-    if (this.bitSetGui) {
-      for (let bitIndex = 0; bitIndex < this.size; bitIndex++) {
-        this.updateBitColorGui(bitIndex);
+        this.worker.postMessage(updateMessage);
       }
-    }
-  }
+    });
 
-  private _bitSize = DefaultBitSize;
+    effect(() => {
+      const { width, height } = this.canvasSize();
 
-  get bitSize(): number {
-    return this._bitSize;
-  }
+      if (this.worker) {
+        const updateMessage: ToWorkerMessage = {
+          type: WorkerMessageType.UpdateData,
+          payload: {
+            canvasWidth: width,
+            canvasHeight: height,
+          },
+        };
 
-  @Input()
-  set bitSize(bitSize: number) {
-    if (this._bitSize === bitSize) {
-      return;
-    }
-
-    this._bitSize = bitSize;
-
-    if (this.bitSetGui) {
-      this.updateCursorGui();
-
-      for (let bitIndex = 0; bitIndex < this.size; bitIndex++) {
-        this.updateBitSizeGui(bitIndex);
+        this.worker.postMessage(updateMessage);
       }
-    }
-  }
+    });
 
-  private static isLeftButtonPressed(e: MouseEvent): boolean {
-    return e.buttons === 1 || e.button === 1;
-  }
+    afterNextRender(() => {
+      const offscreenCanvas = this.bitSetCanvas().nativeElement.transferControlToOffscreen();
+      offscreenCanvas.width = this.canvasSize().width;
+      offscreenCanvas.height = this.canvasSize().height;
 
-  ngAfterViewInit(): void {
-    this.createBitSetGui();
+      const initMessage: ToWorkerMessage = {
+        type: WorkerMessageType.Init,
+        payload: {
+          canvas: offscreenCanvas,
+          gridCols: this.gridCols(),
+          totalBitCount: this.bitCount(),
+          bitCellSize: this.bitCellSize(),
+          bitSet: this.bitSet(),
+          bitColor0: this.colors().bitColor0,
+          bitColor1: this.colors().bitColor1,
+          mouseEnterStrategy: this.mouseEnterStrategy(),
+          mouseMoveDisabled: this.mouseMoveDisabled(),
+        },
+      };
+
+      this.worker = new Worker(new URL('./bit-set.worker', import.meta.url), { type: 'module' });
+
+      this.worker.onmessage = (event: MessageEvent<FromWorkerMessage>) => {
+        const message = event.data;
+
+        if (message.type === FromWorkerMessageType.BitSetUpdated) {
+          this.bitSet.set(message.payload.bitSet);
+        }
+      };
+
+      this.worker.postMessage(initMessage, [offscreenCanvas]);
+    });
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['cols'] || changes['size']) {
-      this.createBitSetGui();
+    if (!this.worker) return;
+
+    const payload: UpdateDataPayload = {};
+    let needsUpdate = false;
+
+    const gridCols = changes['gridCols'];
+
+    if (gridCols && !gridCols.firstChange) {
+      payload.gridCols = gridCols.currentValue;
+      needsUpdate = true;
+    }
+
+    const bitCount = changes['bitCount'];
+
+    if (bitCount && !bitCount.firstChange) {
+      payload.totalBitCount = bitCount.currentValue;
+      needsUpdate = true;
+    }
+
+    const mouseEnterStrategy = changes['mouseEnterStrategy'];
+
+    if (mouseEnterStrategy && !mouseEnterStrategy.firstChange) {
+      payload.mouseEnterStrategy = mouseEnterStrategy.currentValue;
+      needsUpdate = true;
+    }
+
+    const mouseMoveDisabled = changes['mouseMoveDisabled'];
+
+    if (mouseMoveDisabled && !mouseMoveDisabled.firstChange) {
+      payload.mouseMoveDisabled = mouseMoveDisabled.currentValue;
+      needsUpdate = true;
+    }
+
+    const bitCellSize = changes['bitCellSize'];
+
+    if (bitCellSize && !bitCellSize.firstChange) {
+      payload.bitCellSize = bitCellSize.currentValue;
+      needsUpdate = true;
+    }
+
+    const bitSet = changes['bitSet'];
+
+    if (bitSet && !bitSet.firstChange) {
+      payload.bitSet = bitSet.currentValue;
+      needsUpdate = true;
+    }
+
+    if (needsUpdate) {
+      const updateMessage: ToWorkerMessage = {
+        type: WorkerMessageType.UpdateData,
+        payload,
+      };
+
+      this.worker.postMessage(updateMessage);
     }
   }
 
-  bitSetTouchMove(e: TouchEvent) {
-    if (this._readOnly) {
-      return;
+  ngOnDestroy() {
+    this.destroyWorker();
+  }
+
+  canvasPointerEnter(event: PointerEvent) {
+    if (this.readOnly() || !this.worker) return;
+    this.analyticsService.trackEvent('bitset_pointer_enter');
+
+    this.activePointerId = event.pointerId;
+
+    if (event.target instanceof Element) {
+      event.target.setPointerCapture(event.pointerId);
     }
+
+    const rect = this.bitSetCanvas().nativeElement.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    const enterMessage: ToWorkerMessage = {
+      type: WorkerMessageType.PointerEnter,
+      payload: { x, y },
+    };
+
+    this.worker.postMessage(enterMessage);
+  }
+
+  canvasPointerLeave(event: PointerEvent) {
+    if (this.readOnly() || !this.worker) return;
+    if (this.activePointerId !== undefined && event.pointerId !== this.activePointerId) return;
+
+    this.analyticsService.trackEvent('bitset_pointer_leave');
+    this.activePointerId = undefined;
+
+    const leaveMessage: ToWorkerMessage = { type: WorkerMessageType.PointerLeave, payload: undefined };
+    this.worker.postMessage(leaveMessage);
+  }
+
+  canvasPointerMove(event: PointerEvent) {
+    if (this.readOnly() || !this.worker) return;
+    if (this.activePointerId !== undefined && event.pointerId !== this.activePointerId) return;
+
+    const rect = this.bitSetCanvas().nativeElement.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    const moveMessage: ToWorkerMessage = {
+      type: WorkerMessageType.PointerMove,
+      payload: { x, y },
+    };
+
+    this.worker.postMessage(moveMessage);
+  }
+
+  canvasPointerCancel(event: PointerEvent) {
+    if (this.readOnly() || !this.worker) return;
+    if (this.activePointerId !== undefined && event.pointerId !== this.activePointerId) return;
+
+    this.activePointerId = undefined;
+
+    const moveMessage: ToWorkerMessage = {
+      type: WorkerMessageType.PointerCancel,
+      payload: undefined,
+    };
+
+    this.worker.postMessage(moveMessage);
+  }
+
+  canvasPointerDown(event: PointerEvent) {
+    if (this.readOnly() || !this.worker) return;
+
+    this.activePointerId = event.pointerId;
+
+    if (event.target instanceof Element) {
+      event.target.setPointerCapture(event.pointerId);
+    }
+
+    const rect = this.bitSetCanvas().nativeElement.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    const moveMessage: ToWorkerMessage = {
+      type: WorkerMessageType.PointerDown,
+      payload: { x, y },
+    };
+
+    this.worker.postMessage(moveMessage);
+  }
+
+  canvasPointerUp(event: PointerEvent) {
+    if (this.readOnly() || !this.worker) return;
+    if (this.activePointerId !== undefined && event.pointerId !== this.activePointerId) return;
+
+    this.activePointerId = undefined;
+
+    const rect = this.bitSetCanvas().nativeElement.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    const moveMessage: ToWorkerMessage = {
+      type: WorkerMessageType.PointerUp,
+      payload: { x, y },
+    };
+
+    this.worker.postMessage(moveMessage);
+  }
+
+  canvasWheel(e: WheelEvent) {
+    if (this.readOnly() || !this.worker) return;
 
     e.preventDefault();
 
-    for (let i = 0; i < e.touches.length; i++) {
-      const el = document.elementFromPoint(e.touches[i].pageX, e.touches[i].pageY);
-      if (el && this.prevTouchBitGui != el) {
-        this.prevTouchBitGui = el;
-        el.dispatchEvent(new MouseEvent('mouseenter', { buttons: 1 }));
-      }
+    let increase: boolean | undefined = undefined;
+
+    if (e.deltaY < 0) {
+      increase = true;
+    } else if (e.deltaY > 0) {
+      increase = false;
+    }
+
+    if (increase !== undefined) {
+      const wheelMessage: ToWorkerMessage = {
+        type: WorkerMessageType.ChangeBrushSize,
+        payload: { increase },
+      };
+
+      this.worker.postMessage(wheelMessage);
     }
   }
 
-  bitSetTouchStart(e: TouchEvent) {
-    if (this._readOnly) {
-      return;
+  private destroyWorker() {
+    if (this.worker) {
+      this.worker.onmessage = null;
+      this.worker.onerror = null;
+      this.worker.terminate();
+      this.worker = undefined;
     }
-
-    e.preventDefault();
-
-    if (this.prevTouchBitGui === undefined) {
-      e.target?.dispatchEvent(new MouseEvent('mousedown'));
-    }
-
-    this.prevTouchBitGui = undefined;
-  }
-
-  bitSetMouseEnter() {
-    if (this._readOnly) {
-      return;
-    }
-
-    this.gaService.event('bitset_enter', this.gaCategory, this.gaLabel);
-  }
-
-  bitSetMouseLeave() {
-    if (this._readOnly) {
-      return;
-    }
-
-    this.gaService.event('bitset_leave', this.gaCategory, this.gaLabel);
-  }
-
-  bitMouseEnter(e: MouseEvent, bitIndex: number) {
-    if (this._readOnly || (this.mouseMoveDisabled && !BitSetComponent.isLeftButtonPressed(e))) {
-      return;
-    }
-
-    this.updateBitAndNotify(bitIndex);
-  }
-
-  bitMouseDown(bitIndex: number) {
-    if (this._readOnly) {
-      return;
-    }
-
-    this.updateBitAndNotify(bitIndex);
-  }
-
-  private updateBitAndNotify(bitIndex: number) {
-    this.updateBit(this.size - bitIndex - 1);
-    this.updateBitColorGui(bitIndex);
-    this.bitSetChange.emit(this._bitSet);
-  }
-
-  private createBitSetGui() {
-    if (this.bitSetGui === undefined) {
-      return;
-    }
-
-    this.bitSetGui!.nativeElement.innerHTML = '';
-    this.updateCursorGui();
-
-    for (let bitIndex = 0; bitIndex < this.size; bitIndex++) {
-      this.createBitGui(bitIndex);
-    }
-  }
-
-  private createBitGui(bitIndex: number) {
-    const rowIndex = Math.floor(bitIndex / this.cols) + 1;
-    const colIndex = (bitIndex % this.cols) + 1;
-
-    const bitState = BigIntUtils.getBit(this._bitSet, this.size - bitIndex - 1);
-    const bitColor = this.getBitColor(bitState);
-    const bitSize = this._bitSize + 'px';
-
-    const bit = this.renderer.createElement('div');
-    this.renderer.setAttribute(bit, 'class', 'bit');
-    this.renderer.setStyle(bit, 'grid-row', rowIndex.toString());
-    this.renderer.setStyle(bit, 'grid-column', colIndex.toString());
-    this.renderer.setStyle(bit, 'width', bitSize);
-    this.renderer.setStyle(bit, 'height', bitSize);
-    this.renderer.setStyle(bit, 'background-color', bitColor);
-    this.renderer.listen(bit, 'mouseenter', (e: MouseEvent) => this.bitMouseEnter(e, bitIndex));
-    this.renderer.listen(bit, 'mousedown', () => this.bitMouseDown(bitIndex));
-    this.renderer.appendChild(this.bitSetGui!.nativeElement, bit);
-  }
-
-  private updateBitColorGui(bitIndex: number) {
-    const bitState = BigIntUtils.getBit(this._bitSet, this.size - bitIndex - 1);
-    const bitColor = this.getBitColor(bitState);
-    const bit = this.bitSetGui!.nativeElement.children[bitIndex];
-    this.renderer.setStyle(bit, 'background-color', bitColor);
-  }
-
-  private updateBitSizeGui(bitIndex: number) {
-    const bitSize = this._bitSize + 'px';
-    const bit = this.bitSetGui!.nativeElement.children[bitIndex];
-    this.renderer.setStyle(bit, 'width', bitSize);
-    this.renderer.setStyle(bit, 'height', bitSize);
-  }
-
-  private updateCursorGui() {
-    if (!this._readOnly) {
-      const sz = this.bitSize * 0.75;
-      const xyr = sz / 2;
-      const cursorSvg = `<svg xmlns='http://www.w3.org/2000/svg' width='${sz}' height='${sz}'><circle cx='${xyr}' cy='${xyr}' r='${xyr}' fill='black' fill-opacity='0.8' shape-rendering='geometricPrecision'/></svg>`;
-      const cursor = `url("data:image/svg+xml;utf8,${cursorSvg}") ${xyr} ${xyr}, default`;
-
-      this.renderer.setStyle(this.bitSetGui!.nativeElement, 'cursor', cursor);
-    } else {
-      this.renderer.setStyle(this.bitSetGui!.nativeElement, 'cursor', 'default');
-    }
-  }
-
-  private updateBit(bitIndex: number) {
-    switch (this.mouseEnterStrategy) {
-      case MouseEnterStrategy.Set:
-        this._bitSet = BigIntUtils.setBit(this._bitSet, bitIndex, true);
-        break;
-      case MouseEnterStrategy.Clear:
-        this._bitSet = BigIntUtils.setBit(this._bitSet, bitIndex, false);
-        break;
-      case MouseEnterStrategy.Flip:
-        this._bitSet = BigIntUtils.invertBit(this._bitSet, bitIndex);
-        break;
-      default:
-        throw new Error(`Unrecognized mouse enter strategy ${this.mouseEnterStrategy}`);
-    }
-  }
-
-  private getBitColor(bitValue: boolean): string {
-    return bitValue ? this.trueStateColor : this.falseStateColor;
   }
 }
 
@@ -277,6 +344,4 @@ export enum MouseEnterStrategy {
 }
 
 export const DefaultMouseEnterStrategy = MouseEnterStrategy.Flip;
-export const DefaultFalseStateColor = '#ff0040';
-export const DefaultTrueStateColor = '#30ff12';
 export const DefaultBitSize = 20;

@@ -1,53 +1,65 @@
-import {
-  Component,
-  computed,
-  effect,
-  EventEmitter,
-  HostListener,
-  Input,
-  OnDestroy,
-  OnInit,
-  Output,
-  signal,
-} from '@angular/core';
-import { GoogleAnalyticsService } from 'ngx-google-analytics';
+import { Component, computed, effect, input, model, OnDestroy, OnInit, signal } from '@angular/core';
+import { AnalyticsService } from '../../../services/analytics.service';
 import { VisualKeyContractService } from '../../../services/visual-key-contract.service';
 import { simulateContract, SwitchChainNotSupportedError, writeContract } from '@wagmi/core';
 import { VisualKeyApiService, VkApiError, VkApiErrorCode } from '../../../services/visual-key-api.service';
 import { firstValueFrom, from, of, timeout } from 'rxjs';
-import { AddrHistoryService } from '../../../services/addr-history.service';
-import { MessageService, SelectItemGroup } from 'primeng/api';
+import { MessageService, SelectItem, SelectItemGroup } from 'primeng/api';
 import { environment } from '../../../../environments/environment';
 import { ChainRegion, ChainsConfigService } from '../../../config/chains-config.service';
-import { SelectItem } from 'primeng/api/selectitem';
 import { WalletService } from '../../../services/wallet.service';
 import { ContractFunctionExecutionError, formatEther, Hex, SwitchChainError, TransactionExecutionError } from 'viem';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { distinctUntilChanged, filter, retry, switchMap, tap, throttleTime } from 'rxjs/operators';
 import { faAddressCard } from '@fortawesome/free-solid-svg-icons';
+import { AppKitNetwork } from '@reown/appkit/networks';
+import { Dialog } from 'primeng/dialog';
+import { BitSetComponent } from '../../bit-set/bit-set.component';
+import { Tooltip } from 'primeng/tooltip';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { FormsModule } from '@angular/forms';
+import { NgClass } from '@angular/common';
+import { ProgressBar } from 'primeng/progressbar';
+import { Toast } from 'primeng/toast';
+import { Select } from 'primeng/select';
+import { Button } from 'primeng/button';
 
 @Component({
-  selector: 'app-nft-modal',
+  selector: 'app-nft-dialog',
   templateUrl: './nft-dialog.component.html',
-  styleUrls: ['./nft-dialog.component.scss'],
+  host: {
+    '(window:resize)': 'onResize()',
+  },
+  imports: [
+    BitSetComponent,
+    FaIconComponent,
+    FormsModule,
+    Dialog,
+    Tooltip,
+    NgClass,
+    ProgressBar,
+    Toast,
+    Select,
+    Button,
+  ],
+  providers: [MessageService],
 })
 export class NftDialogComponent implements OnInit, OnDestroy {
-  token: bigint;
-  @Output() visibleChange = new EventEmitter<boolean>();
-
-  readonly pkSize = 256;
+  readonly pkBitCount = 256;
   readonly pkCols = 16;
-
   readonly regionChain: SelectItemGroup[];
 
   readonly icons = {
     faAddressCard,
   };
 
-  readonly bitSizePx = signal(0);
+  readonly token = input.required<bigint>();
+  readonly visible = model<boolean>(false);
+
+  readonly bitCellSize = signal(0);
 
   readonly tokenWidthPx = computed(() => {
-    return this.bitSizePx() * this.pkCols;
+    return this.bitCellSize() * this.pkCols;
   });
 
   readonly account = computed(() => this.walletService.account());
@@ -86,6 +98,7 @@ export class NftDialogComponent implements OnInit, OnDestroy {
           chainId: this.selectedChainId(),
           receiver: this.account()?.address,
           time: this.refreshPrice(),
+          token: this.token(),
         };
       }),
     ).pipe(
@@ -99,7 +112,7 @@ export class NftDialogComponent implements OnInit, OnDestroy {
         return this.visualKeyApiService.getPrice({
           chainId: it.chainId!,
           receiver: it.receiver!,
-          token: this.token,
+          token: it.token,
         });
       }),
       retry({ delay: 2000 }),
@@ -128,6 +141,7 @@ export class NftDialogComponent implements OnInit, OnDestroy {
         return {
           region: this.selectedRegion(),
           time: this.refreshOwner(),
+          token: this.token(),
         };
       }),
     ).pipe(
@@ -135,7 +149,7 @@ export class NftDialogComponent implements OnInit, OnDestroy {
       tap(() => this.ownerLoading.set(true)),
       switchMap(it => {
         if (it.region !== undefined) {
-          return this.visualKeyContractService.ownerOf(this.token, it.region);
+          return this.visualKeyContractService.ownerOf(it.token, it.region);
         } else {
           return of(undefined);
         }
@@ -157,23 +171,12 @@ export class NftDialogComponent implements OnInit, OnDestroy {
 
   constructor(
     private walletService: WalletService,
-    private gaService: GoogleAnalyticsService,
+    private analyticsService: AnalyticsService,
     private chainsConfigService: ChainsConfigService,
     private visualKeyApiService: VisualKeyApiService,
     private visualKeyContractService: VisualKeyContractService,
     private messageService: MessageService,
-    addrHistoryService: AddrHistoryService,
   ) {
-    //#region Token initialization
-    const latestKey = addrHistoryService.latest();
-
-    if (latestKey) {
-      this.token = latestKey.privateKey;
-    } else {
-      throw new Error('Token must exist before NFT modal is opened');
-    }
-    //#endregion
-
     //#region Region chain initialization
     function getRegionChainItems(region: ChainRegion): SelectItem[] {
       return chainsConfigService.nfts
@@ -279,21 +282,6 @@ export class NftDialogComponent implements OnInit, OnDestroy {
     //#endregion
   }
 
-  private _visible = false;
-
-  get visible(): boolean {
-    return this._visible;
-  }
-
-  @Input()
-  set visible(visible: boolean) {
-    if (this._visible != visible) {
-      this._visible = visible;
-      this.visibleChange.emit(visible);
-    }
-  }
-
-  @HostListener('window:resize', ['$event'])
   onResize() {
     this.recalculateBitSize();
   }
@@ -326,7 +314,7 @@ export class NftDialogComponent implements OnInit, OnDestroy {
       }
 
       const selectedChainId = this.selectedChainId()!;
-      const selectedToken = this.token;
+      const selectedToken = this.token();
       const selectedReceiver = account.address!;
       const selectedContract = this.chainsConfigService.getNftContract(selectedChainId)!;
       const price = this.price()!;
@@ -347,7 +335,7 @@ export class NftDialogComponent implements OnInit, OnDestroy {
 
       if (walletChainId !== selectedChainId) {
         const network = this.walletService.supportedChains.find(chain => chain.id === selectedChainId);
-        await this.walletService.appKit.switchNetwork(network as any);
+        await this.walletService.appKit.switchNetwork(network as AppKitNetwork);
       }
 
       const { request } = await simulateContract(this.walletService.wagmiConfig, {
@@ -382,7 +370,12 @@ export class NftDialogComponent implements OnInit, OnDestroy {
 
       if (tranReceipt.status == 'success') {
         this.triggerOwnerRefresh();
-        this.gaService.event('nft_minted');
+
+        this.analyticsService.trackEvent('nft_mint_success', {
+          token: selectedToken,
+          chainId: selectedChainId,
+          price: price.price,
+        });
 
         this.messageService.add({
           severity: 'success',
@@ -445,8 +438,9 @@ export class NftDialogComponent implements OnInit, OnDestroy {
               sticky: true,
             });
             break;
-          case VkApiErrorCode.PendingMinting:
-            const expireTime = new Date(e.params!['mintDeadline'] * 1000).toLocaleString();
+          case VkApiErrorCode.PendingMinting: {
+            const mintDeadline = e.params!['mintDeadline'] as number;
+            const expireTime = new Date(mintDeadline * 1000).toLocaleString();
 
             this.messageService.add({
               severity: 'error',
@@ -458,7 +452,9 @@ export class NftDialogComponent implements OnInit, OnDestroy {
               closable: true,
               sticky: true,
             });
+
             break;
+          }
           case VkApiErrorCode.TokenLocked:
             this.messageService.add({
               severity: 'error',
@@ -558,8 +554,8 @@ export class NftDialogComponent implements OnInit, OnDestroy {
 
     try {
       await firstValueFrom(from(this.walletService.appKit.open()).pipe(timeout(4000)));
-      this.gaService.event('nft_wallet_opened');
-    } catch (e) {
+      this.analyticsService.trackEvent('nft_wallet_open');
+    } catch {
       this.messageService.add({
         severity: 'error',
         detail: 'Unable to open the wallet. Please refresh the page and try again.',
@@ -572,13 +568,13 @@ export class NftDialogComponent implements OnInit, OnDestroy {
   }
 
   private recalculateBitSize() {
-    let bitSize = Math.floor((window.innerHeight / this.pkCols) * 0.45);
+    let size = Math.floor((window.innerHeight / this.pkCols) * 0.45);
 
-    if (bitSize * (this.pkCols + 4) > window.innerWidth) {
-      bitSize = Math.floor((window.innerWidth / this.pkCols) * 0.85);
+    if (size * (this.pkCols + 4) > window.innerWidth) {
+      size = Math.floor((window.innerWidth / this.pkCols) * 0.85);
     }
 
-    this.bitSizePx.set(bitSize);
+    this.bitCellSize.set(size);
   }
 
   private triggerPriceRefresh() {

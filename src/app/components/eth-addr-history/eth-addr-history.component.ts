@@ -1,43 +1,134 @@
-import { AfterViewInit, Component, Input, OnDestroy, Output, ViewChild } from '@angular/core';
-import { AddrNetworkCollectorService } from '../../services/addr-network-collector.service';
-import { AddrHistoryService } from '../../services/addr-history.service';
-import { EthAddressUtils } from '../../utils/EthAddressUtils';
-import { CellDoubleClickedEvent, ColGroupDef, GridOptions } from 'ag-grid-community';
+import { Component, effect, input, model, signal, untracked } from '@angular/core';
+import {
+  CellDoubleClickedEvent,
+  ClientSideRowModelApiModule,
+  ClientSideRowModelModule,
+  ColGroupDef,
+  ColumnAutoSizeModule,
+  CsvExportModule,
+  ExternalFilterModule,
+  type GridApi,
+  GridOptions,
+  NumberFilterModule,
+  RenderApiModule,
+  RowApiModule,
+  RowStyleModule,
+  TextFilterModule,
+  themeBalham,
+  ValidationModule,
+} from 'ag-grid-community';
 import { AgGridAngular } from 'ag-grid-angular';
 import { ChainRegion, ChainsConfigService } from '../../config/chains-config.service';
-import { asyncScheduler, BehaviorSubject, observeOn, Subscription } from 'rxjs';
-import { formatUnits } from 'viem';
-import {
-  faCode,
-  faDownLeftAndUpRightToCenter,
-  faDownload,
-  faTrashCan,
-  faUpRightAndDownLeftFromCenter,
-  faWifi,
-} from '@fortawesome/free-solid-svg-icons';
-import { rotateLeft } from '../../utils/ArrayUtils';
-import { GoogleAnalyticsService } from 'ngx-google-analytics';
+import { AnalyticsService } from '../../services/analytics.service';
 import { environment } from '../../../environments/environment';
-import { filter, first, switchMap } from 'rxjs/operators';
+import { filter, first, map, shareReplay, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { FormsModule } from '@angular/forms';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { EthAccount } from '../../models/eth-account';
+import { TxBalanceService } from '../../services/tx-balance.service';
+import { EthAddrHistoryGridHeaderComponent } from './eth-addr-history-grid-header.component';
+import { concatMap, Observable, of, ReplaySubject, Subject } from 'rxjs';
+import { DoublyLinkedList } from '@datastructures-js/linked-list';
+import { formatUnits } from 'viem';
 
 @Component({
   selector: 'app-eth-addr-history',
-  templateUrl: './eth-addr-history.component.html',
-  styleUrls: ['./eth-addr-history.component.scss'],
+  imports: [AgGridAngular, FormsModule, EthAddrHistoryGridHeaderComponent],
+  template: `
+    <div class="flex flex-col h-full gap-y-1">
+      <app-eth-addr-history-grid-header
+        [displayedRowCount]="displayedRowCount()"
+        [totalGeneratedRowCount]="totalGeneratedRowCount()"
+        [currencyUnitOptions]="currencyUnitOptions"
+        [(selectedCurrencyUnit)]="selectedCurrencyUnit"
+        [(networkEnabled)]="networkEnabled"
+        [(showOnlyActiveAccounts)]="showOnlyActiveAccounts"
+        (clearAllClick)="clearAllClick()"
+        (autoFitClick)="autoFitClick()"
+        (autoSizeClick)="autoSizeClick()"
+        (downloadClick)="downloadClick()"
+        (viewSourceCodeClick)="viewSourceCodeClick()"
+      ></app-eth-addr-history-grid-header>
+      <div class="grow">
+        <ag-grid-angular
+          class="h-full w-full min-h-[250px]"
+          [modules]="gridModules"
+          [gridOptions]="gridOptions"
+        ></ag-grid-angular>
+      </div>
+    </div>
+  `,
 })
-export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
-  private static readonly WaitingForResponseChar: string = '-';
+export class EthAddrHistoryComponent {
+  //#region Component Inputs
 
-  @ViewChild('historyGrid') historyGrid?: AgGridAngular;
-  readonly prodEnvironment = environment.production;
-  readonly gridOptions: GridOptions = {
+  //#region Ethereum account that will be rendered in the grid
+  readonly ethAccount = input<EthAccount>();
+  //#endregion
+
+  //#region Maximum number of rows to keep in the grid
+  // When this limit is exceeded, inactive rows will be removed
+  readonly maxRowCount = input(1024);
+  //#endregion
+
+  //#region Network connection control
+  // When disabled, balances won't be fetched for newly added rows
+  readonly networkEnabled = model(true);
+  //#endregion
+
+  //#endregion
+
+  //#region Grid State Properties
+  readonly displayedRowCount = signal(0);
+  readonly totalGeneratedRowCount = signal(0);
+  //#endregion
+
+  //#region Grid Filter Properties
+  readonly showOnlyActiveAccounts = signal(false);
+  //#endregion
+
+  //#region Grid Formatting Options
+  readonly currencyUnitOptions: CurrencyUnit[] = [
+    {
+      name: 'Ether',
+      value: 18,
+    },
+    {
+      name: 'Wei',
+      value: 0,
+    },
+  ];
+
+  readonly selectedCurrencyUnit = signal(this.currencyUnitOptions[0].value);
+  //#endregion
+
+  //#region Grid Configuration
+  readonly gridApi = signal<GridApi<GridRow> | undefined>(undefined);
+
+  readonly gridModules = [
+    ClientSideRowModelModule,
+    ClientSideRowModelApiModule,
+    RowApiModule,
+    RowStyleModule,
+    RenderApiModule,
+    TextFilterModule,
+    NumberFilterModule,
+    ExternalFilterModule,
+    ColumnAutoSizeModule,
+    CsvExportModule,
+    ...(environment.production ? [] : [ValidationModule]),
+  ];
+
+  readonly gridOptions: GridOptions<GridRow> = {
+    theme: themeBalham,
     suppressDragLeaveHidesColumns: true,
     enableCellTextSelection: true,
     ensureDomOrder: true,
     suppressCellFocus: true,
     suppressRowHoverHighlight: true,
+    asyncTransactionWaitMillis: 90,
     context: {
-      selectedCurrencyUnit: 18,
+      selectedCurrencyUnit: this.selectedCurrencyUnit(),
     },
     defaultColDef: {
       resizable: true,
@@ -49,10 +140,10 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
       {
         headerName: 'Private Key',
         field: 'privateKey',
-        comparator: (valueA, valueB, nodeA, nodeB) => {
-          if (nodeA.data.privateKeyDecimal < nodeB.data.privateKeyDecimal) {
+        comparator: (_valueA, _valueB, nodeA, nodeB) => {
+          if (nodeA.data!.privateKeyDecimal < nodeB.data!.privateKeyDecimal) {
             return -1;
-          } else if (nodeA.data.privateKeyDecimal > nodeB.data.privateKeyDecimal) {
+          } else if (nodeA.data!.privateKeyDecimal > nodeB.data!.privateKeyDecimal) {
             return 1;
           } else {
             return 0;
@@ -62,10 +153,10 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
       {
         headerName: 'Address',
         field: 'address',
-        comparator: (valueA, valueB, nodeA, nodeB) => {
-          if (nodeA.data.addressDecimal < nodeB.data.addressDecimal) {
+        comparator: (_valueA, _valueB, nodeA, nodeB) => {
+          if (nodeA.data!.addressDecimal < nodeB.data!.addressDecimal) {
             return -1;
-          } else if (nodeA.data.addressDecimal > nodeB.data.addressDecimal) {
+          } else if (nodeA.data!.addressDecimal > nodeB.data!.addressDecimal) {
             return 1;
           } else {
             return 0;
@@ -79,11 +170,18 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
       },
     ],
     rowData: [],
+    onGridReady: event => {
+      this.gridApi.set(event.api);
+    },
+    onGridPreDestroyed: () => {
+      this.requestsCancelled$.next();
+      this.gridApi.set(undefined);
+    },
     getRowId: params => {
       return params.data.privateKey;
     },
     getRowStyle: params => {
-      if (params.api.getValue('active', params.node)) {
+      if (params.data!.active) {
         return {
           background: '#22f703',
           color: 'black',
@@ -92,355 +190,364 @@ export class EthAddrHistoryComponent implements AfterViewInit, OnDestroy {
         return undefined;
       }
     },
-  };
-  currencyUnitOptions: CurrencyUnit[] = [
-    {
-      name: 'Ether',
-      value: 18,
+    onModelUpdated: event => {
+      this.displayedRowCount.set(event.api.getDisplayedRowCount());
     },
-    {
-      name: 'Wei',
-      value: 0,
+    isExternalFilterPresent: () => {
+      return this.showOnlyActiveAccounts();
     },
-  ];
-  gridRowsMax = 1023;
-  pkGeneratedCount = 0;
-  icons = {
-    faUpRightAndDownLeftFromCenter,
-    faDownLeftAndUpRightToCenter,
-    faTrashCan,
-    faDownload,
-    faCode,
-    faWifi,
+    doesExternalFilterPass: node => {
+      return node.data!.active;
+    },
+    onFirstDataRendered: event => {
+      if (window.innerWidth > 1500) {
+        event.api.setGridOption('alwaysShowVerticalScroll', true);
+        event.api.sizeColumnsToFit();
+      }
+    },
   };
-  private readonly gaCategory = 'key_details';
-  private readonly gaBalanceAlertThreshold = BigInt('100000000000000000');
+  //#endregion
+
+  //#region Row Lifecycle Management
+
+  // Keeps track of row insertion order to support eviction of oldest entries
+  private readonly rowIdList = new DoublyLinkedList<string>();
+
+  // Tracks row IDs to avoid inserting duplicates
+  private readonly rowIdSet = new Set<string>();
+  //#endregion
+
+  //#region Analytics Configuration
+  private readonly significantBalanceThreshold = BigInt('100000000000000000');
+  //#endregion
+
+  //#region Reactive Stream Management
+
+  /**
+   * Observable version of the networkEnabled input property.
+   * Used to reactively respond to network connectivity changes.
+   */
+  private readonly networkEnabled$ = toObservable(this.networkEnabled);
+
+  /**
+   * Subject used to cancel in-flight network requests when:
+   * - The grid is cleared (via user action)
+   * - The component is being destroyed
+   * This prevents memory leaks and unnecessary network calls.
+   */
+  private readonly requestsCancelled$ = new Subject<void>();
+  //#endregion
 
   constructor(
     private chainsConfigService: ChainsConfigService,
-    private addrHistoryService: AddrHistoryService,
-    private addrNetworkCollectorService: AddrNetworkCollectorService,
-    private gaService: GoogleAnalyticsService,
+    private txBalanceService: TxBalanceService,
+    private analyticsService: AnalyticsService,
   ) {
-    for (const chain of chainsConfigService.chains) {
-      if (chain.region !== ChainRegion.Prod) {
-        continue;
+    //#region Extend grid with dynamic columns
+    this.gridOptions.columnDefs!.push(...this.generateDynamicChainRelatedColumns());
+    //#endregion
+
+    //#region Apply active accounts filter
+    effect(() => {
+      this.showOnlyActiveAccounts();
+      untracked(this.gridApi)?.onFilterChanged();
+    });
+    //#endregion
+
+    //#region Update cell formatting when the currency unit is changed
+    effect(() => {
+      this.gridOptions.context.selectedCurrencyUnit = this.selectedCurrencyUnit();
+      untracked(this.gridApi)?.refreshCells();
+    });
+    //#endregion
+
+    //#region Add a new row to the grid
+    effect(() => {
+      const gridApi = this.gridApi();
+      const account = this.ethAccount();
+
+      //#region Exit if the row cannot be added
+      if (
+        gridApi === undefined ||
+        account === undefined ||
+        !account.isValid ||
+        this.rowIdSet.has(account.privateKeyHex)
+      ) {
+        return;
       }
+      //#endregion
 
-      const onCellDoubleClicked = (event: CellDoubleClickedEvent) => {
-        const url = chain.blockExplorerUrl.replace(':address', event.data.address);
+      //#region Track row to prevent duplicate entries
+      this.rowIdSet.add(account.privateKeyHex);
+      //#endregion
 
-        window.open(url, '_blank');
+      untracked(() => {
+        //#region Construct row
+        const row: GridRow = {
+          privateKey: account.privateKeyHex,
+          privateKeyDecimal: account.privateKey,
+          address: account.address,
+          addressDecimal: BigInt(account.address),
+          active: false,
+        };
+        //#endregion
 
-        this.gaService.event('explore_addr', this.gaCategory, `${chain.chainId} ${event.data.address}`);
-      };
+        //#region Send txCount and balance requests
+        const rowAdded$ = new ReplaySubject<void>(1);
 
-      const column: ColGroupDef = {
-        headerName: chain.name,
-        children: [
-          {
-            headerName: 'TX',
-            field: `txCount${chain.chainId}`,
-            filter: false,
-            width: 70,
-            onCellDoubleClicked: onCellDoubleClicked,
-            valueFormatter: params => {
-              if (params.value === undefined) {
-                return EthAddrHistoryComponent.WaitingForResponseChar;
+        for (const chain of this.chainsConfigService.chains) {
+          if (chain.region !== ChainRegion.Prod) {
+            continue;
+          }
+
+          const txCount$ = this.txBalanceService
+            .getTxCount(chain.chainId, account.address)
+            .pipe(shareReplay({ bufferSize: 1, refCount: true }));
+
+          const balance$ = txCount$.pipe(
+            concatMap(txCount => {
+              if (txCount == 0) {
+                return of(BigInt(0));
               } else {
-                return params.value;
+                return this.txBalanceService.getBalance(chain.chainId, account.address).pipe(
+                  tap({
+                    next: balance => {
+                      // Track addresses with significant balances for analytics
+                      if (balance > this.significantBalanceThreshold) {
+                        this.analyticsService.trackEvent('oofy', {
+                          chainId: chain.chainId,
+                          address: account.address,
+                          balance: formatUnits(balance, 18),
+                        });
+                      }
+                    },
+                  }),
+                );
               }
-            },
-          },
+            }),
+          );
+
+          this.networkEnabled$
+            .pipe(
+              filter(Boolean),
+              first(),
+              switchMap(() => txCount$),
+              switchMap(it => rowAdded$.pipe(map(() => it))),
+              takeUntil(this.requestsCancelled$),
+            )
+            .subscribe(txCount => {
+              if (txCount > 0) row.active = true;
+              row[`txCount${chain.chainId}`] = txCount;
+              gridApi.applyTransactionAsync({ update: [row] });
+            });
+
+          this.networkEnabled$
+            .pipe(
+              filter(Boolean),
+              first(),
+              switchMap(() => balance$),
+              switchMap(it => rowAdded$.pipe(map(() => it))),
+              takeUntil(this.requestsCancelled$),
+            )
+            .subscribe(balance => {
+              if (balance > 0) row.active = true;
+              row[`balance${chain.chainId}`] = balance;
+              gridApi.applyTransactionAsync({ update: [row] });
+            });
+        }
+        //#endregion
+
+        //#region Send the row to the grid
+        gridApi.applyTransactionAsync(
           {
-            headerName: chain.currency,
-            field: `balance${chain.chainId}`,
-            filter: false,
-            width: 70,
-            onCellDoubleClicked: onCellDoubleClicked,
-            valueFormatter: params => {
-              if (params.value === undefined) {
-                return EthAddrHistoryComponent.WaitingForResponseChar;
-              } else if (params.value == 0) {
-                return '0';
-              } else {
-                return formatUnits(params.value, params.context.selectedCurrencyUnit);
-              }
-            },
-          },
-        ],
-      };
-
-      this.gridOptions.columnDefs!.push(column);
-    }
-  }
-
-  private _networkRequestEnabled = true;
-
-  @Output() networkRequestEnabledChange = new BehaviorSubject<boolean>(this._networkRequestEnabled);
-
-  get networkRequestEnabled(): boolean {
-    return this._networkRequestEnabled;
-  }
-
-  @Input()
-  set networkRequestEnabled(enabled: boolean) {
-    this._networkRequestEnabled = enabled;
-    this.networkRequestEnabledChange.next(enabled);
-  }
-
-  get selectedCurrencyUnit(): number {
-    return this.gridOptions.context.selectedCurrencyUnit;
-  }
-
-  set selectedCurrencyUnit(currencyUnit: number) {
-    this.gridOptions.context.selectedCurrencyUnit = currencyUnit;
-
-    this.historyGrid?.api?.refreshCells({
-      columns: this.chainsConfigService.chains.map(chain => `balance${chain.chainId}`),
-    });
-  }
-
-  private _showActive = false;
-
-  get showActive(): boolean {
-    return this._showActive;
-  }
-
-  set showActive(showActive: boolean) {
-    this._showActive = showActive;
-
-    const filterInstance = this.historyGrid?.api?.getFilterInstance('active');
-
-    if (showActive) {
-      filterInstance?.setModel({
-        type: 'equals',
-        filter: 'true',
-      });
-    } else {
-      filterInstance?.setModel(null);
-    }
-
-    this.historyGrid?.api?.onFilterChanged();
-  }
-
-  get displayedRowCount() {
-    return this.historyGrid?.api?.getDisplayedRowCount() ?? 0;
-  }
-
-  ngAfterViewInit(): void {
-    for (const pk of this.addrNetworkCollectorService.pkInfo.keys()) {
-      this.addToHistory(pk);
-    }
-
-    this.addrNetworkCollectorService.pkInfoAdded.subscribe(pk => {
-      this.addToHistory(pk);
-    });
-  }
-
-  showOnlyActive() {
-    this.showActive = !this.showActive;
-    this.gaService.event('only_active', this.gaCategory);
-  }
-
-  clearAll() {
-    for (const row of this.gridOptions.rowData!) {
-      for (const subscription of row.subscriptions) {
-        subscription.unsubscribe();
-      }
-
-      this.addrNetworkCollectorService.pkInfo.delete(row.privateKeyDecimal);
-      this.addrHistoryService.history.delete(row.privateKeyDecimal);
-    }
-
-    this.gridOptions.rowData!.length = 0;
-    this.historyGrid?.api?.setRowData(this.gridOptions.rowData!);
-
-    this.gaService.event('clear', this.gaCategory);
-  }
-
-  autoFit() {
-    this.historyGrid?.api?.sizeColumnsToFit();
-    this.gaService.event('auto_fit', this.gaCategory);
-  }
-
-  autoSize() {
-    this.historyGrid?.columnApi?.autoSizeAllColumns(false);
-    this.gaService.event('auto_size', this.gaCategory);
-  }
-
-  download() {
-    this.historyGrid?.api.exportDataAsCsv();
-    this.gaService.event('download', this.gaCategory);
-  }
-
-  toggleNetworkRequestStatus() {
-    this.networkRequestEnabled = !this.networkRequestEnabled;
-
-    this.gaService.event(
-      this.networkRequestEnabled ? 'enable_network_request' : 'disable_network_request',
-      this.gaCategory,
-    );
-  }
-
-  viewSourceCode() {
-    this.gaService.event('view_source_code', this.gaCategory);
-    window.open(environment.sourceCodeRepositoryUrl, '_blank');
-  }
-
-  ngOnDestroy(): void {
-    this.gridOptions.rowData?.forEach(row => {
-      row.subscriptions.forEach((subscription: Subscription) => {
-        subscription.unsubscribe();
-      });
-    });
-  }
-
-  private addToHistory(pk: bigint) {
-    const address = this.addrHistoryService.history.get(pk)!.address;
-    const addedTime = this.addrHistoryService.history.get(pk)!.addedTime;
-    const chainsInfo = this.addrNetworkCollectorService.pkInfo.get(pk)!.chainsInfo;
-
-    const row: any = {
-      privateKey: EthAddressUtils.bigIntToPkHex(pk),
-      privateKeyDecimal: pk,
-      address,
-      addressDecimal: BigInt(address),
-      addedTime,
-      active: false,
-      subscriptions: [] as Subscription[],
-    };
-
-    for (const info of chainsInfo) {
-      const txCountSubscription = this.networkRequestEnabledChange
-        .pipe(
-          filter(Boolean),
-          first(),
-          switchMap(() => info.txCount.pipe(observeOn(asyncScheduler))),
-        )
-        .subscribe({
-          next: txCount => {
-            const rowNode = this.historyGrid!.api.getRowNode(row.privateKey);
-            const col = `txCount${info.chainId}`;
-
-            if (rowNode === undefined) {
-              row[col] = txCount;
-              row.active = row.active || txCount > 0;
-            } else {
-              rowNode.setDataValue(col, txCount);
-              if (!rowNode.data.active && txCount > 0) {
-                rowNode.setDataValue('active', true);
-              }
-              if (this.historyGrid!.api.isAnyFilterPresent()) {
-                this.historyGrid!.api.onFilterChanged();
-              }
-            }
-          },
-          error: err => {
-            console.error(err);
-          },
-        });
-
-      const balanceSubscription = this.networkRequestEnabledChange
-        .pipe(
-          filter(Boolean),
-          first(),
-          switchMap(() => info.balance.pipe(observeOn(asyncScheduler))),
-        )
-        .subscribe({
-          next: balance => {
-            const rowNode = this.historyGrid!.api.getRowNode(row.privateKey);
-            const col = `balance${info.chainId}`;
-
-            if (rowNode === undefined) {
-              row[col] = balance;
-              row.active = row.active || balance > 0;
-            } else {
-              rowNode.setDataValue(col, balance);
-              if (!rowNode.data.active && balance > 0) {
-                rowNode.setDataValue('active', true);
-              }
-              if (this.historyGrid!.api.isAnyFilterPresent()) {
-                this.historyGrid!.api.onFilterChanged();
-              }
-            }
-
-            if (balance > this.gaBalanceAlertThreshold) {
-              const balanceFormatted = formatUnits(balance, 18);
-              const addressInfo = `${info.chainId} ${row.address} ${balanceFormatted}`;
-              this.gaService.event('oofy', this.gaCategory, addressInfo);
-            }
-          },
-          error: err => {
-            console.error(err);
-          },
-        });
-
-      row.subscriptions.push(txCountSubscription);
-      row.subscriptions.push(balanceSubscription);
-    }
-
-    this.historyGrid!.api.applyTransactionAsync(
-      {
-        add: [row],
-        addIndex: 0,
-      },
-      () => {
-        this.pkGeneratedCount++;
-
-        if ((this.pkGeneratedCount & 1023) == 0) {
-          this.gaService.event('total_generated', this.gaCategory, undefined, this.pkGeneratedCount);
-        }
-
-        const rows = this.gridOptions.rowData!;
-        const rowsLength = rows.length;
-        rows.push(row);
-
-        if (rowsLength <= this.gridRowsMax) {
-          return;
-        }
-
-        const rowModel = this.historyGrid!.api.getModel();
-        const filterPresent = this.historyGrid!.api.isAnyFilterPresent();
-
-        let i = 0;
-        while (i < rowsLength) {
-          const keep = rows[i].active || (filterPresent && rowModel.getRowNode(rows[i].privateKey)?.displayed === true);
-
-          if (!keep) break;
-
-          i++;
-        }
-
-        if (i === rowsLength) {
-          return;
-        }
-
-        if (i > 0) {
-          rotateLeft(rows, i);
-        }
-
-        const removedRow = rows.shift();
-
-        for (const subscription of removedRow.subscriptions) {
-          subscription.unsubscribe();
-        }
-
-        this.historyGrid!.api.applyTransactionAsync(
-          {
-            remove: [removedRow],
+            add: [row],
+            addIndex: 0,
           },
           () => {
-            this.addrNetworkCollectorService.pkInfo.delete(removedRow.privateKeyDecimal);
-            this.addrHistoryService.history.delete(removedRow.privateKeyDecimal);
+            //#region Send rowAdded event
+            // Columns will be updated only when the row is added to the grid
+            rowAdded$.next();
+            rowAdded$.complete();
+            //#endregion
+
+            //#region Update total generated row count metadata
+            this.totalGeneratedRowCount.update(it => it + 1);
+            //#endregion
+
+            //#region Track inserted row for further removal
+            this.rowIdList.insertLast(row.privateKey);
+            //#endregion
+
+            //#region Get total number of rows in the grid
+            const totalRowCount = this.rowIdList.count();
+            //#endregion
+
+            //#region Send an analytics event when the user has generated more than 1k+ rows
+            if ((totalRowCount & 1023) == 0) {
+              this.analyticsService.trackEvent('eth_addr_history_total_generated', { totalRowCount });
+            }
+            //#endregion
+
+            //#region Exit if the total row count does not exceed the maximum allowed grid rows
+            if (totalRowCount <= this.maxRowCount()) {
+              return;
+            }
+            //#endregion
+
+            //#region Remove the oldest row if needed
+
+            //#region Find a row to remove
+            const filterPresent = gridApi.isAnyFilterPresent();
+
+            const rowIdToRemove = this.rowIdList.find(node => {
+              const rowId = node.getValue();
+              const rowNode = gridApi.getRowNode(rowId);
+
+              if (rowNode === undefined) {
+                return false;
+              }
+
+              const keep = rowNode.data!.active || (filterPresent && rowNode.displayed);
+
+              return !keep;
+            });
+            //#endregion
+
+            //#region Exit if there is no suitable row to remove
+            if (rowIdToRemove === null) {
+              return;
+            }
+            //#endregion
+
+            //#region Remove the row from the tracking list
+            this.rowIdList.remove(rowIdToRemove);
+            //#endregion
+
+            //#region Remove the row from the grid
+            gridApi.applyTransactionAsync(
+              {
+                remove: [
+                  // Only id is needed for removal
+                  { privateKey: rowIdToRemove.getValue() } as any, // eslint-disable-line
+                ],
+              },
+              () => {
+                // Allow this row to be added to the grid again
+                this.rowIdSet.delete(rowIdToRemove.getValue());
+              },
+            );
+            //#endregion
+
+            //#endregion
           },
         );
-      },
-    );
+        //#endregion
+      });
+    });
+    //#endregion
   }
+
+  //#region User Event Handlers
+  clearAllClick() {
+    this.rowIdList.clear();
+    this.rowIdSet.clear();
+    this.requestsCancelled$.next();
+    this.gridApi()?.setGridOption('rowData', []);
+
+    this.analyticsService.trackEvent('eth_addr_history_clear_all');
+  }
+
+  autoFitClick() {
+    this.gridApi()?.sizeColumnsToFit();
+    this.analyticsService.trackEvent('eth_addr_history_auto_fit');
+  }
+
+  autoSizeClick() {
+    this.gridApi()?.autoSizeAllColumns(false);
+    this.analyticsService.trackEvent('eth_addr_history_auto_size');
+  }
+
+  downloadClick() {
+    this.gridApi()?.exportDataAsCsv();
+    this.analyticsService.trackEvent('eth_addr_history_download_csv');
+  }
+
+  viewSourceCodeClick() {
+    this.analyticsService.trackEvent('eth_addr_history_view_source_code');
+    window.open(environment.sourceCodeRepositoryUrl, '_blank');
+  }
+  //#endregion
+
+  //#region Grid Utility Methods
+  private generateDynamicChainRelatedColumns(): ColGroupDef[] {
+    return this.chainsConfigService.chains
+      .filter(chain => chain.region === ChainRegion.Prod)
+      .map(chain => {
+        const onCellDoubleClicked = (event: CellDoubleClickedEvent) => {
+          const url = chain.blockExplorerUrl.replace(':address', event.data.address);
+          window.open(url, '_blank');
+
+          this.analyticsService.trackEvent('eth_addr_history_explore_address', {
+            chainId: chain.chainId,
+            address: event.data.address,
+          });
+        };
+
+        return {
+          headerName: chain.name,
+          children: [
+            {
+              headerName: 'TX',
+              field: `txCount${chain.chainId}`,
+              filter: false,
+              width: 70,
+              onCellDoubleClicked,
+              valueFormatter: params => {
+                if (params.value === undefined) {
+                  return '-';
+                } else {
+                  return params.value;
+                }
+              },
+            },
+            {
+              headerName: chain.currency,
+              field: `balance${chain.chainId}`,
+              filter: false,
+              width: 70,
+              onCellDoubleClicked,
+              valueFormatter: params => {
+                if (params.value === undefined) {
+                  return '-';
+                } else {
+                  if (params.value === 0n) {
+                    return params.value;
+                  } else {
+                    return formatUnits(params.value, params.context.selectedCurrencyUnit);
+                  }
+                }
+              },
+            },
+          ],
+        };
+      });
+  }
+  //#endregion
 }
 
-interface CurrencyUnit {
+//#region Component Type Definitions
+export interface CurrencyUnit {
   name: string;
   value: number;
 }
+
+interface GridRow {
+  privateKey: string;
+  privateKeyDecimal: bigint;
+  address: string;
+  addressDecimal: bigint;
+  active: boolean;
+  [key: `txCount${number}`]: Observable<number> | number;
+  [key: `balance${number}`]: Observable<bigint> | bigint;
+}
+//#endregion

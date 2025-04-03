@@ -23,7 +23,7 @@ export class VisualKeyContractService {
   private contracts: VkContract[];
   readonly abi = parseAbi(visualKeyContractAbi);
 
-  constructor(private chainsConfigService: ChainsConfigService) {
+  constructor(chainsConfigService: ChainsConfigService) {
     this.contracts = chainsConfigService.nfts.flatMap(nft => {
       const transports = nft.chain.rpcUrls.map(url => {
         return http(url, { retryCount: 0, timeout: 4000 });
@@ -109,7 +109,7 @@ export class VisualKeyContractService {
               contract: contract.address,
               owner,
             } as Owner;
-          } catch (err: any) {
+          } catch (err: unknown) {
             if (err instanceof ContractFunctionExecutionError) {
               const error = getContractError(err, this.abi);
 

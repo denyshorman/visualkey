@@ -1,49 +1,41 @@
-<div class="flex flex-column row-gap-3 align-items-center h-screen overflow-auto m-0 px-2 py-2 lg:px-8 lg:py-5">
-  <div>
+<div class="flex flex-col items-center h-screen overflow-auto m-0 px-2 py-2 lg:px-8 lg:py-5">
+  <div class="flex flex-row flex-nowrap gap-x-5">
     <app-bit-set
-      [size]="pkSize"
-      [cols]="pkCols"
+      [bitCount]="pkBitCount"
+      [gridCols]="pkCols"
       [(bitSet)]="pk"
-      [bitSize]="bitSize"
-      [readOnly]="pkReadOnly"
-      [mouseEnterStrategy]="mouseEnterStrategy"
-      [falseStateColor]="pkFalseStateColor"
-      [trueStateColor]="pkTrueStateColor"
-      [mouseMoveDisabled]="mouseMoveDisabled"
-      [gaLabel]="'eth_pk'"
+      [bitCellSize]="bitCellSize()"
+      [readOnly]="pkReadOnly()"
+      [mouseEnterStrategy]="mouseEnterStrategy()"
+      [mouseMoveDisabled]="mouseMoveDisabled()"
     ></app-bit-set>
-
     <app-bit-set
-      class="ml-4"
-      [class.hidden]="!addressVisible"
-      [class.address-not-valid]="!pkValid"
-      [size]="addressSize"
-      [cols]="addressCols"
-      [(bitSet)]="address"
-      [bitSize]="bitSize"
-      [mouseEnterStrategy]="mouseEnterStrategy"
-      [falseStateColor]="addressFalseStateColor"
-      [trueStateColor]="addressTrueStateColor"
+      [class.hidden]="!addressVisible()"
+      [class.grayscale]="!ethAccount().isValid"
+      [bitCount]="addressBitCount"
+      [gridCols]="addressCols"
+      [bitSet]="address()"
+      [bitCellSize]="bitCellSize()"
+      [mouseEnterStrategy]="mouseEnterStrategy()"
       [readOnly]="true"
     ></app-bit-set>
   </div>
-  <div>
+  <div class="mt-2">
     <app-bit-set-controller
-      [size]="pkSize"
+      [bitCount]="pkBitCount"
       [(bitSet)]="pk"
       [keyRangeStart]="pkMin"
       [keyRangeEnd]="pkMax"
       [(mouseEnterStrategy)]="mouseEnterStrategy"
       [(mouseMoveDisabled)]="mouseMoveDisabled"
-      (longRandomActiveChange)="pkReadOnly = $event"
-      [randomBitSetGenInterval]="randomBitSetGenInterval"
-      [gaLabel]="'eth_pk'"
+      (longRandomActiveChange)="pkReadOnly.set($event)"
+      [randomBitSetGenInterval]="randomBitSetGenInterval()"
     ></app-bit-set-controller>
   </div>
-  <div class="align-self-stretch">
-    <app-eth-info [privateKey]="pk"></app-eth-info>
+  <div class="self-stretch mt-2">
+    <app-eth-info [ethAccount]="ethAccount()"></app-eth-info>
   </div>
-  <div class="flex-grow-1 align-self-stretch">
-    <app-eth-addr-history [(networkRequestEnabled)]="networkRequestEnabled"></app-eth-addr-history>
+  <div class="grow self-stretch mt-1">
+    <app-eth-addr-history [ethAccount]="ethAccount()" [(networkEnabled)]="networkEnabled"></app-eth-addr-history>
   </div>
 </div>

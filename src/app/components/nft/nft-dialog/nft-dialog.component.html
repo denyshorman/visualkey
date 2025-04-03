@@ -1,96 +1,95 @@
 <p-dialog [(visible)]="visible" [modal]="true" header="VISUAL KEY NFT" [resizable]="false">
-  <div class="flex flex-column row-gap-2 align-items-center">
+  <div class="flex flex-col gap-y-2 items-center">
     <app-bit-set
-      [size]="pkSize"
-      [cols]="pkCols"
-      [bitSet]="token"
-      [bitSize]="bitSizePx()"
+      [bitCount]="pkBitCount"
+      [gridCols]="pkCols"
+      [bitSet]="token()"
+      [bitCellSize]="bitCellSize()"
       [readOnly]="true"
-      [gaLabel]="'token'"
+      class="mt-1"
     />
 
-    <div class="mt-1 align-self-stretch flex flex-row flex-nowrap align-content-center align-items-center column-gap-1">
-      <div class="flex flex-row flex-nowrap flex-grow-1">
-        <div
-          class="app-label-left chain-label"
-          pTooltip="Select a chain where you would like to mint the token"
-          tooltipPosition="bottom"
-        >
-          Chain:
-        </div>
+    <div class="mt-1 flex flex-row flex-nowrap gap-1 w-full">
+      <p-select
+        [options]="regionChain"
+        [ngModel]="selectedChainId()"
+        (ngModelChange)="selectedChainId.set($event)"
+        [group]="true"
+        size="small"
+        appendTo="body"
+        placeholder="Select a chain"
+        class="grow-1"
+      >
+        <ng-template #selectedItem let-selectedOption> Chain: {{ selectedOption.label }}</ng-template>
+      </p-select>
 
-        <p-dropdown
-          [options]="regionChain"
-          [ngModel]="selectedChainId()"
-          (ngModelChange)="selectedChainId.set($event)"
-          [group]="true"
-          appendTo="body"
-          placeholder="Select a chain"
-          styleClass="w-full"
-          class="flex-grow-1"
+      <p-button
+        variant="outlined"
+        severity="secondary"
+        size="small"
+        styleClass="w-9 h-9 leading-0 text-base select-none"
+        (click)="openWallet()"
+        pTooltip="Wallet"
+        tooltipPosition="right"
+        [showDelay]="500"
+        [disabled]="walletOpening()"
+      >
+        <fa-icon
+          [icon]="icons.faAddressCard"
+          [ngClass]="{ 'text-green-500 dark:text-yellow-300': account()?.isConnected }"
         />
-      </div>
-
-      <div>
-        <button
-          class="app-icon-btn"
-          (click)="openWallet()"
-          [ngClass]="{ 'wallet-connected': account()?.isConnected }"
-          pTooltip="Wallet"
-          tooltipPosition="right"
-          [showDelay]="500"
-          [disabled]="walletOpening()"
-        >
-          <fa-icon [icon]="icons.faAddressCard" />
-        </button>
-      </div>
+      </p-button>
     </div>
 
-    <ng-container *ngIf="ownerLoading()">
-      <p-progressBar class="align-self-stretch" mode="indeterminate" color="#5b5b5b" [style]="{ height: '6px' }" />
-    </ng-container>
-
-    <ng-container *ngIf="!ownerLoading()">
-      <div *ngIf="owner() === undefined" class="align-self-stretch flex flex-column row-gap-2">
-        <div class="flex flex-column">
-          <button
-            class="mint-button align-self-stretch text-center p-1 uppercase font-bold select-none"
-            [class.minting]="minting()"
+    @if (ownerLoading()) {
+      <p-progressBar class="self-stretch" styleClass="h-[6px]" mode="indeterminate" color="#5b5b5b" />
+    } @else {
+      @if (owner() === undefined) {
+        <div class="self-stretch flex flex-col gap-y-2">
+          <p-button
+            variant="outlined"
+            severity="secondary"
+            size="small"
+            styleClass="w-full uppercase select-none"
             [disabled]="minting() || walletOpening() || priceLoading()"
             (click)="mint()"
           >
-            <span *ngIf="minting()">minting<span class="pm-anim"></span></span>
-            <span *ngIf="!minting()">mint</span>
-          </button>
-        </div>
+            @if (minting()) {
+              <span>
+                minting<span class="before:content-['+'] before:animate-[toggle-sign_500ms_linear_infinite]"></span>
+              </span>
+            } @else {
+              <span>mint</span>
+            }
+          </p-button>
 
-        <div *ngIf="account()?.address !== undefined" class="white-space-nowrap">
-          Price:
-          <span *ngIf="!displayPrice()" class="spinner-anim"></span>
-          <ng-container *ngIf="displayPrice()">{{ priceEther() }}</ng-container>
-          {{ selectedCurrency() }}
+          @if (account()?.address !== undefined) {
+            <div class="text-sm dark:text-neutral-400 whitespace-nowrap">
+              Price:
+              @if (displayPrice()) {
+                {{ priceEther() }}
+              } @else {
+                <span class="before:content-['|'] before:animate-[rotate-symbol_400ms_linear_infinite]"></span>
+              }
+              {{ selectedCurrency() }}
+            </div>
+          }
         </div>
-      </div>
-
-      <div
-        *ngIf="owner() !== undefined"
-        class="align-self-stretch flex flex-column row-gap-3"
-        [style.max-width.px]="tokenWidthPx()"
-      >
-        <div class="minted-panel align-self-stretch text-center p-1 font-bold uppercase select-none">minted</div>
-        <div class="flex flex-column row-gap-1 white-space-nowrap overflow-hidden">
-          <div class="overflow-hidden text-overflow-ellipsis">Chain: {{ ownerChainName() }}</div>
-          <div class="overflow-hidden text-overflow-ellipsis">Owner: {{ owner()?.owner }}</div>
+      } @else {
+        <div class="self-stretch flex flex-col gap-y-3" [style.max-width.px]="tokenWidthPx()">
+          <div
+            class="self-stretch text-center p-1 font-bold uppercase select-none tracking-[0.3rem] text-[2rem] border-[#4ea0dc] text-[#ecf002] bg-[#085bb4] text-shadow-[0.1rem_0.1rem_red] overflow-hidden"
+          >
+            minted
+          </div>
+          <div class="flex flex-col gap-y-1 whitespace-nowrap overflow-hidden text-sm">
+            <div class="overflow-hidden text-ellipsis">Chain: {{ ownerChainName() }}</div>
+            <div class="overflow-hidden text-ellipsis">Owner: {{ owner()?.owner }}</div>
+          </div>
         </div>
-      </div>
-    </ng-container>
+      }
+    }
   </div>
 </p-dialog>
 
-<p-toast position="bottom-right" [baseZIndex]="5000">
-  <ng-template let-message pTemplate="message">
-    <div class="only-content">
-      <div>{{ message.detail }}</div>
-    </div>
-  </ng-template>
-</p-toast>
+<p-toast position="bottom-right" [baseZIndex]="5000" />
