@@ -61,7 +61,7 @@
   {
     "chainId": 43114,
     "region": "mainnet",
-    "name": "Avalance",
+    "name": "Avalanche",
     "currency": "AVAX",
     "blockExplorerUrl": "https://snowtrace.io/address/:address",
     "rpcUrls": [

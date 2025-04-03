@@ -1,54 +1,51 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Component, input } from '@angular/core';
 import { TokenContractChain, VisualKeyContractService } from '../../../services/visual-key-contract.service';
 import { ChainRegion } from '../../../config/chains-config.service';
-import { filter, map, mergeMap } from 'rxjs/operators';
+import { filter, map, mergeMap, toArray } from 'rxjs/operators';
+import { rxResource } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-nft-list',
   templateUrl: './nft-list.component.html',
-  styleUrls: [],
 })
-export class NftListComponent implements OnInit, OnDestroy {
-  @Input({ required: false }) address?: string;
-  @Input({ required: true }) region!: ChainRegion;
+export class NftListComponent {
+  readonly address = input<string>();
+  readonly region = input.required<ChainRegion>();
 
-  tokens: TokenOwnerContractChain[] = [];
-  tokensSubscription = Subscription.EMPTY;
+  readonly tokens = rxResource({
+    request: () => {
+      return {
+        address: this.address(),
+        region: this.region(),
+      };
+    },
+    loader: ({ request }) => {
+      const { address, region } = request;
 
-  constructor(private visualKeyContractService: VisualKeyContractService) {}
-
-  ngOnInit() {
-    if (this.address === undefined) {
-      this.tokensSubscription = this.visualKeyContractService
-        .tokensByRegion(this.region)
-        .pipe(
+      if (address === undefined) {
+        return this.visualKeyContractService.tokensByRegion(region).pipe(
           mergeMap(token => {
             return this.visualKeyContractService
               .ownerOfTokenInContract(token.chainId, token.contract, token.token)
               .pipe(
                 map(owner => {
-                  return { token, owner };
+                  return { token, owner } as TokenOwnerContractChain;
                 }),
               );
           }),
           filter(token => token.owner !== undefined),
-        )
-        .subscribe(token => {
-          this.tokens.push(token as TokenOwnerContractChain);
-        });
-    } else {
-      this.tokensSubscription = this.visualKeyContractService
-        .tokensByOwnerAndRegion(this.address, this.region)
-        .subscribe(token => {
-          this.tokens.push({ owner: this.address!, token });
-        });
-    }
-  }
+          toArray(),
+        );
+      } else {
+        return this.visualKeyContractService.tokensByOwnerAndRegion(address, region).pipe(
+          map(token => ({ owner: address, token })),
+          toArray(),
+        );
+      }
+    },
+  });
 
-  ngOnDestroy() {
-    this.tokensSubscription.unsubscribe();
-  }
+  constructor(private visualKeyContractService: VisualKeyContractService) {}
 }
 
 interface TokenOwnerContractChain {

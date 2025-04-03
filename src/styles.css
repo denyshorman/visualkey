@@ -1,0 +1,190 @@
+@import 'tailwindcss';
+@plugin "tailwindcss-primeui";
+
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+@custom-variant ag-grid-dark (&:where([data-ag-theme-mode='dark'], [data-ag-theme-mode='dark'] *));
+
+@theme {
+  --default-font-family: var(--font-mono);
+  --breakpoint-3xl: 120rem;
+  --breakpoint-4xl: 160rem;
+  --breakpoint-5xl: 200rem;
+
+  @keyframes toggle-sign {
+    0% {
+      content: '+';
+    }
+    100% {
+      content: '-';
+    }
+  }
+
+  @keyframes rotate-symbol {
+    0% {
+      content: '|';
+    }
+    33% {
+      content: '/';
+    }
+    66% {
+      content: '—';
+    }
+    100% {
+      content: '\\';
+    }
+  }
+}
+
+@layer base {
+  html {
+    @apply text-[14px];
+  }
+}
+
+@layer components {
+  :root {
+    /*#region App*/
+    --app-bit-color-0: #696868;
+    --app-bit-color-1: #d6d7d6;
+
+    @variant dark {
+      --app-bit-color-0: #ff0040;
+      --app-bit-color-1: #30ff12;
+    }
+    /*#endregion*/
+
+    /*#region AG Grid*/
+    --ag-font-family: var(--default-font-family);
+    --ag-wrapper-border-radius: 0;
+    --ag-spacing: 4px;
+    --ag-header-vertical-padding-scale: 0.8;
+    --ag-header-column-border-height: 100%;
+
+    @variant ag-grid-dark {
+      --ag-background-color: #1c1c1c;
+      --ag-foreground-color: #f5f5f5;
+      --ag-border-color: #424242;
+    }
+    /*#endregion*/
+
+    /*#region PrimeNG*/
+
+    /*#region Primary colors*/
+    --p-primary-50: var(--color-neutral-50);
+    --p-primary-100: var(--color-neutral-100);
+    --p-primary-200: var(--color-neutral-200);
+    --p-primary-300: var(--color-neutral-300);
+    --p-primary-400: var(--color-neutral-400);
+    --p-primary-500: var(--color-neutral-500);
+    --p-primary-600: var(--color-neutral-600);
+    --p-primary-700: var(--color-neutral-700);
+    --p-primary-800: var(--color-neutral-800);
+    --p-primary-900: var(--color-neutral-900);
+    --p-primary-950: var(--color-neutral-950);
+    /*#endregion*/
+
+    /*#region Surface colors*/
+    @variant dark {
+      --p-surface-50: var(--color-neutral-50);
+      --p-surface-100: var(--color-neutral-100);
+      --p-surface-200: var(--color-neutral-200);
+      --p-surface-300: var(--color-neutral-300);
+      --p-surface-400: var(--color-neutral-400);
+      --p-surface-500: var(--color-neutral-500);
+      --p-surface-600: var(--color-neutral-600);
+      --p-surface-700: var(--color-neutral-700);
+      --p-surface-800: var(--color-neutral-800);
+      --p-surface-900: var(--color-neutral-900);
+      --p-surface-950: var(--color-neutral-950);
+    }
+    /*#endregion*/
+
+    /*#region Form*/
+    --p-form-field-background: transparent;
+    --p-form-field-invalid-border-color: var(--color-rose-500);
+    --p-form-field-invalid-placeholder-color: var(--color-rose-300);
+    --p-form-field-focus-border-color: var(--p-form-field-border-color);
+    --p-form-field-color: var(--p-surface-600);
+
+    @variant dark {
+      --p-form-field-color: var(--p-surface-400);
+      --p-form-field-border-color: var(--p-surface-700);
+      --p-form-field-hover-border-color: var(--p-surface-600);
+    }
+    /*#endregion*/
+
+    /*#region InputText*/
+    --p-inputtext-border-radius: 0;
+    /*#endregion*/
+
+    /*#region Select*/
+    --p-select-border-radius: 0;
+    --p-select-overlay-border-radius: 0;
+    --p-select-option-border-radius: 0;
+    --p-select-option-padding: 3px;
+    --p-select-option-group-padding: 2px;
+    /*#endregion*/
+
+    /*#region Button*/
+    --p-button-border-radius: 0;
+    --p-button-outlined-secondary-border-color: var(--p-surface-300);
+    --p-button-outlined-secondary-hover-background: var(--p-surface-100);
+
+    @variant dark {
+      --p-button-outlined-secondary-border-color: var(--p-surface-700);
+      --p-button-outlined-secondary-hover-background: var(--p-surface-800);
+    }
+    /*#endregion*/
+
+    /*#region Dialog*/
+    --p-dialog-border-radius: 0;
+    /*#endregion*/
+
+    /*#region Toast*/
+    --p-toast-border-radius: 0;
+    --p-toast-detail-font-size: 0.85rem;
+    /*#endregion*/
+
+    /*#region ProgressBar*/
+    --p-progressbar-border-radius: 0;
+    /*#endregion*/
+
+    /*#endregion*/
+  }
+
+  /*#region PrimeNG*/
+
+  /*#region Select*/
+  .p-overlay {
+    @apply text-xs;
+
+    .p-select-option-group {
+      @apply text-center select-none;
+    }
+  }
+  /*#endregion*/
+
+  /*#region Toast*/
+  .p-toast {
+    .p-toast-message-icon {
+      @apply hidden;
+    }
+  }
+  /*#endregion*/
+
+  /*#region Tooltip*/
+  .p-tooltip {
+    @apply min-w-fit;
+  }
+
+  .p-tooltip-text {
+    @apply text-xs whitespace-nowrap;
+  }
+  /*#endregion*/
+
+  /*#endregion*/
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+}

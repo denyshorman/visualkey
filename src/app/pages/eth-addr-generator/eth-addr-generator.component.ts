@@ -1,110 +1,80 @@
-import { Component, HostListener } from '@angular/core';
-import { AddrHistoryService } from '../../services/addr-history.service';
+import { Component, computed, signal } from '@angular/core';
 import { EthAddressUtils } from '../../utils/EthAddressUtils';
-import {
-  DefaultFalseStateColor,
-  DefaultMouseEnterStrategy,
-  DefaultTrueStateColor,
-} from '../../components/bit-set/bit-set.component';
+import { BitSetComponent, DefaultMouseEnterStrategy } from '../../components/bit-set/bit-set.component';
 import { BigIntUtils } from '../../utils/BigIntUtils';
-import { DefaultRandomBitSetGenInterval } from '../../components/bit-set-controller/bit-set-controller.component';
+import {
+  BitSetControllerComponent,
+  DefaultRandomBitSetGenInterval,
+} from '../../components/bit-set-controller/bit-set-controller.component';
+import { EthInfoComponent } from '../../components/eth-info/eth-info.component';
+import { EthAddrHistoryComponent } from '../../components/eth-addr-history/eth-addr-history.component';
+import { EthAccount } from '../../models/eth-account';
 
 @Component({
   selector: 'app-eth-addr-generator',
   templateUrl: './eth-addr-generator.component.html',
-  styleUrls: ['./eth-addr-generator.component.scss'],
+  host: {
+    '(window:resize)': 'onResize()',
+    '(window:keydown)': 'onKeyDown($event)',
+    '(window:keyup)': 'onKeyUp($event)',
+  },
+  imports: [BitSetComponent, BitSetControllerComponent, EthInfoComponent, EthAddrHistoryComponent],
 })
 export class EthAddrGeneratorComponent {
-  readonly pkSize = 256;
-  readonly addressSize = 160;
+  readonly pkBitCount = 256;
+  readonly addressBitCount = 160;
   readonly pkCols = 16;
   readonly addressCols = 10;
   readonly pkMin = EthAddressUtils.MinPkAddress;
   readonly pkMax = EthAddressUtils.MaxPkAddress;
-  mouseEnterStrategy = DefaultMouseEnterStrategy;
-  pkFalseStateColor = DefaultFalseStateColor;
-  pkTrueStateColor = DefaultTrueStateColor;
-  addressFalseStateColor = DefaultFalseStateColor;
-  addressTrueStateColor = DefaultTrueStateColor;
-  bitSize!: number;
-  address!: bigint;
-  mouseMoveDisabled = false;
-  pkValid!: boolean;
-  addressVisible = false;
-  pkReadOnly = false;
-  randomBitSetGenInterval = DefaultRandomBitSetGenInterval;
+  readonly bitCellSize = signal(0);
+  readonly mouseEnterStrategy = signal(DefaultMouseEnterStrategy);
+  readonly mouseMoveDisabled = signal(false);
+  readonly pk = signal(BigIntUtils.random(this.pkMin, this.pkMax, this.pkBitCount));
+  readonly addressVisible = signal(false);
+  readonly pkReadOnly = signal(false);
+  readonly networkEnabled = signal(true);
+  readonly randomBitSetGenInterval = computed(() => {
+    return this.networkEnabled() ? DefaultRandomBitSetGenInterval : 0;
+  });
+  readonly ethAccount = computed(() => {
+    return new EthAccount(this.pk());
+  });
+  readonly address = computed(() => {
+    const account = this.ethAccount();
+    return account.isValid ? BigInt(account.address) : BigInt(0);
+  });
 
-  constructor(private addrHistoryService: AddrHistoryService) {
+  constructor() {
     this.changeBitSize();
-    this.pk = BigIntUtils.random(this.pkMin, this.pkMax, this.pkSize);
-    this.pkValid = true;
   }
 
-  private _networkRequestEnabled = true;
-
-  get networkRequestEnabled(): boolean {
-    return this._networkRequestEnabled;
-  }
-
-  set networkRequestEnabled(enabled: boolean) {
-    this._networkRequestEnabled = enabled;
-
-    if (enabled) {
-      this.randomBitSetGenInterval = DefaultRandomBitSetGenInterval;
-    } else {
-      this.randomBitSetGenInterval = 0;
-    }
-  }
-
-  private _pk!: bigint;
-
-  get pk(): bigint {
-    return this._pk;
-  }
-
-  set pk(pk: bigint) {
-    this._pk = pk;
-    this.addrHistoryService.add(pk);
-
-    const ethInfo = this.addrHistoryService.history.get(pk);
-
-    if (ethInfo === undefined) {
-      this.pkValid = false;
-      this.address = BigInt(0);
-    } else {
-      this.pkValid = true;
-      this.address = BigInt(ethInfo.address);
-    }
-  }
-
-  @HostListener('window:resize', ['$event'])
   onResize() {
     this.changeBitSize();
   }
 
-  @HostListener('window:keydown', ['$event'])
   onKeyDown(e: KeyboardEvent) {
     this.mouseMoveDisabledUpdate(e);
   }
 
-  @HostListener('window:keyup', ['$event'])
   onKeyUp(e: KeyboardEvent) {
     this.mouseMoveDisabledUpdate(e);
   }
 
   private changeBitSize() {
-    this.bitSize = Math.floor((window.innerHeight / this.pkCols) * 0.4);
+    let bitSize = Math.floor((window.innerHeight / this.pkCols) * 0.4);
 
-    if (this.bitSize * (this.pkCols + 4) > window.innerWidth) {
-      this.bitSize = Math.floor((window.innerWidth / this.pkCols) * 0.85);
+    if (bitSize * (this.pkCols + 4) > window.innerWidth) {
+      bitSize = Math.floor((window.innerWidth / this.pkCols) * 0.85);
     }
 
-    this.addressVisible = (this.pkCols + this.addressCols + 4) * this.bitSize < window.innerWidth;
+    this.bitCellSize.set(bitSize);
+    this.addressVisible.set((this.pkCols + this.addressCols + 4) * bitSize < window.innerWidth);
   }
 
   private mouseMoveDisabledUpdate(e: KeyboardEvent) {
     if (e.key === 'Control') {
-      this.mouseMoveDisabled = !this.mouseMoveDisabled;
+      this.mouseMoveDisabled.update(v => !v);
     }
   }
 }

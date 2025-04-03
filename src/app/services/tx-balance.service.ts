@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { ChainsConfigService } from '../config/chains-config.service';
 import { environment } from '../../environments/environment';
 import { rotateLeft } from '../utils/ArrayUtils';
-import { BehaviorSubject, defer, firstValueFrom, merge, Observable, raceWith, throwError, timeout } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, merge, Observable, raceWith, throwError, timeout } from 'rxjs';
 import { filter, map, switchMap } from 'rxjs/operators';
 import { NetworkStatusService } from './network-status.service';
 import { sleep } from '../utils/AsyncUtils';
@@ -32,7 +32,7 @@ export class TxBalanceService {
         params: [address, 'latest'],
       };
 
-      return firstValueFrom(this.httpClient.post<any>(url, request).pipe(map(resp => this.numberOrThrow(resp.result))));
+      return this.httpClient.post<EthTranResponse>(url, request).pipe(map(resp => this.numberOrThrow(resp.result)));
     });
   }
 
@@ -45,13 +45,13 @@ export class TxBalanceService {
         params: [address, 'latest'],
       };
 
-      return firstValueFrom(this.httpClient.post<any>(url, request).pipe(map(resp => BigInt(resp.result))));
+      return this.httpClient.post<EthTranResponse>(url, request).pipe(map(resp => BigInt(resp.result)));
     });
   }
   //#endregion
 
   //#region Private Section
-  private retryOnErrorObservable<T>(chainId: number, func: (url: string) => Promise<T>): Observable<T> {
+  private retryOnErrorObservable<T>(chainId: number, func: (url: string) => Observable<T>): Observable<T> {
     return new Observable<T>(subscriber => {
       const canceled = new BehaviorSubject(false);
 
@@ -81,7 +81,7 @@ export class TxBalanceService {
   private async retryOnErrorPromise<T>(
     chainId: number,
     canceled: BehaviorSubject<boolean>,
-    func: (url: string) => Promise<T>,
+    func: (url: string) => Observable<T>,
   ): Promise<T> {
     const urls = this.chainConfigService.getChain(chainId)?.rpcUrls;
 
@@ -111,7 +111,7 @@ export class TxBalanceService {
           }
 
           const res = await firstValueFrom(
-            defer(() => func(url)).pipe(
+            func(url).pipe(
               raceWith(
                 canceled.pipe(
                   filter(Boolean),
@@ -152,7 +152,7 @@ export class TxBalanceService {
     await firstValueFrom(merge(online$, canceled$));
   }
 
-  private numberOrThrow(value: any): number {
+  private numberOrThrow(value?: string): number {
     const num = Number(value);
 
     if (Number.isNaN(num)) {
@@ -162,4 +162,8 @@ export class TxBalanceService {
     }
   }
   //#endregion
+}
+
+interface EthTranResponse {
+  result: string;
 }

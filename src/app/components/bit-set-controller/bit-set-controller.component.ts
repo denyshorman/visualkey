@@ -1,11 +1,6 @@
-import { Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core';
+import { Component, input, model, OnDestroy, signal, untracked } from '@angular/core';
 import { BigIntUtils } from '../../utils/BigIntUtils';
-import {
-  DefaultFalseStateColor,
-  DefaultMouseEnterStrategy,
-  DefaultTrueStateColor,
-  MouseEnterStrategy,
-} from '../bit-set/bit-set.component';
+import { DefaultMouseEnterStrategy, MouseEnterStrategy } from '../bit-set/bit-set.component';
 import { faSquareMinus, faSquarePlus } from '@fortawesome/free-regular-svg-icons';
 import {
   faAnglesLeft,
@@ -20,28 +15,41 @@ import {
   faSquare,
 } from '@fortawesome/free-solid-svg-icons';
 import { interval, Subscription } from 'rxjs';
-import { GoogleAnalyticsService } from 'ngx-google-analytics';
+import { AnalyticsService } from '../../services/analytics.service';
 import { primaryInput } from 'detect-it';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { LongPressDirective } from '../../directives/long-press.directive';
+import { LoadBitSetDialogComponent } from '../load-bit-set-dialog/load-bit-set-dialog.component';
+import { NftDialogComponent } from '../nft/nft-dialog/nft-dialog.component';
+import { Tooltip } from 'primeng/tooltip';
+import { Button } from 'primeng/button';
+import { NgClass } from '@angular/common';
 
 @Component({
   selector: 'app-bit-set-controller',
   templateUrl: './bit-set-controller.component.html',
-  styleUrls: ['bit-set-controller.component.scss'],
+  imports: [
+    LoadBitSetDialogComponent,
+    NftDialogComponent,
+    LongPressDirective,
+    FaIconComponent,
+    Tooltip,
+    Button,
+    NgClass,
+  ],
 })
 export class BitSetControllerComponent implements OnDestroy {
-  @Input() size = 256;
-  @Input() keyRangeStart = BigInt(0);
-  @Input() keyRangeEnd = BigIntUtils.setBits(this.size);
-  @Input() randomBitSetGenInterval = DefaultRandomBitSetGenInterval;
-  @Output() bitSetChange = new EventEmitter<bigint>();
-  @Output() mouseEnterStrategyChange = new EventEmitter<MouseEnterStrategy>();
-  @Output() mouseMoveDisabledChange = new EventEmitter<boolean>();
-  @Output() longRandomActiveChange = new EventEmitter<boolean>();
-  @Input({ required: true }) gaLabel!: string;
-  loadBitSetDialogVisible = false;
-  nftDialogVisible = false;
-  longRandomFirstClick = false;
-  icons = {
+  readonly bitCount = input(256);
+  readonly keyRangeStart = input(BigInt(0));
+  readonly keyRangeEnd = input(BigIntUtils.setBits(untracked(this.bitCount)));
+  readonly randomBitSetGenInterval = input(DefaultRandomBitSetGenInterval);
+  readonly bitSet = model(BigInt(1));
+  readonly mouseMoveDisabled = model(false);
+  readonly mouseEnterStrategy = model(DefaultMouseEnterStrategy);
+  readonly longRandomActive = model(false);
+  readonly loadBitSetDialogVisible = signal(false);
+  readonly nftDialogVisible = signal(false);
+  readonly icons = {
     faSquareMinus,
     faSquarePlus,
     faAnglesLeft,
@@ -55,10 +63,10 @@ export class BitSetControllerComponent implements OnDestroy {
     faLock,
     faRepeat,
   };
-  mouseEnterStrategies = {
+  readonly mouseEnterStrategies = {
     [MouseEnterStrategy.Clear]: {
       icon: faMinus,
-      color: DefaultFalseStateColor,
+      color: 'var(--app-bit-color-0)',
       tooltip: 'Clear Bit',
     },
     [MouseEnterStrategy.Flip]: {
@@ -68,171 +76,112 @@ export class BitSetControllerComponent implements OnDestroy {
     },
     [MouseEnterStrategy.Set]: {
       icon: faPlus,
-      color: DefaultTrueStateColor,
+      color: 'var(--app-bit-color-1)',
       tooltip: 'Set Bit',
     },
   };
-  primaryInput = primaryInput;
-  private readonly gaCategory = 'bit_set_controller';
+  readonly primaryInput = primaryInput;
   private longRandomSubscription = Subscription.EMPTY;
 
-  constructor(private gaService: GoogleAnalyticsService) {}
-
-  private _longRandomActive = false;
-
-  get longRandomActive(): boolean {
-    return this._longRandomActive;
-  }
-
-  set longRandomActive(value: boolean) {
-    this._longRandomActive = value;
-    this.longRandomActiveChange.emit(value);
-  }
-
-  private _mouseMoveDisabled = false;
-
-  @Input()
-  get mouseMoveDisabled(): boolean {
-    return this._mouseMoveDisabled;
-  }
-
-  set mouseMoveDisabled(disabled: boolean) {
-    if (this._mouseMoveDisabled != disabled) {
-      this._mouseMoveDisabled = disabled;
-      this.mouseMoveDisabledChange.emit(disabled);
-    }
-  }
-
-  private _mouseEnterStrategy = DefaultMouseEnterStrategy;
-
-  @Input()
-  get mouseEnterStrategy(): MouseEnterStrategy {
-    return this._mouseEnterStrategy;
-  }
-
-  set mouseEnterStrategy(strategy: MouseEnterStrategy) {
-    if (this._mouseEnterStrategy != strategy) {
-      this._mouseEnterStrategy = strategy;
-      this.mouseEnterStrategyChange.emit(strategy);
-    }
-  }
-
-  private _bitSet = BigInt(1);
-
-  @Input()
-  get bitSet(): bigint {
-    return this._bitSet;
-  }
-
-  set bitSet(bitSet: bigint) {
-    if (this._bitSet != bitSet) {
-      this._bitSet = bitSet;
-      this.bitSetChange.emit(bitSet);
-    }
-  }
+  constructor(private analytics: AnalyticsService) {}
 
   clearAll() {
-    this.bitSet = BigInt(0);
-    this.gaService.event('clear_all', this.gaCategory, this.gaLabel);
+    this.bitSet.set(BigInt(0));
+    this.analytics.trackEvent('bitset_clear_all');
   }
 
   setAll() {
-    this.bitSet = BigIntUtils.setBits(this.size);
-    this.gaService.event('set_all', this.gaCategory, this.gaLabel);
+    this.bitSet.set(BigIntUtils.setBits(this.bitCount()));
+    this.analytics.trackEvent('bitset_set_all');
   }
 
   random() {
-    if (this.longRandomActive) {
+    if (this.longRandomActive()) {
       this.stopLongRandom();
       return;
     }
 
-    this.bitSet = BigIntUtils.random(this.keyRangeStart, this.keyRangeEnd, this.size);
-    this.gaService.event('random', this.gaCategory, this.gaLabel);
+    this.bitSet.set(BigIntUtils.random(this.keyRangeStart(), this.keyRangeEnd(), this.bitCount()));
+    this.analytics.trackEvent('bitset_rnd');
   }
 
   longRandom() {
-    if (this.longRandomActive) {
+    if (this.longRandomActive()) {
       this.stopLongRandom();
       return;
     }
 
-    this.gaService.event('long_random_start', this.gaCategory, this.gaLabel);
+    this.analytics.trackEvent('bitset_long_rnd_start');
 
-    this.longRandomActive = true;
-    this.longRandomFirstClick = true;
+    this.longRandomActive.set(true);
 
-    this.longRandomSubscription = interval(this.randomBitSetGenInterval).subscribe(() => {
-      this.bitSet = BigIntUtils.random(this.keyRangeStart, this.keyRangeEnd, this.size);
+    this.longRandomSubscription = interval(this.randomBitSetGenInterval()).subscribe(() => {
+      this.bitSet.set(BigIntUtils.random(this.keyRangeStart(), this.keyRangeEnd(), this.bitCount()));
     });
   }
 
   stopLongRandom() {
     this.longRandomSubscription.unsubscribe();
-    this.longRandomActive = false;
-    this.gaService.event('long_random_stop', this.gaCategory, this.gaLabel);
+    this.longRandomActive.set(false);
+    this.analytics.trackEvent('bitset_long_rnd_stop');
   }
 
   rotateLeft() {
-    this.bitSet = BigIntUtils.rotateLeft(this.bitSet, this.size, 1);
-    this.gaService.event('rotate_left', this.gaCategory, this.gaLabel);
+    this.bitSet.update(bitSet => BigIntUtils.rotateLeft(bitSet, this.bitCount(), 1));
+    this.analytics.trackEvent('bitset_rotate_left');
   }
 
   rotateRight() {
-    this.bitSet = BigIntUtils.rotateRight(this.bitSet, this.size, 1);
-    this.gaService.event('rotate_right', this.gaCategory, this.gaLabel);
+    this.bitSet.update(bitSet => BigIntUtils.rotateRight(bitSet, this.bitCount(), 1));
+    this.analytics.trackEvent('bitset_rotate_right');
   }
 
   rotateLeftLongStarted() {
-    this.gaService.event('rotate_left_long_started', this.gaCategory, this.gaLabel);
+    this.analytics.trackEvent('bitset_rotate_left_long_start');
   }
 
   rotateLeftLong() {
-    this.bitSet = BigIntUtils.rotateLeft(this.bitSet, this.size, 1);
+    this.bitSet.update(bitSet => BigIntUtils.rotateLeft(bitSet, this.bitCount(), 1));
   }
 
   rotateLeftLongEnded() {
-    this.gaService.event('rotate_left_long_ended', this.gaCategory, this.gaLabel);
+    this.analytics.trackEvent('bitset_rotate_left_long_end');
   }
 
   rotateRightLongStarted() {
-    this.gaService.event('rotate_right_long_started', this.gaCategory, this.gaLabel);
+    this.analytics.trackEvent('bitset_rotate_right_long_start');
   }
 
   rotateRightLong() {
-    this.bitSet = BigIntUtils.rotateRight(this.bitSet, this.size, 1);
+    this.bitSet.update(bitSet => BigIntUtils.rotateRight(bitSet, this.bitCount(), 1));
   }
 
   rotateRightLongEnded() {
-    this.gaService.event('rotate_right_long_ended', this.gaCategory, this.gaLabel);
+    this.analytics.trackEvent('bitset_rotate_right_long_end');
   }
 
   invert() {
-    this.bitSet = BigIntUtils.invert(this.bitSet, this.size);
-    this.gaService.event('invert', this.gaCategory, this.gaLabel);
+    this.bitSet.update(bitSet => BigIntUtils.invert(bitSet, this.bitCount()));
+    this.analytics.trackEvent('bitset_invert');
   }
 
   lock() {
-    this.mouseMoveDisabled = !this.mouseMoveDisabled;
-    this.gaService.event('lock', this.gaCategory, this.gaLabel);
+    this.mouseMoveDisabled.update(v => !v);
+    this.analytics.trackEvent('bitset_lock_toggle');
   }
 
   changeMouseEnterStrategy() {
-    if (++this._mouseEnterStrategy >= 3) {
-      this._mouseEnterStrategy = 0;
-    }
+    this.mouseEnterStrategy.update(v => (v + 1) % 3);
 
-    this.mouseEnterStrategyChange.emit(this._mouseEnterStrategy);
-
-    switch (this._mouseEnterStrategy) {
+    switch (this.mouseEnterStrategy()) {
       case MouseEnterStrategy.Clear:
-        this.gaService.event('mouse_enter_clear', this.gaCategory, this.gaLabel);
+        this.analytics.trackEvent('bitset_mouse_enter_clear');
         break;
       case MouseEnterStrategy.Flip:
-        this.gaService.event('mouse_enter_flip', this.gaCategory, this.gaLabel);
+        this.analytics.trackEvent('bitset_mouse_enter_flip');
         break;
       case MouseEnterStrategy.Set:
-        this.gaService.event('mouse_enter_set', this.gaCategory, this.gaLabel);
+        this.analytics.trackEvent('bitset_mouse_enter_set');
         break;
       default:
         throw new Error('Unknown mouse enter strategy');
@@ -240,13 +189,13 @@ export class BitSetControllerComponent implements OnDestroy {
   }
 
   openLoadBitSetDialog() {
-    this.loadBitSetDialogVisible = true;
-    this.gaService.event('load', this.gaCategory, this.gaLabel);
+    this.loadBitSetDialogVisible.set(true);
+    this.analytics.trackEvent('bitset_load_dialog_open');
   }
 
   openNftDialog() {
-    this.nftDialogVisible = true;
-    this.gaService.event('open_nft_dialog', this.gaCategory, this.gaLabel);
+    this.nftDialogVisible.set(true);
+    this.analytics.trackEvent('bitset_nft_dialog_open');
   }
 
   ngOnDestroy(): void {

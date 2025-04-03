@@ -1,51 +1,60 @@
-import { Directive, EventEmitter, HostListener, Input, OnDestroy, Output } from '@angular/core';
+import { Directive, input, OnDestroy, output } from '@angular/core';
 
 @Directive({
   selector: '[appLongPress]',
+  host: {
+    class: 'touch-none',
+    '(pointerdown)': 'onPointerDown($event)',
+    '(pointerup)': 'onPointerUp($event)',
+    '(pointerleave)': 'onPointerLeave($event)',
+    '(pointercancel)': 'onPointerCancel($event)',
+    '(contextmenu)': '$event.preventDefault()',
+  },
 })
 export class LongPressDirective implements OnDestroy {
-  @Input() threshold = 500;
-  @Input() interval = 100;
-  @Input() intervalEmit = false;
-  @Output() shortClick = new EventEmitter<void>();
-  @Output() pressStarted = new EventEmitter<void>();
-  @Output() pressEnded = new EventEmitter<void>();
-  @Output() press = new EventEmitter<void>();
+  threshold = input(500);
+  interval = input(100);
+  intervalEmit = input(false);
+
+  shortClick = output<void>();
+  pressStarted = output<void>();
+  pressEnded = output<void>();
+  press = output<void>();
 
   private pressTimeoutId: NodeJS.Timeout | undefined = undefined;
   private pressIntervalId: NodeJS.Timeout | undefined = undefined;
+  private activePointerId: number | undefined = undefined;
 
-  @HostListener('mousedown')
-  onMouseDown() {
+  onPointerDown(e: PointerEvent) {
+    if (!e.isPrimary) return;
+
+    this.activePointerId = e.pointerId;
+
+    if (e.target instanceof Element) {
+      e.target.setPointerCapture(e.pointerId);
+    }
+
     this.down();
   }
 
-  @HostListener('mouseup')
-  onMouseUp() {
+  onPointerUp(e: PointerEvent) {
+    if (!e.isPrimary || e.pointerId !== this.activePointerId) return;
+
+    this.activePointerId = undefined;
     this.up();
   }
 
-  @HostListener('mouseleave')
-  onMouseLeave() {
+  onPointerLeave(e: PointerEvent) {
+    if (!e.isPrimary || e.pointerId !== this.activePointerId) return;
+
     this.up(false);
   }
 
-  @HostListener('touchstart', ['$event'])
-  onTouchStart(e: TouchEvent) {
-    this.down();
-    e.preventDefault();
-  }
+  onPointerCancel(e: PointerEvent) {
+    if (!e.isPrimary || e.pointerId !== this.activePointerId) return;
 
-  @HostListener('touchend', ['$event'])
-  onTouchEnd(e: TouchEvent) {
-    this.up();
-    e.preventDefault();
-  }
-
-  @HostListener('touchcancel', ['$event'])
-  onTouchCancel(e: TouchEvent) {
+    this.activePointerId = undefined;
     this.up(false);
-    e.preventDefault();
   }
 
   ngOnDestroy(): void {
@@ -57,17 +66,17 @@ export class LongPressDirective implements OnDestroy {
     this.pressTimeoutId = setTimeout(() => {
       this.pressTimeoutId = undefined;
 
-      if (this.intervalEmit) {
+      if (this.intervalEmit()) {
         this.pressStarted.emit();
         this.press.emit();
-        this.pressIntervalId = setInterval(() => this.press.emit(), this.interval);
+        this.pressIntervalId = setInterval(() => this.press.emit(), this.interval());
       } else {
         this.press.emit();
       }
-    }, this.threshold);
+    }, this.threshold());
   }
 
-  private up(shortClickEmit: boolean = true) {
+  private up(shortClickEmit = true) {
     if (this.pressTimeoutId !== undefined) {
       clearTimeout(this.pressTimeoutId);
       this.pressTimeoutId = undefined;
@@ -75,7 +84,7 @@ export class LongPressDirective implements OnDestroy {
       if (shortClickEmit) {
         this.shortClick.emit();
       }
-    } else if (this.intervalEmit && this.pressIntervalId !== undefined) {
+    } else if (this.intervalEmit() && this.pressIntervalId !== undefined) {
       clearInterval(this.pressIntervalId);
       this.pressIntervalId = undefined;
       this.pressEnded.emit();

@@ -64,7 +64,7 @@ export class BigIntUtils {
 
     const byteCount = Math.ceil(size / 8);
     const rndBytes = new Uint8Array(byteCount);
-    const crypto = window.crypto || (window as any).msCrypto;
+    const crypto = window.crypto || window.msCrypto;
 
     if (crypto) {
       crypto.getRandomValues(rndBytes);
@@ -76,8 +76,8 @@ export class BigIntUtils {
 
     let rnd = 0n;
 
-    for (let i = 0; i < rndBytes.length; i++) {
-      rnd = (rnd << 8n) | BigInt(rndBytes[i]);
+    for (const byte of rndBytes) {
+      rnd = (rnd << 8n) | BigInt(byte);
     }
 
     if (rnd >= max || rnd < min) {

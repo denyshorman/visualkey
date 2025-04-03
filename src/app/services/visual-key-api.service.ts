@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { catchError, Observable } from 'rxjs';
 
@@ -12,13 +12,10 @@ export class VisualKeyApiService {
   getPrice(param: { chainId: number; token: bigint; receiver: string; checkDiscount?: boolean }): Observable<Price> {
     const url = `${environment.vkApiUrl}/v1/nft/tokens/${param.token}/price`;
 
-    const params: any = {
-      chainId: param.chainId,
-      receiver: param.receiver,
-    };
+    let params = new HttpParams().set('chainId', param.chainId).set('receiver', param.receiver);
 
     if (param.checkDiscount !== undefined) {
-      params.checkDiscount = param.checkDiscount;
+      params = params.set('checkDiscount', param.checkDiscount);
     }
 
     return this.httpClient.get<Price>(url, { params }).pipe(
@@ -40,17 +37,16 @@ export class VisualKeyApiService {
   }): Observable<MintingAuthorization> {
     const url = `${environment.vkApiUrl}/v1/nft/tokens/${param.token}/minting/authorization`;
 
-    const params: any = {
-      chainId: param.chainId,
-      contract: param.contract,
-      receiver: param.receiver,
-      price: param.price.toString(10),
-      priceExpirationTime: param.priceExpirationTime,
-      priceSignature: param.priceSignature,
-    };
+    let params = new HttpParams()
+      .set('chainId', param.chainId)
+      .set('contract', param.contract)
+      .set('receiver', param.receiver)
+      .set('price', param.price.toString(10))
+      .set('priceExpirationTime', param.priceExpirationTime)
+      .set('priceSignature', param.priceSignature);
 
     if (param.checkDiscount !== undefined) {
-      params.checkDiscount = param.checkDiscount;
+      params = params.set('checkDiscount', param.checkDiscount);
     }
 
     return this.httpClient.get<MintingAuthorization>(url, { params }).pipe(
@@ -77,7 +73,7 @@ export class VkApiError extends Error {
   constructor(
     public readonly code: string,
     public override readonly message: string,
-    public readonly params?: { [key: string]: any },
+    public readonly params?: Record<string, unknown>,
   ) {
     super(message);
   }
@@ -98,7 +94,7 @@ export enum VkApiErrorCode {
 //#endregion
 
 //#region Utils
-function toVKApiError(error: any): any {
+function toVKApiError(error: unknown): never {
   if (error instanceof HttpErrorResponse) {
     const err = error.error;
     if (err.code && err.message) {

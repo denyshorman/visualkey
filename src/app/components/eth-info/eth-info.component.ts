@@ -1,33 +1,32 @@
-import { Component, Input } from '@angular/core';
-import { EthAddressUtils } from '../../utils/EthAddressUtils';
+import { Component, computed, input } from '@angular/core';
+import { EthAccount } from '../../models/eth-account';
 
 @Component({
   selector: 'app-eth-info',
-  templateUrl: './eth-info.component.html',
-  styleUrls: ['./eth-info.component.scss'],
+  template: `
+    <div class="text-zinc-700 dark:text-[#2bff25] text-xs lg:text-sm overflow-auto whitespace-nowrap scrollbar-none">
+      <div>Address: {{ formattedAccount().address }}</div>
+      <div>Private Key: {{ formattedAccount().privateKey }}</div>
+    </div>
+  `,
 })
 export class EthInfoComponent {
-  privateKeyHex?: string;
-  address?: string;
-  valid = false;
+  private static readonly NOT_AVAILABLE = '[Not available]';
 
-  private _privateKey?: bigint;
+  readonly ethAccount = input<EthAccount>();
 
-  @Input()
-  get privateKey(): bigint | undefined {
-    return this._privateKey;
-  }
+  readonly formattedAccount = computed<FormattedAccount>(() => {
+    const info = this.ethAccount();
 
-  set privateKey(pk: bigint | undefined) {
-    this._privateKey = pk;
-    this.valid = pk ? EthAddressUtils.isPkValid(pk) : false;
-
-    if (this.valid) {
-      this.privateKeyHex = EthAddressUtils.bigIntToPkHex(pk!);
-      this.address = EthAddressUtils.privateKeyToAddress(pk!);
+    if (info?.isValid) {
+      return { privateKey: info.privateKeyHex, address: info.address };
     } else {
-      this.privateKeyHex = undefined;
-      this.address = undefined;
+      return { privateKey: EthInfoComponent.NOT_AVAILABLE, address: EthInfoComponent.NOT_AVAILABLE };
     }
-  }
+  });
+}
+
+interface FormattedAccount {
+  privateKey: string;
+  address: string;
 }
