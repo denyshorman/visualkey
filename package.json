@@ -4,7 +4,7 @@
   "author": {
     "name": "Denys Horman"
   },
-  "license": "CC BY-NC-ND 4.0",
+  "license": "MIT AND Commons-Clause",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --open --host 0.0.0.0 --disable-host-check",
@@ -31,8 +31,8 @@
     "@fortawesome/free-regular-svg-icons": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@primeng/themes": "^19.1.2",
-    "@reown/appkit": "^1.7.4",
-    "@reown/appkit-adapter-wagmi": "^1.7.4",
+    "@reown/appkit": "^1.7.11",
+    "@reown/appkit-adapter-wagmi": "^1.7.11",
     "@tailwindcss/postcss": "^4.1.5",
     "ag-grid-angular": "^33.2.4",
     "ag-grid-community": "^33.2.4",
@@ -43,8 +43,8 @@
     "tailwindcss": "^4.1.5",
     "tailwindcss-primeui": "^0.6.1",
     "tslib": "^2.8.1",
-    "viem": "^2.29.0",
-    "wagmi": "^2.15.2"
+    "viem": "^2.31.4",
+    "wagmi": "^2.15.6"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^19.2.10",

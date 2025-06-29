@@ -1,19 +1,16 @@
 import { effect, Injectable, signal } from '@angular/core';
 import { AnalyticsService } from './analytics.service';
 
-export type Theme = 'light' | 'dark';
-
 @Injectable({
   providedIn: 'root',
 })
 export class ThemeService {
   readonly theme = signal<Theme>(this.loadThemeFromLocalStorage());
-  private readonly localStorageThemeKey = 'app-theme';
 
   constructor(private analyticsService: AnalyticsService) {
     effect(() => {
       const theme = this.theme();
-      localStorage.setItem(this.localStorageThemeKey, theme);
+      localStorage.setItem(LOCAL_STORAGE_THEME_KEY, theme);
       document.documentElement.setAttribute('data-theme', theme);
       document.documentElement.setAttribute('data-ag-theme-mode', theme);
     });
@@ -25,7 +22,11 @@ export class ThemeService {
   }
 
   private loadThemeFromLocalStorage(): Theme {
-    const storedTheme = localStorage.getItem(this.localStorageThemeKey);
+    const storedTheme = localStorage.getItem(LOCAL_STORAGE_THEME_KEY);
     return storedTheme === 'light' ? 'light' : 'dark';
   }
 }
+
+export type Theme = 'light' | 'dark';
+
+const LOCAL_STORAGE_THEME_KEY = 'app-theme';

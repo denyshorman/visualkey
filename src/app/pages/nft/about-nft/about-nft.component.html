@@ -1,0 +1,186 @@
+<div class="max-w-7xl mx-auto xl:my-10 px-8 pb-10 shadow xl:border border-neutral-700 xl:rounded-3xl [&_h2]:text-2xl [&_h2]:xl:text-4xl [&_h2]:border-b-2 [&_h2]:font-bold [&_h2]:pb-3 [&_h3]:text-xl [&_h3]:xl:text-3xl [&_h3]:font-bold [&_ul]:list-disc [&_ul]:list-outside [&_ul]:xl:pl-8 [&_ul]:marker:text-xl">
+  <header class="text-center mt-10 xl:mt-18">
+    <h1 class="text-4xl xl:text-6xl font-bold">Visual Keys</h1>
+    <p class="text-sm sm:text-lg xl:text-xl mt-6">Representing Digital Addresses as Collectible NFTs</p>
+  </header>
+
+  <section class="mt-10">
+    <h2>Introduction</h2>
+    <p class="mt-5">
+      A <strong>Visual Key (VKEYNFT)</strong> is an NFT that represents ownership of a specific Ethereum address. The
+      NFT's token ID is the address it represents, creating a
+      permanent on-chain link between the collectible and a digital identity.
+    </p>
+    <p class="mt-5">
+      The rarity of each Visual Key is not artificial; it's based on mathematical probability. When an address
+      is visualized, its pattern is made of colored squares. Rarity is primarily determined by its <strong>Level</strong>,
+      which measures how many of the very first squares in the grid are red (technically, how many
+      "leading zero bits" the address has). Finding an address that starts with a long sequence of these is
+      exponentially harder, making it verifiably rare.
+    </p>
+    <p class="mt-5">
+      Additionally, an NFT's distinction can be increased by committing <strong>VisualKey (VKEY)</strong> tokens to it.
+      This sets its <strong>Power</strong>, a secondary rarity factor. This allows an address
+      to be claimed and represented as a unique digital asset.
+    </p>
+  </section>
+
+  <section class="mt-10">
+    <h2>Core Features</h2>
+
+    <h3 class="mt-5">Direct On-Chain Link</h3>
+
+    <p class="mt-5">
+      The NFT's unique identifier is the Ethereum address it
+      represents. This creates a direct and verifiable on-chain link that signifies ownership.
+    </p>
+
+    <h3 class="mt-5">The Minting Process</h3>
+
+    <p class="mt-5">
+      The minting process for a Visual Key NFT is designed for security and value:
+    </p>
+
+    <ul class="mt-3">
+      <li>
+        <strong>Proof of Ownership:</strong> To mint a Visual Key NFT for a specific address, the
+        minter must provide an EIP-712 compliant signature (`tokenSignature`) generated
+        using the private key of that address. This cryptographically proves control over the address, ensuring
+        only its owner can create the corresponding NFT.
+      </li>
+      <li>
+        <strong>Setting Initial Power:</strong> The amount of VisualKey (VKEY) tokens
+        committed during minting sets the NFT's initial "Power". A higher Power can
+        signify greater distinction within its Level. The Power of an already minted NFT can also be increased by
+        committing more VKEY.
+      </li>
+      <li>
+        <strong>Deflationary VKEY Mechanism:</strong> A key deflationary mechanic is that 100% of
+        the VKEY tokens used to set or increase an NFT's Power are permanently burned
+        (removed from the total supply) by the VKEY token contract. Every NFT
+        minted or powered up contributes to VKEY's scarcity.
+      </li>
+      <li>
+        <strong>Gas-Efficient Transactions:</strong> The process of committing VKEY is
+        streamlined. EIP-2612 Permit support (`paymentSignature`) allows the VKEY tokens to be approved for
+        use in the same transaction as the mint or power-up, which avoids a separate
+        "approve" transaction and reduces gas fees.
+      </li>
+    </ul>
+
+    <h3 class="mt-5">Rarity Factors</h3>
+
+    <p class="mt-5">
+      Each Visual Key has unique characteristics recorded on-chain at the time of minting, which determine its
+      rarity:
+    </p>
+
+    <ul class="mt-3">
+      <li>
+        <strong>Level:</strong> The Level of each NFT is calculated based on the number of leading
+        zero bits in the 160-bit Ethereum address in its raw binary form. More leading
+        zero bits are statistically harder to find, making higher Level NFTs inherently rarer.
+      </li>
+      <li>
+        <strong>Power:</strong> This is determined by the total amount of VKEY tokens
+        committed to the NFT, both at minting and through any subsequent power increases. It acts as a secondary
+        rarity factor within each Level.
+      </li>
+      <li>
+        <strong>Creation Time:</strong> A timestamp marking the exact moment the Visual Key NFT
+        was created on the blockchain, giving it a unique, verifiable place in history.
+      </li>
+    </ul>
+
+    <p class="mt-5">
+      Rarity is primarily determined by Level (higher is rarer). Within the same Level, NFTs with higher Power are
+      considered more distinguished. If two NFTs share the same Level and Power, the one with the earlier Creation
+      Time is considered rarer.
+      Additionally, the Power of an NFT isn't static; it can be increased post-mint by committing more
+      VKEY tokens, which enhances its distinction.
+    </p>
+
+    <h3 class="mt-5">Technical Standards</h3>
+
+    <ul class="mt-3">
+      <li>
+        Based on the <strong>ERC721 standard</strong>, ensuring
+        compatibility with NFT marketplaces, wallets, and other dApps.
+      </li>
+      <li>
+        Implements <strong>ERC721Enumerable</strong> for on-chain tracking and enumeration of
+        all Visual Key NFTs and those owned by a specific address.
+      </li>
+      <li>
+        Supports <strong>ERC721Metadata</strong> to provide detailed information about each NFT. The token URI is
+        dynamically generated to include Level, Power, and Mint Date.
+      </li>
+      <li>
+        Utilizes <strong>EIP-5267</strong> for EIP-712 domain
+        separators for verifying digital signatures.
+      </li>
+      <li>
+        Implements <strong>ERC7572</strong> to provide a `contractURI`, pointing to
+        contract-level metadata.
+      </li>
+      <li>
+        Emits <strong>ERC4906-compatible `MetadataUpdate` events</strong> whenever an NFT's
+        attributes (like Power) change, enabling marketplaces and applications to refresh and display the
+        latest information.
+      </li>
+      <li>
+        Managed with an <strong>ERC173-compliant ownership system</strong>. To enhance security,
+        ownership transfers require a two-step process: an owner initiates a transfer, and the designated new owner
+        must wait 16 days before they can complete the transfer. The current owner can also cancel a pending transfer.
+        This security measure applies to both the NFT and the VKEY token contracts.
+      </li>
+    </ul>
+  </section>
+
+  <section class="mt-10">
+    <h2>Synergy between NFTs and VKEY Token</h2>
+
+    <p class="mt-5">
+      Visual Key NFTs and the VisualKey Token (VKEY) are designed to work in synergy, creating a self-sustaining
+      ecosystem:
+    </p>
+
+    <ul class="mt-3">
+      <li>
+        <strong>Primary Utility:</strong> The VKEY token is the
+        exclusive token used to mint Visual Key NFTs and to subsequently increase their Power.
+      </li>
+      <li>
+        <strong>Deflationary Pressure:</strong> The burning mechanism is a central feature.
+        Every VKEY token used for minting or powering up is permanently removed from circulation.
+        As more users engage with Visual Key NFTs, the total supply of VKEY decreases, which is
+        designed to influence its scarcity and market dynamics.
+      </li>
+      <li>
+        <strong>Ecosystem Driver:</strong> Visual Key NFTs provide a core
+        utility for the VKEY token, intended to drive its adoption and use within the VisualKey
+        ecosystem.
+      </li>
+    </ul>
+  </section>
+
+  <section class="mt-10">
+    <h2>NFT Contract Details</h2>
+
+    <div class="mt-5 overflow-auto whitespace-nowrap">
+      <p><strong>Name:</strong> Visual Keys</p>
+      <p><strong>Symbol:</strong> VKEYNFT</p>
+      @for (contract of contracts; track contract.chainId) {
+        <p><strong>{{ contract.chainName }} Contract:</strong>
+          <a
+            [href]="contract.explorerUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {{ contract.contractAddress }}
+          </a>
+        </p>
+      }
+    </div>
+  </section>
+</div>

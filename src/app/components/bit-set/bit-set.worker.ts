@@ -1,4 +1,4 @@
-import { BigIntUtils } from '../../utils/BigIntUtils';
+import { getBit, invertBit, setBit } from '../../utils/big-int-utils';
 import { MouseEnterStrategy } from './bit-set.component';
 
 //#region State
@@ -269,11 +269,11 @@ function findIntersectingBits(): Set<number> {
 function changeBit(currentBitSet: bigint, index: number): bigint {
   switch (mouseEnterStrategy) {
     case MouseEnterStrategy.Set:
-      return BigIntUtils.setBit(currentBitSet, index, true);
+      return setBit(currentBitSet, index, true);
     case MouseEnterStrategy.Clear:
-      return BigIntUtils.setBit(currentBitSet, index, false);
+      return setBit(currentBitSet, index, false);
     case MouseEnterStrategy.Flip:
-      return BigIntUtils.invertBit(currentBitSet, index);
+      return invertBit(currentBitSet, index);
     default:
       throw new Error(`Unrecognized mouse enter strategy ${mouseEnterStrategy}`);
   }
@@ -303,7 +303,7 @@ function renderBitSet() {
     const cellX = bitCellSize * (bitIndex % gridCols);
     const cellY = bitCellSize * Math.floor(bitIndex / gridCols);
 
-    const bitValue = BigIntUtils.getBit(bitSet, totalBitCount - bitIndex - 1);
+    const bitValue = getBit(bitSet, totalBitCount - bitIndex - 1);
 
     canvasCtx.fillStyle = bitValue ? bitColor1 : bitColor0;
     canvasCtx.fillRect(cellX, cellY, bitCellSize, bitCellSize);

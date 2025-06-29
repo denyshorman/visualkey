@@ -34,7 +34,8 @@
                 "glob": "**/*",
                 "input": "src/assets",
                 "ignore": [
-                  ".well-known/**/*"
+                  ".well-known/**/*",
+                  "azure/**/*"
                 ],
                 "output": "/assets"
               },
@@ -42,6 +43,11 @@
                 "glob": "**/*",
                 "input": "src/assets/.well-known",
                 "output": "/.well-known"
+              },
+              {
+                "glob": "staticwebapp.config.json",
+                "input": "src/assets/azure",
+                "output": "/app_location"
               }
             ],
             "styles": [

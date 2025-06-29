@@ -1,160 +1,142 @@
-<div class="inline-flex flex-wrap gap-1">
+<p-button
+  (click)="clearAll()"
+  variant="outlined"
+  severity="secondary"
+  size="small"
+  styleClass="select-none leading-0 text-base w-9 h-9"
+  pTooltip="Clear all"
+  tooltipPosition="bottom"
+  [showDelay]="700"
+  [disabled]="longRandomActive()"
+>
+  <fa-icon [icon]="icons.faSquare" class="text-(--app-bit-color-0)"></fa-icon>
+</p-button>
+<p-button
+  (click)="setAll()"
+  variant="outlined"
+  severity="secondary"
+  size="small"
+  styleClass="select-none leading-0 text-base w-9 h-9"
+  pTooltip="Set all"
+  tooltipPosition="bottom"
+  [showDelay]="700"
+  [disabled]="longRandomActive()"
+>
+  <fa-icon [icon]="icons.faSquare" class="text-(--app-bit-color-1)"></fa-icon>
+</p-button>
+<p-button
+  appLongPress
+  (shortClick)="random()"
+  (press)="longRandom()"
+  [threshold]="250"
+  variant="outlined"
+  severity="secondary"
+  size="small"
+  styleClass="select-none leading-0 text-base w-9 h-9"
+>
+  <fa-icon
+    [icon]="icons.faShuffle"
+    [ngClass]="{ 'text-amber-500 dark:text-amber-300': longRandomActive() }"
+  ></fa-icon>
+</p-button>
+<p-button
+  appLongPress
+  [intervalEmit]="true"
+  (shortClick)="rotateLeft()"
+  (pressStarted)="rotateLeftLongStarted()"
+  (press)="rotateLeftLong()"
+  (pressEnded)="rotateLeftLongEnded()"
+  [threshold]="150"
+  [interval]="50"
+  [disabled]="longRandomActive()"
+  variant="outlined"
+  severity="secondary"
+  size="small"
+  styleClass="select-none leading-0 text-base w-9 h-9"
+>
+  <fa-icon [icon]="icons.faAnglesLeft"></fa-icon>
+</p-button>
+<p-button
+  appLongPress
+  [intervalEmit]="true"
+  (shortClick)="rotateRight()"
+  (pressStarted)="rotateRightLongStarted()"
+  (press)="rotateRightLong()"
+  (pressEnded)="rotateRightLongEnded()"
+  [threshold]="150"
+  [interval]="50"
+  [disabled]="longRandomActive()"
+  variant="outlined"
+  severity="secondary"
+  size="small"
+  styleClass="select-none leading-0 text-base w-9 h-9"
+>
+  <fa-icon [icon]="icons.faAnglesRight"></fa-icon>
+</p-button>
+<p-button
+  (click)="invert()"
+  variant="outlined"
+  severity="secondary"
+  size="small"
+  styleClass="select-none leading-0 text-base w-9 h-9"
+  pTooltip="Invert"
+  tooltipPosition="bottom"
+  [showDelay]="700"
+  [disabled]="longRandomActive()"
+>
+  <fa-icon [icon]="icons.faRepeat"></fa-icon>
+</p-button>
+<p-button
+  (click)="changeMouseEnterStrategy()"
+  variant="outlined"
+  severity="secondary"
+  size="small"
+  styleClass="select-none leading-0 text-base w-9 h-9"
+  [pTooltip]="mouseEnterStrategies[mouseEnterStrategy()].tooltip"
+  tooltipPosition="bottom"
+  [showDelay]="700"
+  [disabled]="longRandomActive()"
+>
+  <fa-icon
+    [icon]="mouseEnterStrategies[mouseEnterStrategy()].icon"
+    [style.color]="mouseEnterStrategies[mouseEnterStrategy()].color"
+  ></fa-icon>
+</p-button>
+<p-button
+  (click)="openLoadBitSetDialog()"
+  variant="outlined"
+  severity="secondary"
+  size="small"
+  styleClass="select-none leading-0 text-base w-9 h-9"
+  pTooltip="Load key"
+  tooltipPosition="bottom"
+  [showDelay]="700"
+  [disabled]="longRandomActive()"
+>
+  <fa-icon [icon]="icons.faKey"></fa-icon>
+</p-button>
+@if (primaryInput === 'mouse') {
   <p-button
-    (click)="clearAll()"
+    (click)="lock()"
     variant="outlined"
     severity="secondary"
     size="small"
     styleClass="select-none leading-0 text-base w-9 h-9"
-    pTooltip="Clear all"
+    pTooltip="Enable/Disable hover color change"
     tooltipPosition="bottom"
     [showDelay]="700"
     [disabled]="longRandomActive()"
   >
-    <fa-icon [icon]="icons.faSquare" class="text-(--app-bit-color-0)"></fa-icon>
+    <fa-icon [icon]="icons.faLock" [class.text-red-600]="mouseMoveDisabled()"></fa-icon>
   </p-button>
-  <p-button
-    (click)="setAll()"
-    variant="outlined"
-    severity="secondary"
-    size="small"
-    styleClass="select-none leading-0 text-base w-9 h-9"
-    pTooltip="Set all"
-    tooltipPosition="bottom"
-    [showDelay]="700"
-    [disabled]="longRandomActive()"
-  >
-    <fa-icon [icon]="icons.faSquare" class="text-(--app-bit-color-1)"></fa-icon>
-  </p-button>
-  <p-button
-    appLongPress
-    (shortClick)="random()"
-    (press)="longRandom()"
-    [threshold]="250"
-    variant="outlined"
-    severity="secondary"
-    size="small"
-    styleClass="select-none leading-0 text-base w-9 h-9"
-  >
-    <fa-icon
-      [icon]="icons.faShuffle"
-      [ngClass]="{ 'text-amber-500 dark:text-amber-300': longRandomActive() }"
-    ></fa-icon>
-  </p-button>
-  <p-button
-    appLongPress
-    [intervalEmit]="true"
-    (shortClick)="rotateLeft()"
-    (pressStarted)="rotateLeftLongStarted()"
-    (press)="rotateLeftLong()"
-    (pressEnded)="rotateLeftLongEnded()"
-    [threshold]="150"
-    [interval]="50"
-    [disabled]="longRandomActive()"
-    variant="outlined"
-    severity="secondary"
-    size="small"
-    styleClass="select-none leading-0 text-base w-9 h-9"
-  >
-    <fa-icon [icon]="icons.faAnglesLeft"></fa-icon>
-  </p-button>
-  <p-button
-    appLongPress
-    [intervalEmit]="true"
-    (shortClick)="rotateRight()"
-    (pressStarted)="rotateRightLongStarted()"
-    (press)="rotateRightLong()"
-    (pressEnded)="rotateRightLongEnded()"
-    [threshold]="150"
-    [interval]="50"
-    [disabled]="longRandomActive()"
-    variant="outlined"
-    severity="secondary"
-    size="small"
-    styleClass="select-none leading-0 text-base w-9 h-9"
-  >
-    <fa-icon [icon]="icons.faAnglesRight"></fa-icon>
-  </p-button>
-  <p-button
-    (click)="invert()"
-    variant="outlined"
-    severity="secondary"
-    size="small"
-    styleClass="select-none leading-0 text-base w-9 h-9"
-    pTooltip="Invert"
-    tooltipPosition="bottom"
-    [showDelay]="700"
-    [disabled]="longRandomActive()"
-  >
-    <fa-icon [icon]="icons.faRepeat"></fa-icon>
-  </p-button>
-  <p-button
-    (click)="changeMouseEnterStrategy()"
-    variant="outlined"
-    severity="secondary"
-    size="small"
-    styleClass="select-none leading-0 text-base w-9 h-9"
-    [pTooltip]="mouseEnterStrategies[mouseEnterStrategy()].tooltip"
-    tooltipPosition="bottom"
-    [showDelay]="700"
-    [disabled]="longRandomActive()"
-  >
-    <fa-icon
-      [icon]="mouseEnterStrategies[mouseEnterStrategy()].icon"
-      [style.color]="mouseEnterStrategies[mouseEnterStrategy()].color"
-    ></fa-icon>
-  </p-button>
-  <p-button
-    (click)="openLoadBitSetDialog()"
-    variant="outlined"
-    severity="secondary"
-    size="small"
-    styleClass="select-none leading-0 text-base w-9 h-9"
-    pTooltip="Load key"
-    tooltipPosition="bottom"
-    [showDelay]="700"
-    [disabled]="longRandomActive()"
-  >
-    <fa-icon [icon]="icons.faKey"></fa-icon>
-  </p-button>
-  @if (primaryInput === 'mouse') {
-    <p-button
-      (click)="lock()"
-      variant="outlined"
-      severity="secondary"
-      size="small"
-      styleClass="select-none leading-0 text-base w-9 h-9"
-      pTooltip="Enable/Disable hover color change"
-      tooltipPosition="bottom"
-      [showDelay]="700"
-      [disabled]="longRandomActive()"
-    >
-      <fa-icon [icon]="icons.faLock" [class.text-red-600]="mouseMoveDisabled()"></fa-icon>
-    </p-button>
-  }
-  <p-button
-    variant="outlined"
-    severity="secondary"
-    size="small"
-    styleClass="h-9 select-none leading-0 tracking-wider dark:text-yellow-400 font-bold dark:text-shadow-[0.03rem_0.03rem_red]"
-    (click)="openNftDialog()"
-    pTooltip="Mint NFT"
-    tooltipPosition="bottom"
-    [showDelay]="700"
-    [disabled]="longRandomActive()"
-  >
-    NFT
-  </p-button>
-</div>
+}
 
 @if (loadBitSetDialogVisible()) {
   <app-load-bit-set-dialog
+    class="absolute"
     (bitSetChange)="bitSet.set($event)"
     [(visible)]="loadBitSetDialogVisible"
     [min]="keyRangeStart()"
     [max]="keyRangeEnd()"
   ></app-load-bit-set-dialog>
-}
-
-@if (nftDialogVisible()) {
-  <app-nft-dialog [token]="bitSet()" [(visible)]="nftDialogVisible"></app-nft-dialog>
 }

@@ -1,5 +1,5 @@
 import { Component, input, model, OnDestroy, signal, untracked } from '@angular/core';
-import { BigIntUtils } from '../../utils/BigIntUtils';
+import { invert, random, rotateLeft, rotateRight, setBits } from '../../utils/big-int-utils';
 import { DefaultMouseEnterStrategy, MouseEnterStrategy } from '../bit-set/bit-set.component';
 import { faSquareMinus, faSquarePlus } from '@fortawesome/free-regular-svg-icons';
 import {
@@ -12,7 +12,7 @@ import {
   faPlusMinus,
   faRepeat,
   faShuffle,
-  faSquare,
+  faSquare
 } from '@fortawesome/free-solid-svg-icons';
 import { interval, Subscription } from 'rxjs';
 import { AnalyticsService } from '../../services/analytics.service';
@@ -20,35 +20,35 @@ import { primaryInput } from 'detect-it';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { LongPressDirective } from '../../directives/long-press.directive';
 import { LoadBitSetDialogComponent } from '../load-bit-set-dialog/load-bit-set-dialog.component';
-import { NftDialogComponent } from '../nft/nft-dialog/nft-dialog.component';
 import { Tooltip } from 'primeng/tooltip';
 import { Button } from 'primeng/button';
 import { NgClass } from '@angular/common';
 
 @Component({
   selector: 'app-bit-set-controller',
-  templateUrl: './bit-set-controller.component.html',
+  host: {
+    class: 'flex flex-wrap justify-center gap-1',
+  },
   imports: [
     LoadBitSetDialogComponent,
-    NftDialogComponent,
     LongPressDirective,
     FaIconComponent,
     Tooltip,
     Button,
     NgClass,
   ],
+  templateUrl: './bit-set-controller.component.html',
 })
 export class BitSetControllerComponent implements OnDestroy {
   readonly bitCount = input(256);
   readonly keyRangeStart = input(BigInt(0));
-  readonly keyRangeEnd = input(BigIntUtils.setBits(untracked(this.bitCount)));
+  readonly keyRangeEnd = input(setBits(untracked(this.bitCount)));
   readonly randomBitSetGenInterval = input(DefaultRandomBitSetGenInterval);
   readonly bitSet = model(BigInt(1));
   readonly mouseMoveDisabled = model(false);
   readonly mouseEnterStrategy = model(DefaultMouseEnterStrategy);
   readonly longRandomActive = model(false);
   readonly loadBitSetDialogVisible = signal(false);
-  readonly nftDialogVisible = signal(false);
   readonly icons = {
     faSquareMinus,
     faSquarePlus,
@@ -91,7 +91,7 @@ export class BitSetControllerComponent implements OnDestroy {
   }
 
   setAll() {
-    this.bitSet.set(BigIntUtils.setBits(this.bitCount()));
+    this.bitSet.set(setBits(this.bitCount()));
     this.analytics.trackEvent('bitset_set_all');
   }
 
@@ -101,7 +101,7 @@ export class BitSetControllerComponent implements OnDestroy {
       return;
     }
 
-    this.bitSet.set(BigIntUtils.random(this.keyRangeStart(), this.keyRangeEnd(), this.bitCount()));
+    this.bitSet.set(random(this.keyRangeStart(), this.keyRangeEnd(), this.bitCount()));
     this.analytics.trackEvent('bitset_rnd');
   }
 
@@ -116,7 +116,7 @@ export class BitSetControllerComponent implements OnDestroy {
     this.longRandomActive.set(true);
 
     this.longRandomSubscription = interval(this.randomBitSetGenInterval()).subscribe(() => {
-      this.bitSet.set(BigIntUtils.random(this.keyRangeStart(), this.keyRangeEnd(), this.bitCount()));
+      this.bitSet.set(random(this.keyRangeStart(), this.keyRangeEnd(), this.bitCount()));
     });
   }
 
@@ -127,12 +127,12 @@ export class BitSetControllerComponent implements OnDestroy {
   }
 
   rotateLeft() {
-    this.bitSet.update(bitSet => BigIntUtils.rotateLeft(bitSet, this.bitCount(), 1));
+    this.bitSet.update(bitSet => rotateLeft(bitSet, this.bitCount(), 1));
     this.analytics.trackEvent('bitset_rotate_left');
   }
 
   rotateRight() {
-    this.bitSet.update(bitSet => BigIntUtils.rotateRight(bitSet, this.bitCount(), 1));
+    this.bitSet.update(bitSet => rotateRight(bitSet, this.bitCount(), 1));
     this.analytics.trackEvent('bitset_rotate_right');
   }
 
@@ -141,7 +141,7 @@ export class BitSetControllerComponent implements OnDestroy {
   }
 
   rotateLeftLong() {
-    this.bitSet.update(bitSet => BigIntUtils.rotateLeft(bitSet, this.bitCount(), 1));
+    this.bitSet.update(bitSet => rotateLeft(bitSet, this.bitCount(), 1));
   }
 
   rotateLeftLongEnded() {
@@ -153,7 +153,7 @@ export class BitSetControllerComponent implements OnDestroy {
   }
 
   rotateRightLong() {
-    this.bitSet.update(bitSet => BigIntUtils.rotateRight(bitSet, this.bitCount(), 1));
+    this.bitSet.update(bitSet => rotateRight(bitSet, this.bitCount(), 1));
   }
 
   rotateRightLongEnded() {
@@ -161,7 +161,7 @@ export class BitSetControllerComponent implements OnDestroy {
   }
 
   invert() {
-    this.bitSet.update(bitSet => BigIntUtils.invert(bitSet, this.bitCount()));
+    this.bitSet.update(bitSet => invert(bitSet, this.bitCount()));
     this.analytics.trackEvent('bitset_invert');
   }
 
@@ -191,11 +191,6 @@ export class BitSetControllerComponent implements OnDestroy {
   openLoadBitSetDialog() {
     this.loadBitSetDialogVisible.set(true);
     this.analytics.trackEvent('bitset_load_dialog_open');
-  }
-
-  openNftDialog() {
-    this.nftDialogVisible.set(true);
-    this.analytics.trackEvent('bitset_nft_dialog_open');
   }
 
   ngOnDestroy(): void {

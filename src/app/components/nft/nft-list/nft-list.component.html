@@ -1,15 +1,45 @@
-@if (tokens.isLoading()) {
-  Loading...
-} @else {
-  @if (tokens.hasValue()) {
-    @for (token of tokens.value(); track token.token.token) {
-      <div>
-        <div>Token: {{ token.token.token }}</div>
-        <div>Chain: {{ token.token.chainId }}</div>
-        <div>Contract: {{ token.token.contract }}</div>
-        <div>Owner: {{ token.owner }}</div>
-        <br />
-      </div>
+<app-connect-wallet-guard>
+  <div class="flex flex-col sm:flex-row sm:flex-wrap justify-center p-5 gap-2">
+    @for (nft of nfts(); track nft.id) {
+      <app-nft-info
+        [tokenId]="nft.id"
+        [owner]="nft.owner"
+        [level]="nft.rarity.level"
+        [power]="nft.rarity.power"
+        [createdAt]="nft.rarity.createdAt"
+        [bitCellSize]="bitCellSize()"
+      ></app-nft-info>
     }
+  </div>
+
+  @if (nfts().length === 0 && !offsetNfts.isLoading() && !offsetNfts.error()) {
+    <div class="grow flex flex-col items-center justify-center">
+      <div class="text-3xl select-none">No NFTs found</div>
+    </div>
   }
-}
+
+  @if (offsetNfts.error() && !offsetNfts.isLoading()) {
+    <div class="flex flex-col items-center justify-center"
+         [ngClass]="{'grow gap-4': nfts().length === 0, 'gap-2 mb-10': nfts().length !== 0}"
+    >
+      <div class="text-2xl text-pink-600">Failed to load NFTs</div>
+      <div class="w-3/4 sm:w-md">
+        <p-button
+          severity="success"
+          size="large"
+          styleClass="select-none w-full"
+          [loading]="offsetNfts.isLoading()"
+          (click)="offsetNfts.reload()"
+        >
+          Try again
+        </p-button>
+      </div>
+    </div>
+  }
+
+  @if (offsetNfts.isLoading()) {
+    <div class="flex items-center justify-center my-8" [class.grow]="nfts().length === 0">
+      <p-progress-spinner strokeWidth="8" fill="transparent" animationDuration=".5s" />
+    </div>
+  }
+</app-connect-wallet-guard>

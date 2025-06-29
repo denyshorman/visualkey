@@ -21,8 +21,8 @@ export class LongPressDirective implements OnDestroy {
   pressEnded = output<void>();
   press = output<void>();
 
-  private pressTimeoutId: NodeJS.Timeout | undefined = undefined;
-  private pressIntervalId: NodeJS.Timeout | undefined = undefined;
+  private pressTimeoutId: number | undefined = undefined;
+  private pressIntervalId: number | undefined = undefined;
   private activePointerId: number | undefined = undefined;
 
   onPointerDown(e: PointerEvent) {
@@ -63,13 +63,13 @@ export class LongPressDirective implements OnDestroy {
   }
 
   private down() {
-    this.pressTimeoutId = setTimeout(() => {
+    this.pressTimeoutId = window.setTimeout(() => {
       this.pressTimeoutId = undefined;
 
       if (this.intervalEmit()) {
         this.pressStarted.emit();
         this.press.emit();
-        this.pressIntervalId = setInterval(() => this.press.emit(), this.interval());
+        this.pressIntervalId = window.setInterval(() => this.press.emit(), this.interval());
       } else {
         this.press.emit();
       }

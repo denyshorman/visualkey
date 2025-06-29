@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
-import { ChainsConfigService } from '../config/chains-config.service';
+import { ChainsService } from './chains.service';
 import { environment } from '../../environments/environment';
-import { rotateLeft } from '../utils/ArrayUtils';
+import { rotateLeft } from '../utils/array-utils';
 import { BehaviorSubject, firstValueFrom, merge, Observable, raceWith, throwError, timeout } from 'rxjs';
 import { filter, map, switchMap } from 'rxjs/operators';
 import { NetworkStatusService } from './network-status.service';
-import { sleep } from '../utils/AsyncUtils';
+import { sleep } from '../utils/async-utils';
 import { HttpClient } from '@angular/common/http';
 
 @Injectable({
@@ -17,7 +17,7 @@ export class TxBalanceService {
   private reqCounter = 0;
 
   constructor(
-    private chainConfigService: ChainsConfigService,
+    private chainConfigService: ChainsService,
     private networkStatusService: NetworkStatusService,
     private httpClient: HttpClient,
   ) {}

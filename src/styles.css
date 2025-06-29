@@ -1,5 +1,5 @@
 @import 'tailwindcss';
-@plugin "tailwindcss-primeui";
+@plugin 'tailwindcss-primeui';
 
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 @custom-variant ag-grid-dark (&:where([data-ag-theme-mode='dark'], [data-ag-theme-mode='dark'] *));
@@ -104,13 +104,20 @@
     --p-form-field-invalid-border-color: var(--color-rose-500);
     --p-form-field-invalid-placeholder-color: var(--color-rose-300);
     --p-form-field-focus-border-color: var(--p-form-field-border-color);
+    --p-form-field-border-radius: 0;
     --p-form-field-color: var(--p-surface-600);
 
     @variant dark {
       --p-form-field-color: var(--p-surface-400);
       --p-form-field-border-color: var(--p-surface-700);
       --p-form-field-hover-border-color: var(--p-surface-600);
+      --p-form-field-disabled-background: var(--p-surface-800);
     }
+    /*#endregion*/
+
+    /*#region Menubar*/
+    --p-menubar-border-radius: 0;
+    --p-menubar-base-item-padding: 0.65rem 0.75rem 0.35rem 0.75rem;
     /*#endregion*/
 
     /*#region InputText*/
@@ -138,6 +145,10 @@
 
     /*#region Dialog*/
     --p-dialog-border-radius: 0;
+    /*#endregion*/
+
+    /*#region Message*/
+    --p-message-border-radius: 0;
     /*#endregion*/
 
     /*#region Toast*/
@@ -179,6 +190,12 @@
 
   .p-tooltip-text {
     @apply text-xs whitespace-nowrap;
+  }
+  /*#endregion*/
+
+  /*#region Menubar*/
+  .p-menubar-root-list {
+    @apply ml-2;
   }
   /*#endregion*/
 

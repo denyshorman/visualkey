@@ -24,10 +24,11 @@ import {
 @Component({
   selector: 'app-bit-set',
   host: {
-    class: 'touch-none select-none',
+    class: 'select-none',
     '[style.width.px]': 'canvasSize().width',
     '[style.height.px]': 'canvasSize().height',
     '[class.cursor-none]': '!readOnly()',
+    '[class.touch-none]': '!readOnly()',
     '[class.cursor-default]': 'readOnly()',
     '(contextmenu)': '$event.preventDefault()',
     '(pointerdown)': 'canvasPointerDown($event)',
@@ -126,6 +127,8 @@ export class BitSetComponent implements OnChanges, OnDestroy {
         },
       };
 
+      //TODO: Investigate random load failures
+      //TODO: Terminate the worker for static bitsets
       this.worker = new Worker(new URL('./bit-set.worker', import.meta.url), { type: 'module' });
 
       this.worker.onmessage = (event: MessageEvent<FromWorkerMessage>) => {

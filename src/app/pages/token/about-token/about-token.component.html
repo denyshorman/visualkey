@@ -1,0 +1,231 @@
+<div
+  class="max-w-7xl mx-auto xl:my-10 px-8 pb-10 shadow xl:border border-neutral-700 xl:rounded-3xl [&_h2]:text-2xl [&_h2]:xl:text-4xl [&_h2]:border-b-2 [&_h2]:font-bold [&_h2]:pb-3 [&_h3]:text-xl [&_h3]:xl:text-3xl [&_h3]:font-bold [&_ul]:list-disc [&_ul]:list-outside [&_ul]:xl:pl-8 [&_ul]:marker:text-xl">
+  <header class="text-center mt-10 xl:mt-18">
+    <h1 class="text-4xl xl:text-6xl font-bold">VisualKey Token</h1>
+    <p class="text-sm sm:text-lg xl:text-xl mt-6">
+      The Utility Token for the VisualKey Ecosystem
+    </p>
+  </header>
+
+  <section class="mt-10">
+    <h2>Introduction</h2>
+    <p class="mt-5">
+      <strong>VisualKey (VKEY)</strong> is the official utility token of the VisualKey ecosystem. It is the primary
+      token required to use the platform's features, such as creating and enhancing <strong>Visual Key
+      NFTs</strong>.
+    </p>
+    <p class="mt-5">
+      VKEY is designed with deflationary mechanics. When VKEY is used to mint a new NFT or increase its
+      Power, those tokens are permanently removed from circulation (<strong>burned</strong>). This creates a
+      direct link between platform activity and the total supply of VKEY.
+    </p>
+    <p class="mt-5">
+      VKEY is an ERC20 token with advanced features like flash loans and gas-less approvals for more efficient
+      transactions.
+    </p>
+  </section>
+
+  <section class="mt-10">
+    <h2>Core Features</h2>
+
+    <h3 class="mt-8">Controlled Supply Expansion</h3>
+
+    <p class="mt-5">
+      To support ecosystem growth, the VisualKey Token incorporates a mechanism for periodic supply increases,
+      managed by the token owner. This allows for the introduction of new VKEY tokens in
+      a transparent and predictable manner:
+    </p>
+
+    <ul class="mt-3">
+      <li>Approximately every 16 days, the token owner has the option to mint a new batch
+        of 1,048,576 VKEY.
+      </li>
+      <li>This minting opportunity is available for a 24-hour window following each
+        16-day interval. Unused minting opportunities do not accumulate.
+      </li>
+      <li>The minting process is secured by a cryptographic signature from the owner to ensure authorized operations.
+        This capability can also be permanently disabled by the token owner.
+      </li>
+    </ul>
+
+    <p class="mt-5">
+      This controlled inflation model allows for strategic funding of new initiatives and community rewards.
+    </p>
+
+    <h3 class="mt-5">Deflationary Mechanisms</h3>
+
+    <p class="mt-5">
+      The VisualKey Token includes several features that contribute to its scarcity over time:
+    </p>
+
+    <ul class="mt-3">
+      <li>
+        <strong>Standard Burn Functionality:</strong> Token holders can permanently remove their VKEY
+        from circulation using standard burn functions.
+      </li>
+      <li>
+        <strong>Flash Loan Fee Burning:</strong> The fee collected from EIP-3156 compliant flash loans is automatically
+        burned, reducing the total supply with each transaction.
+      </li>
+      <li><strong>VKEY Burn on NFT Minting & Power-Ups:</strong> All VKEY tokens
+        committed to mint a new Visual Key (VKEYNFT) or to increase an existing
+        NFT's "Power" are permanently burned. This creates a
+        direct link between the growth of the NFT ecosystem and the scarcity of VKEY.
+      </li>
+    </ul>
+
+    <p class="mt-5">
+      These mechanisms ensure that activity within the VisualKey ecosystem contributes
+      to a decreasing token supply.
+    </p>
+
+    <h3 class="mt-5">Utility in the Visual Keys (VKEYNFT) Ecosystem</h3>
+
+    <p class="mt-5">
+      <strong>VKEY</strong> is integral to the Visual Keys NFT platform:
+    </p>
+
+    <ul class="mt-3">
+      <li>Visual Keys NFTs transform unique Ethereum addresses into verifiable
+        digital collectibles, where the NFT's ID is the address itself.
+      </li>
+      <li>The "Power" attribute of a VKEYNFT, a key rarity factor, is determined by the amount of VKEY
+        committed (and subsequently burned) during its minting and any subsequent power-up events.
+      </li>
+      <li>VKEY directly influences the distinction and potential desirability of each Visual Keys NFT.</li>
+    </ul>
+
+    <h3 class="mt-5">Future Utility</h3>
+
+    <p class="mt-5">
+      <strong>VKEY</strong> is designed to be the primary token for future projects and services
+      within the expanding digital landscape, ensuring its sustained relevance and utility.
+    </p>
+
+    <h3 class="mt-5">Technical Standards</h3>
+
+    <p class="mt-5">The VisualKey Token is built with a robust set of features for security, efficiency, and advanced
+      interactions:</p>
+
+    <ul class="mt-3">
+      <li>
+        <strong>Gas-less Approvals (EIP-2612 Permit)</strong>: Users can approve token spending
+        via signatures, which can save on transaction fees and improve user experience.
+      </li>
+      <li>
+        <strong>Collateral-Free Loans (EIP-3156 Flash Loans)</strong>: Allows for instant,
+        uncollateralized borrowing of VKEY, provided the loan is repaid within the same transaction. The fee for such
+        loans is configurable by the owner and is burned upon successful execution.
+      </li>
+      <li>
+        <strong>Enhanced Token Interactions (ERC1363)</strong>: Supports `transferAndCall` and
+        `approveAndCall` functionalities, allowing VKEY to interact with smart contracts in a single transaction.
+      </li>
+      <li>
+        <strong>Secure Ownership (ERC173)</strong>: Implements a secure ownership model with a
+        16-day waiting period for ownership transfers of the token
+        contract. The current owner can also cancel a pending transfer. The owner also has capabilities for emergency
+        withdrawals of other tokens sent to the contract and for managing flash loan fees, all secured via signature.
+      </li>
+      <li>
+        <strong>Standardized Domain Separator (EIP-5267)</strong>: Ensures compatibility and security
+        for EIP-712 signature verifications.
+      </li>
+    </ul>
+  </section>
+
+  <section class="mt-10">
+    <h2>Synergy with Visual Keys NFTs</h2>
+
+    <p class="mt-5">
+      VisualKey Token (VKEY) and Visual Keys NFTs are intrinsically linked to our VisualKey tool.
+    </p>
+
+    <ul class="mt-3">
+      <li>
+        <strong>Address Generation:</strong> The VisualKey tool allows users to generate a unique Ethereum private key
+        and its corresponding public address from a visual pattern.
+      </li>
+      <li>
+        <strong>Claiming an Address:</strong> A Visual Keys (VKEYNFT) represents one of these
+        addresses as a permanent, collectible asset on the blockchain, where the NFT's ID is the
+        address itself.
+      </li>
+      <li>
+        <strong>VKEY as a Catalyst:</strong> To mint a Visual Keys NFT and
+        to later increase its "Power", VKEY is required. The VKEY tokens used in this process
+        are then burned, contributing to the token's scarcity.
+      </li>
+    </ul>
+
+    <p class="mt-5">
+      This synergy allows users to transform visual creations into verifiably scarce digital assets, with VKEY
+      serving as the primary catalyst.
+    </p>
+  </section>
+
+  <section class="mt-10">
+    <h2>Token Contract Details (VKEY)</h2>
+
+    <div class="mt-5 overflow-auto whitespace-nowrap">
+      <p><strong>Name:</strong> VisualKey Token</p>
+      <p><strong>Symbol:</strong> VKEY</p>
+      <p><strong>Decimals:</strong> 18</p>
+      <p><strong>Initial Allocation:</strong> 8,388,608 VKEY</p>
+      <p><strong>Periodic Mint Amount:</strong> 1,048,576 VKEY</p>
+      <p><strong>Mint Interval:</strong> 16 Days</p>
+      <p><strong>Mint Window:</strong> 24 Hours (After the interval concludes)</p>
+      @for (contract of contracts; track contract.chainId) {
+        <p><strong>{{ contract.chainName }} Contract:</strong>
+          <a
+            [href]="contract.explorerUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {{ contract.contractAddress }}
+          </a>
+        </p>
+      }
+    </div>
+  </section>
+
+  <section class="mt-10">
+    <h2>Acquiring VKEY</h2>
+
+    <p class="mt-5">
+      VKEY tokens are required to interact with the VisualKey ecosystem. There are a few ways to
+      acquire them.
+    </p>
+
+    <h3 class="mt-5">Direct Purchase via Smart Contract</h3>
+
+    <p class="mt-5">
+      The primary method to acquire VKEY is by purchasing them directly through our secure, owner-managed smart
+      contract.
+      This allows you to buy tokens using ETH at a price determined by the contract owner. The owner can adjust the
+      price (wei per VKEY) to reflect market conditions.
+    </p>
+
+    <div class="mt-5">
+      <a [routerLink]="['/token/acquire']"
+         class="p-button p-button-secondary p-button-raised p-button-outlined font-bold"
+      >
+        Buy VKEY Tokens Now
+      </a>
+    </div>
+
+    <h3 class="mt-5">Community & Early Supporter Rewards</h3>
+
+    <p class="mt-5">
+      To bootstrap the ecosystem, free VKEY tokens are available for early adopters and active community members.
+      Contact the project creator for more information.
+    </p>
+
+    <h3 class="mt-5">Future: Exchange Listings</h3>
+
+    <p class="mt-5">
+      Future plans include listing VKEY on decentralized exchanges (DEXs). This will enable wider market access and
+      provide greater liquidity for all token holders.
+    </p>
+  </section>
+</div>
