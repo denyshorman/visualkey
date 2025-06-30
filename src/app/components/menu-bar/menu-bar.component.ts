@@ -44,6 +44,10 @@ export class MenuBarComponent {
           routerLink: ['/nft/all'],
         },
         {
+          label: 'Find Rare',
+          routerLink: ['/nft/find-rare'],
+        },
+        {
           label: 'About',
           routerLink: ['/nft/about'],
         },

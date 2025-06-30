@@ -63,7 +63,7 @@ export function random(min: bigint, max: bigint, bitCount?: number): bigint {
 
   const byteCount = Math.ceil(size / 8);
   const rndBytes = new Uint8Array(byteCount);
-  const crypto = window.crypto || window.msCrypto;
+  const crypto = globalThis.crypto;
 
   if (crypto) {
     crypto.getRandomValues(rndBytes);

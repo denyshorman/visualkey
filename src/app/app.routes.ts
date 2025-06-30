@@ -46,6 +46,11 @@ export const routes: Routes = [
       { path: 'my', title: 'My Visual Keys', component: ViewMyNftsComponent },
       { path: 'all', title: 'All Visual Keys', component: ViewAllNftsComponent },
       {
+        path: 'find-rare',
+        title: 'Find Rare',
+        loadComponent: () => import('./pages/nft/find-rare/find-rare.component').then(m => m.FindRareComponent)
+      },
+      {
         path: 'about',
         title: 'Visual Keys - Unique Digital Identities',
         loadComponent: () => import('./pages/nft/about-nft/about-nft.component').then(m => m.AboutNftComponent),
