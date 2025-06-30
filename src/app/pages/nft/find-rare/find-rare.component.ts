@@ -259,6 +259,12 @@ export class FindRareComponent {
     });
   }
 
+  detach() {
+    if (this.isRunning()) {
+      this.stop();
+    }
+  }
+
   resizeGrid() {
     const grid = this.agGridRef().nativeElement as HTMLElement;
     const rect = grid.getBoundingClientRect();

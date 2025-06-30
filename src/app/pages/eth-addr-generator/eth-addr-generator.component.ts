@@ -1,4 +1,4 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, signal, viewChild } from '@angular/core';
 import { ETH_ADDR_BIT_COUNT, ETH_PK_BIT_COUNT, MAX_PK_ADDRESS, MIN_PK_ADDRESS } from '../../utils/eth-utils';
 import { BitSetComponent, DefaultMouseEnterStrategy } from '../../components/bit-set/bit-set.component';
 import { random } from '../../utils/big-int-utils';
@@ -67,6 +67,7 @@ export class EthAddrGeneratorComponent {
   readonly addressCols = 10;
   readonly pkMin = MIN_PK_ADDRESS;
   readonly pkMax = MAX_PK_ADDRESS;
+  readonly bitSetController = viewChild.required(BitSetControllerComponent);
   readonly bitCellSize = signal(0);
   readonly mouseEnterStrategy = signal(DefaultMouseEnterStrategy);
   readonly mouseMoveDisabled = signal(false);
@@ -87,6 +88,14 @@ export class EthAddrGeneratorComponent {
 
   constructor() {
     this.changeBitSize();
+  }
+
+  detach() {
+    const bitSetController = this.bitSetController();
+
+    if (bitSetController.longRandomActive()) {
+      bitSetController.stopLongRandom();
+    }
   }
 
   onResize() {

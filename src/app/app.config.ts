@@ -4,9 +4,10 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeng/themes/aura';
 import { provideServiceWorker } from '@angular/service-worker';
-import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { provideRouter, RouteReuseStrategy, withComponentInputBinding } from '@angular/router';
 import { routes } from './app.routes';
 import { ConfirmationService, MessageService } from 'primeng/api';
+import { CustomRouteReuseStrategy } from './strategies/custom-route-reuse-strategy';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -32,5 +33,6 @@ export const appConfig: ApplicationConfig = {
     }),
     MessageService,
     ConfirmationService,
+    { provide: RouteReuseStrategy, useClass: CustomRouteReuseStrategy },
   ],
 };

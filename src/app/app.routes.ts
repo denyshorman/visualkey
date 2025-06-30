@@ -9,7 +9,12 @@ import { AcquireTokenComponent } from './pages/token/acquire-token/acquire-token
 import { BurnTokenComponent } from './pages/token/burn-token/burn-token.component';
 
 export const routes: Routes = [
-  { path: '', component: EthAddrGeneratorComponent },
+  {
+    path: '',
+    title: 'VisualKey: A Visual Ethereum Wallet Generator & Balance Checker',
+    component: EthAddrGeneratorComponent,
+    data: { reuseRoute: true },
+  },
   {
     path: 'token',
     title: 'VisualKey Token',
@@ -48,7 +53,8 @@ export const routes: Routes = [
       {
         path: 'find-rare',
         title: 'Find Rare',
-        loadComponent: () => import('./pages/nft/find-rare/find-rare.component').then(m => m.FindRareComponent)
+        data: { reuseRoute: true },
+        loadComponent: () => import('./pages/nft/find-rare/find-rare.component').then(m => m.FindRareComponent),
       },
       {
         path: 'about',
