@@ -1,4 +1,4 @@
-import { afterNextRender, Component, computed, input, linkedSignal, resource, signal } from '@angular/core';
+import { afterNextRender, Component, computed, DestroyRef, input, linkedSignal, resource, signal } from '@angular/core';
 import { Message } from 'primeng/message';
 import { ProgressSpinner } from 'primeng/progressspinner';
 import { WalletService } from '../../../services/wallet.service';
@@ -14,7 +14,6 @@ import { ConnectWalletGuardComponent } from '../../../components/connect-wallet-
   imports: [NftInfoComponent, Message, ProgressSpinner, Button, ConnectWalletGuardComponent],
   host: {
     class: 'flex flex-col grow',
-    '(window:resize)': 'changeBitSize()',
   },
   template: `
     @if (tokenId() === undefined) {
@@ -126,13 +125,21 @@ export class ViewNftComponent {
   constructor(
     public wallet: WalletService,
     private nftContractService: NftContractService,
+    destroyRef: DestroyRef,
   ) {
     afterNextRender(() => {
       this.changeBitSize();
+
+      const resizeObserver = new ResizeObserver(() => this.changeBitSize());
+      resizeObserver.observe(document.body);
+
+      destroyRef.onDestroy(() => {
+        resizeObserver?.disconnect();
+      });
     });
   }
 
-  changeBitSize() {
+  private changeBitSize() {
     let bitSize = Math.floor((window.innerHeight / 16) * 0.55);
 
     if (bitSize * 20 > window.innerWidth) {

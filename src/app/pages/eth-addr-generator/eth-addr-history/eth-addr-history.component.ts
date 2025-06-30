@@ -1,6 +1,7 @@
 import {
   afterNextRender,
   Component,
+  DestroyRef,
   effect,
   ElementRef,
   input,
@@ -47,7 +48,6 @@ import { formatUnits } from 'viem';
   imports: [AgGridAngular, FormsModule, EthAddrHistoryGridHeaderComponent],
   host: {
     class: 'flex flex-col gap-1',
-    '(window:resize)': 'resizeGrid()',
   },
   template: `
     <app-eth-addr-history-grid-header
@@ -265,6 +265,7 @@ export class EthAddrHistoryComponent {
   constructor(
     private txBalanceService: TxBalanceService,
     private analyticsService: AnalyticsService,
+    destroyRef: DestroyRef,
   ) {
     //#region Extend grid with dynamic columns
     this.gridOptions.columnDefs!.push(...this.generateDynamicChainRelatedColumns());
@@ -273,6 +274,13 @@ export class EthAddrHistoryComponent {
     //#region Resize grid
     afterNextRender(() => {
       this.resizeGrid();
+
+      const resizeObserver = new ResizeObserver(() => this.resizeGrid());
+      resizeObserver.observe(document.body);
+
+      destroyRef.onDestroy(() => {
+        resizeObserver?.disconnect();
+      });
     });
     //#endregion
 
@@ -504,7 +512,7 @@ export class EthAddrHistoryComponent {
   //#endregion
 
   //#region Grid Height Management
-  resizeGrid() {
+  private resizeGrid() {
     const grid = this.agGridRef().nativeElement as HTMLElement;
     const rect = grid.getBoundingClientRect();
     const top = rect.top + window.scrollY;

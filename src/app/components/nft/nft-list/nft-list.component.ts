@@ -1,4 +1,14 @@
-import { afterNextRender, Component, computed, ElementRef, input, linkedSignal, resource, signal } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  DestroyRef,
+  ElementRef,
+  input,
+  linkedSignal,
+  resource,
+  signal,
+} from '@angular/core';
 import { NftContractService, Token } from '../../../services/nft-contract.service';
 import { NftInfoComponent } from '../nft-info/nft-info.component';
 import { WalletService } from '../../../services/wallet.service';
@@ -15,7 +25,6 @@ import { ConnectWalletGuardComponent } from '../../connect-wallet-guard/connect-
   host: {
     class: 'flex flex-col grow',
     '(window:scroll)': 'onScroll()',
-    '(window:resize)': 'onResize()',
   },
 })
 export class NftListComponent {
@@ -94,9 +103,17 @@ export class NftListComponent {
     public wallet: WalletService,
     private nftContractService: NftContractService,
     private elementRef: ElementRef,
+    destroyRef: DestroyRef,
   ) {
     afterNextRender(() => {
       this.changeBitSize();
+
+      const resizeObserver = new ResizeObserver(() => this.changeBitSize());
+      resizeObserver.observe(document.body);
+
+      destroyRef.onDestroy(() => {
+        resizeObserver?.disconnect();
+      });
     });
   }
 
@@ -109,10 +126,6 @@ export class NftListComponent {
     if (scrollPosition >= threshold) {
       this.offset.set(this.nfts().length);
     }
-  }
-
-  onResize() {
-    this.changeBitSize();
   }
 
   private changeBitSize() {

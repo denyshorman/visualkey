@@ -1,4 +1,4 @@
-import { Component, computed, signal, viewChild } from '@angular/core';
+import { afterNextRender, Component, computed, DestroyRef, signal, viewChild } from '@angular/core';
 import { ETH_ADDR_BIT_COUNT, ETH_PK_BIT_COUNT, MAX_PK_ADDRESS, MIN_PK_ADDRESS } from '../../utils/eth-utils';
 import { BitSetComponent, DefaultMouseEnterStrategy } from '../../components/bit-set/bit-set.component';
 import { random } from '../../utils/big-int-utils';
@@ -14,7 +14,6 @@ import { EthAccount } from '../../models/eth-account';
   selector: 'app-eth-addr-generator',
   host: {
     class: 'flex flex-col items-center p-2 lg:px-8 lg:py-5',
-    '(window:resize)': 'onResize()',
     '(window:keydown)': 'onKeyDown($event)',
     '(window:keyup)': 'onKeyUp($event)',
   },
@@ -86,8 +85,17 @@ export class EthAddrGeneratorComponent {
     return account.isValid ? BigInt(account.address) : BigInt(0);
   });
 
-  constructor() {
-    this.changeBitSize();
+  constructor(destroyRef: DestroyRef) {
+    afterNextRender(() => {
+      this.changeBitSize();
+
+      const resizeObserver = new ResizeObserver(() => this.changeBitSize());
+      resizeObserver.observe(document.body);
+
+      destroyRef.onDestroy(() => {
+        resizeObserver?.disconnect();
+      });
+    });
   }
 
   detach() {
@@ -96,10 +104,6 @@ export class EthAddrGeneratorComponent {
     if (bitSetController.longRandomActive()) {
       bitSetController.stopLongRandom();
     }
-  }
-
-  onResize() {
-    this.changeBitSize();
   }
 
   onKeyDown(e: KeyboardEvent) {

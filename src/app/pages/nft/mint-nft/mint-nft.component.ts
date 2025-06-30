@@ -1,4 +1,14 @@
-import { afterNextRender, Component, computed, ElementRef, input, resource, signal, viewChild } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  DestroyRef,
+  ElementRef,
+  input,
+  resource,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { FormsModule, NgModel } from '@angular/forms';
 import { ContractFunctionExecutionError, ContractFunctionRevertedError, Hex, parseEther } from 'viem';
 import { Button } from 'primeng/button';
@@ -35,7 +45,6 @@ import { EtherTxStatusComponent } from '../../../components/ether-tran-status/et
   ],
   host: {
     class: 'flex flex-col grow sm:items-center sm:justify-center',
-    '(window:resize)': 'recalculateBitSize()',
   },
   template: `
     @if (ethAccount()) {
@@ -285,9 +294,17 @@ export class MintNftComponent {
   constructor(
     public wallet: WalletService,
     private nftContract: NftContractService,
+    destroyRef: DestroyRef,
   ) {
     afterNextRender(() => {
       this.recalculateBitSize();
+
+      const resizeObserver = new ResizeObserver(() => this.recalculateBitSize());
+      resizeObserver.observe(document.body);
+
+      destroyRef.onDestroy(() => {
+        resizeObserver?.disconnect();
+      });
     });
   }
 
@@ -373,7 +390,7 @@ export class MintNftComponent {
     }
   }
 
-  recalculateBitSize() {
+  private recalculateBitSize() {
     const containerWidth = this.bitSetContainerRef()?.nativeElement?.offsetWidth;
 
     if (containerWidth) {

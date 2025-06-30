@@ -41,7 +41,6 @@ import { MintButtonRendererComponent } from './mint-button-renderer.component';
   imports: [AgGridAngular, FormsModule, InputNumber, Button, FaIconComponent, Tooltip],
   host: {
     class: 'flex flex-col grow',
-    '(window:resize)': 'resizeGrid()',
   },
   template: `
     <div
@@ -252,6 +251,13 @@ export class FindRareComponent {
   constructor(destroyRef: DestroyRef) {
     afterNextRender(() => {
       this.resizeGrid();
+
+      const resizeObserver = new ResizeObserver(() => this.resizeGrid());
+      resizeObserver.observe(document.body);
+
+      destroyRef.onDestroy(() => {
+        resizeObserver?.disconnect();
+      });
     });
 
     destroyRef.onDestroy(() => {
@@ -263,14 +269,6 @@ export class FindRareComponent {
     if (this.isRunning()) {
       this.stop();
     }
-  }
-
-  resizeGrid() {
-    const grid = this.agGridRef().nativeElement as HTMLElement;
-    const rect = grid.getBoundingClientRect();
-    const top = rect.top + window.scrollY;
-    const newHeight = Math.max(220, window.innerHeight - top - 18);
-    grid.style.height = `${newHeight}px`;
   }
 
   toggle(): void {
@@ -311,6 +309,14 @@ export class FindRareComponent {
 
   download() {
     this.gridApi()?.exportDataAsCsv();
+  }
+
+  private resizeGrid() {
+    const grid = this.agGridRef().nativeElement as HTMLElement;
+    const rect = grid.getBoundingClientRect();
+    const top = rect.top + window.scrollY;
+    const newHeight = Math.max(220, window.innerHeight - top - 18);
+    grid.style.height = `${newHeight}px`;
   }
 
   private startWorker(): void {
