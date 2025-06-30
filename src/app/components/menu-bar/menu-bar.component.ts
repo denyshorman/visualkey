@@ -36,16 +36,16 @@ export class MenuBarComponent {
       label: 'NFT',
       items: [
         {
+          label: 'Find Rare NFT',
+          routerLink: ['/nft/find-rare'],
+        },
+        {
           label: 'My NFTs',
           routerLink: ['/nft/my'],
         },
         {
           label: 'All NFTs',
           routerLink: ['/nft/all'],
-        },
-        {
-          label: 'Find Rare',
-          routerLink: ['/nft/find-rare'],
         },
         {
           label: 'About',
