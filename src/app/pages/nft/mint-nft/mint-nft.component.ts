@@ -26,6 +26,7 @@ import { InputGroupAddon } from 'primeng/inputgroupaddon';
 import { ProgressBar } from 'primeng/progressbar';
 import { ETH_ADDR_BIT_COUNT } from '../../../utils/eth-utils';
 import { EtherTxStatusComponent } from '../../../components/ether-tran-status/ether-tx-status.component';
+import { AnalyticsService } from '../../../services/analytics.service';
 
 @Component({
   selector: 'app-nft-mint',
@@ -294,6 +295,7 @@ export class MintNftComponent {
   constructor(
     public wallet: WalletService,
     private nftContract: NftContractService,
+    private analyticsService: AnalyticsService,
     destroyRef: DestroyRef,
   ) {
     afterNextRender(() => {
@@ -311,6 +313,7 @@ export class MintNftComponent {
   async mint() {
     const chainId = this.wallet.chainId();
     const tokenPk = this.ethAccount()?.privateKeyHex;
+    const tokenId = this.ethAccount()?.addressBigInt;
     const power = this.powerWei();
 
     if (chainId === undefined || tokenPk === undefined || power === undefined) {
@@ -339,6 +342,12 @@ export class MintNftComponent {
         this.wallet.vkeyAmount.update(amount => (amount !== undefined ? amount - power : undefined));
         this.initialPowerInput()?.reset();
         this.tokenInfo.reload();
+
+        this.analyticsService.trackEvent('mint_nft_success', {
+          chainId,
+          tokenId: tokenId!.toString(),
+          power: power.toString(),
+        });
       } else {
         this.txStatus()?.error('Transaction failed');
       }
@@ -380,6 +389,12 @@ export class MintNftComponent {
           return tokenInfo;
         });
         this.increasePowerInput()?.reset();
+
+        this.analyticsService.trackEvent('increase_power_success', {
+          chainId,
+          tokenId: tokenId.toString(),
+          power: power.toString(),
+        });
       } else {
         this.txStatus()?.error('Transaction failed');
       }

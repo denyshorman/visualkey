@@ -10,6 +10,7 @@ import { WalletService } from '../../../services/wallet.service';
 import { VisualKeyTokenContractService } from '../../../services/token-contract.service';
 import { ConnectWalletGuardComponent } from '../../../components/connect-wallet-guard/connect-wallet-guard.component';
 import { EtherTxStatusComponent } from '../../../components/ether-tran-status/ether-tx-status.component';
+import { AnalyticsService } from '../../../services/analytics.service';
 
 @Component({
   selector: 'app-burn-token',
@@ -105,6 +106,7 @@ export class BurnTokenComponent {
     public wallet: WalletService,
     private tokenContract: VisualKeyTokenContractService,
     private confirmationService: ConfirmationService,
+    private analyticsService: AnalyticsService,
   ) {}
 
   setMaxAmount() {
@@ -160,6 +162,11 @@ export class BurnTokenComponent {
         });
 
         this.vkeyAmountInput()?.reset();
+
+        this.analyticsService.trackEvent('burn_vkey_success', {
+          chainId,
+          amount: burnAmount,
+        });
       } else {
         this.txStatus()?.error('Transaction failed');
       }

@@ -11,6 +11,7 @@ import { ConnectWalletGuardComponent } from '../../../components/connect-wallet-
 import { InputGroup } from 'primeng/inputgroup';
 import { InputGroupAddon } from 'primeng/inputgroupaddon';
 import { EtherTxStatusComponent } from '../../../components/ether-tran-status/ether-tx-status.component';
+import { AnalyticsService } from '../../../services/analytics.service';
 
 @Component({
   selector: 'app-acquire-token',
@@ -201,6 +202,7 @@ export class AcquireTokenComponent {
     public wallet: WalletService,
     private tokenContract: VisualKeyTokenContractService,
     private tokenSaleContract: VisualKeyTokenSaleContractService,
+    private analyticsService: AnalyticsService,
   ) {
     effect(() => {
       if (this.activeInput() !== 'eth') {
@@ -282,6 +284,12 @@ export class AcquireTokenComponent {
 
         this.buyTokensForm()?.reset();
         this.txStatus()?.success(`Successfully purchased ${tokenAmount} VKEY`);
+
+        this.analyticsService.trackEvent('buy_vkey_success', {
+          chainId,
+          ethAmount: ethAmountWei.toString(),
+          tokenAmount: tokenAmountWei.toString(),
+        });
       } else {
         this.txStatus()?.error('Transaction failed');
       }
