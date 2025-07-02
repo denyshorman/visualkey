@@ -34,6 +34,7 @@
     "@reown/appkit": "^1.7.11",
     "@reown/appkit-adapter-wagmi": "^1.7.11",
     "@tailwindcss/postcss": "^4.1.5",
+    "@visualkey/find-rare-keys": "^1.0.0",
     "ag-grid-angular": "^33.2.4",
     "ag-grid-community": "^33.2.4",
     "detect-it": "^4.0.1",

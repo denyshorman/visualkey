@@ -48,6 +48,11 @@
                 "glob": "staticwebapp.config.json",
                 "input": "src/assets/azure",
                 "output": "/app_location"
+              },
+              {
+                "glob": "find_rare_keys_bg.wasm",
+                "input": "node_modules/@visualkey/find-rare-keys",
+                "output": "/assets/wasm"
               }
             ],
             "styles": [
