@@ -19,7 +19,7 @@ export class MenuBarComponent {
       label: 'Token',
       items: [
         {
-          label: 'Acquire',
+          label: 'Get',
           routerLink: ['/token/acquire'],
         },
         {
@@ -36,7 +36,7 @@ export class MenuBarComponent {
       label: 'NFT',
       items: [
         {
-          label: 'Find Rare NFT',
+          label: 'Find Rare NFTs',
           routerLink: ['/nft/find-rare'],
         },
         {

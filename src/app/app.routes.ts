@@ -11,28 +11,28 @@ import { BurnTokenComponent } from './pages/token/burn-token/burn-token.componen
 export const routes: Routes = [
   {
     path: '',
-    title: 'VisualKey: A Visual Ethereum Wallet Generator & Balance Checker',
+    title: 'A Visual Ethereum Wallet Generator, Balance Checker & NFT Ecosystem',
     component: EthAddrGeneratorComponent,
     data: { reuseRoute: true },
   },
   {
     path: 'token',
-    title: 'VisualKey Token',
+    title: 'VKEY Token',
     component: TokenComponent,
     children: [
       {
         path: 'acquire',
-        title: 'Acquire VisualKey Token',
+        title: 'Get VKEY Tokens',
         component: AcquireTokenComponent,
       },
       {
         path: 'burn',
-        title: 'Burn VisualKey Token',
+        title: 'Burn VKEY Tokens',
         component: BurnTokenComponent,
       },
       {
         path: 'about',
-        title: 'VisualKey Token - Powering Visual Keys & Beyond',
+        title: 'About VKEY',
         loadComponent: () => import('./pages/token/about-token/about-token.component').then(m => m.AboutTokenComponent),
       },
     ],
@@ -52,13 +52,13 @@ export const routes: Routes = [
       { path: 'all', title: 'All Visual Keys', component: ViewAllNftsComponent },
       {
         path: 'find-rare',
-        title: 'Find Rare',
+        title: 'Find Rare Visual Keys',
         data: { reuseRoute: true },
         loadComponent: () => import('./pages/nft/find-rare/find-rare.component').then(m => m.FindRareComponent),
       },
       {
         path: 'about',
-        title: 'Visual Keys - Unique Digital Identities',
+        title: 'About Visual Keys',
         loadComponent: () => import('./pages/nft/about-nft/about-nft.component').then(m => m.AboutNftComponent),
       },
     ],
