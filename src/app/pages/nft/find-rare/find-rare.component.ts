@@ -365,7 +365,7 @@ export class FindRareComponent {
   }
 
   download() {
-    this.gridApi()?.exportDataAsCsv();
+    this.gridApi()?.exportDataAsCsv({ columnKeys: ['level', 'privateKeyHex', 'addressHex'] });
     this.analyticsService.trackEvent('find_rare_download_csv');
   }
 
