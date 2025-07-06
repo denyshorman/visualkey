@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { Tooltip } from 'primeng/tooltip';
 import { environment } from '../../../../environments/environment';
 import {
-  faCode,
   faDownLeftAndUpRightToCenter,
   faDownload,
   faTrashCan,
@@ -143,19 +142,6 @@ import { EthAccount } from '../../../models/eth-account';
         {{ displayedRowCount() }}/{{ totalGeneratedRowCount() }}
       </p-button>
     </div>
-    <div class="hidden sm:flex gap-1">
-      <p-button
-        variant="outlined"
-        severity="secondary"
-        size="small"
-        link="true"
-        styleClass="h-9 select-none"
-        (click)="viewSourceCodeClick.emit()"
-      >
-        <fa-icon [icon]="icons.faCode"></fa-icon>
-        <span>Source code</span>
-      </p-button>
-    </div>
   `,
 })
 export class EthAddrHistoryGridHeaderComponent {
@@ -166,7 +152,6 @@ export class EthAddrHistoryGridHeaderComponent {
     faDownLeftAndUpRightToCenter,
     faTrashCan,
     faDownload,
-    faCode,
     faWifi,
   };
 
@@ -181,7 +166,6 @@ export class EthAddrHistoryGridHeaderComponent {
   readonly autoFitClick = output<void>();
   readonly autoSizeClick = output<void>();
   readonly downloadClick = output<void>();
-  readonly viewSourceCodeClick = output<void>();
 
   readonly ethAccountValid = computed(() => {
     const account = this.ethAccount();

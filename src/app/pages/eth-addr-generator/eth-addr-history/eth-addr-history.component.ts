@@ -62,7 +62,6 @@ import { formatUnits } from 'viem';
       (autoFitClick)="autoFitClick()"
       (autoSizeClick)="autoSizeClick()"
       (downloadClick)="downloadClick()"
-      (viewSourceCodeClick)="viewSourceCodeClick()"
     ></app-eth-addr-history-grid-header>
     <div #agGrid>
       <ag-grid-angular
@@ -503,11 +502,6 @@ export class EthAddrHistoryComponent {
   downloadClick() {
     this.gridApi()?.exportDataAsCsv();
     this.analyticsService.trackEvent('eth_addr_history_download_csv');
-  }
-
-  viewSourceCodeClick() {
-    this.analyticsService.trackEvent('eth_addr_history_view_source_code');
-    window.open(environment.sourceCodeRepositoryUrl, '_blank');
   }
   //#endregion
 

@@ -64,6 +64,11 @@ export const routes: Routes = [
     ],
   },
   {
+    path: 'source-code',
+    title: 'Source Code',
+    loadComponent: () => import('./pages/source-code/source-code.component').then(m => m.SourceCodeComponent),
+  },
+  {
     path: 'admin',
     title: 'VisualKey Admin',
     loadComponent: () => import('./pages/admin/admin.component').then(m => m.AdminComponent),

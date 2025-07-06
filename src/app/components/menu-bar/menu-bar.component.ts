@@ -53,6 +53,15 @@ export class MenuBarComponent {
         },
       ],
     },
+    {
+      label: 'More',
+      items: [
+        {
+          label: 'Source Code',
+          routerLink: ['/source-code'],
+        },
+      ],
+    },
   ];
 
   readonly icons = {
