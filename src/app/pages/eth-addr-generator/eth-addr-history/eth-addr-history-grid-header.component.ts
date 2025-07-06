@@ -54,11 +54,10 @@ import { EthAccount } from '../../../models/eth-account';
         }
       </p-button>
       <p-select
-        class="shrink-0 hidden md:[display:inherit]"
+        class="h-9 shrink-0 hidden md:[display:inherit]"
         appendTo="body"
         size="small"
         id="currencyUnitOptions"
-        styleClass="h-9"
         [options]="currencyUnitOptions()"
         [(ngModel)]="selectedCurrencyUnit"
         optionLabel="name"

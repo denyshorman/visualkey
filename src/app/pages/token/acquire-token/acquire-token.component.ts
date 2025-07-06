@@ -171,9 +171,9 @@ export class AcquireTokenComponent {
   });
 
   readonly price = resource({
-    request: () => ({ chainId: this.wallet.chainId() }),
-    loader: async ({ request }) => {
-      if (request.chainId === undefined) {
+    params: () => ({ chainId: this.wallet.chainId() }),
+    loader: async ({ params }) => {
+      if (params.chainId === undefined) {
         return undefined;
       } else {
         return await this.tokenSaleContract.getPrice();
@@ -182,13 +182,13 @@ export class AcquireTokenComponent {
   });
 
   readonly tokenSaleAmount = resource({
-    request: () => ({ chainId: this.wallet.chainId() }),
-    loader: async ({ request }) => {
-      if (request.chainId === undefined) {
+    params: () => ({ chainId: this.wallet.chainId() }),
+    loader: async ({ params }) => {
+      if (params.chainId === undefined) {
         return undefined;
       }
 
-      const tokenSaleAddress = getTokenSaleAddress(request.chainId);
+      const tokenSaleAddress = getTokenSaleAddress(params.chainId);
 
       if (tokenSaleAddress === undefined) {
         return undefined;

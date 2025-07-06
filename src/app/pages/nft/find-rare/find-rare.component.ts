@@ -66,7 +66,7 @@ import { bytesToHex } from 'viem'
           [disabled]="isRunning()"
           size="small"
           inputStyleClass="h-9 w-30"
-          maxlength="3"
+          [maxlength]="3"
           (keydown.enter)="toggle()"
         />
         <p-button

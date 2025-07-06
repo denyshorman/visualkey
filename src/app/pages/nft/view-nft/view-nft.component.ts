@@ -86,14 +86,14 @@ export class ViewNftComponent {
   });
 
   readonly tokenInfo = resource({
-    request: () => ({ chainId: this.chainId(), tokenId: this.tokenId() }),
-    loader: async ({ request }) => {
-      if (request.chainId === undefined || request.tokenId === undefined) {
+    params: () => ({ chainId: this.chainId(), tokenId: this.tokenId() }),
+    loader: async ({ params }) => {
+      if (params.chainId === undefined || params.tokenId === undefined) {
         return undefined;
       }
 
       try {
-        return await this.nftContractService.getInfo(request.tokenId);
+        return await this.nftContractService.getInfo(params.tokenId);
       } catch (e) {
         if (e instanceof ContractFunctionExecutionError) {
           const cause = e.cause;

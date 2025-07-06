@@ -67,15 +67,15 @@ export class NftListComponent {
   readonly limit = signal(10);
 
   readonly offsetNfts = resource({
-    request: () => ({ chainId: this.chainId(), account: this.account(), offset: this.offset() }),
-    loader: async ({ request }) => {
-      if (request.chainId === undefined) {
+    params: () => ({ chainId: this.chainId(), account: this.account(), offset: this.offset() }),
+    loader: async ({ params }) => {
+      if (params.chainId === undefined) {
         return [];
       } else {
-        if (request.account === undefined) {
-          return await this.nftContractService.allTokens(request.offset, this.limit());
+        if (params.account === undefined) {
+          return await this.nftContractService.allTokens(params.offset, this.limit());
         } else {
-          return await this.nftContractService.ownedTokens(request.account, request.offset, this.limit());
+          return await this.nftContractService.ownedTokens(params.account, params.offset, this.limit());
         }
       }
     },

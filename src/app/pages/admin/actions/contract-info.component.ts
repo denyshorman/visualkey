@@ -103,13 +103,13 @@ import { LocalizedDateTimePipe } from '../../../pipes/localized-date-time.pipe';
 })
 export class ContractInfoComponent {
   readonly info = resource({
-    request: () => ({
+    params: () => ({
       tokenAddress: this.tokenContract.contractAddress(),
       nftAddress: this.nftContract.contractAddress(),
       saleAddress: this.tokenSaleContract.contractAddress(),
     }),
-    loader: async ({ request }) => {
-      const { tokenAddress, nftAddress, saleAddress } = request;
+    loader: async ({ params }) => {
+      const { tokenAddress, nftAddress, saleAddress } = params;
 
       if (!tokenAddress || !nftAddress || !saleAddress) {
         throw new Error('Contract addresses not available for this network.');

@@ -43,14 +43,14 @@ export class WalletService {
   readonly walletLoading = signal(false);
 
   readonly ethAmount: ResourceRef<bigint | undefined> = resource({
-    request: () => ({ chainId: this.chainId(), account: this.accountAddress() }),
-    loader: async ({ request }) => {
-      if (request.chainId === undefined || request.account === undefined) {
+    params: () => ({ chainId: this.chainId(), account: this.accountAddress() }),
+    loader: async ({ params }) => {
+      if (params.chainId === undefined || params.account === undefined) {
         return undefined;
       } else {
         const balance = await getBalance(this.wagmiConfig, {
-          chainId: request.chainId,
-          address: request.account,
+          chainId: params.chainId,
+          address: params.account,
           unit: 'wei',
           blockTag: 'latest',
         });
@@ -60,12 +60,12 @@ export class WalletService {
     },
   });
   readonly vkeyAmount: ResourceRef<bigint | undefined> = resource({
-    request: () => ({ chainId: this.chainId(), account: this.accountAddress() }),
-    loader: async ({ request }) => {
-      if (request.chainId === undefined || request.account === undefined) {
+    params: () => ({ chainId: this.chainId(), account: this.accountAddress() }),
+    loader: async ({ params }) => {
+      if (params.chainId === undefined || params.account === undefined) {
         return undefined;
       } else {
-        const tokenAddress = getVkeyTokenAddress(request.chainId);
+        const tokenAddress = getVkeyTokenAddress(params.chainId);
 
         if (tokenAddress === undefined) {
           console.warn('Visual Key token address is not defined for the current chain.');
@@ -73,8 +73,8 @@ export class WalletService {
         }
 
         const balance = await getBalance(this.wagmiConfig, {
-          chainId: request.chainId,
-          address: request.account,
+          chainId: params.chainId,
+          address: params.account,
           token: tokenAddress,
           unit: 'wei',
           blockTag: 'latest',

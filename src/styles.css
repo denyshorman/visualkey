@@ -117,6 +117,9 @@
 
     /*#region Menubar*/
     --p-menubar-border-radius: 0;
+    --p-menubar-submenu-border-radius: 0;
+    --p-menubar-mobile-button-border-radius: 0;
+    --p-menubar-item-border-radius: 0;
     --p-menubar-base-item-padding: 0.65rem 0.75rem 0.35rem 0.75rem;
     /*#endregion*/
 

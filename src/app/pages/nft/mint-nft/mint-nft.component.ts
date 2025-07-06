@@ -96,7 +96,7 @@ import { AnalyticsService } from '../../../services/analytics.service';
 
         @if (wallet.accountStatus() === 'connected') {
           @if (tokenInfo.isLoading()) {
-            <p-progressbar mode="indeterminate" styleClass="w-full h-2 mt-4" />
+            <p-progressbar mode="indeterminate" class="w-full h-2 mt-4" />
           } @else if (tokenInfo.value()) {
             <div class="flex flex-col gap-3">
               <div class="flex flex-col gap-1">
@@ -266,9 +266,9 @@ export class MintNftComponent {
   });
 
   readonly tokenInfo = resource({
-    request: () => ({ chainId: this.wallet.chainId(), tokenId: this.ethAccount()?.addressBigInt }),
-    loader: async ({ request }) => {
-      const { chainId, tokenId } = request;
+    params: () => ({ chainId: this.wallet.chainId(), tokenId: this.ethAccount()?.addressBigInt }),
+    loader: async ({ params }) => {
+      const { chainId, tokenId } = params;
 
       if (chainId === undefined || tokenId === undefined) {
         return undefined;

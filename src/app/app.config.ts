@@ -1,8 +1,8 @@
-import { ApplicationConfig, isDevMode, provideExperimentalZonelessChangeDetection } from '@angular/core';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { ApplicationConfig, isDevMode, provideZonelessChangeDetection } from '@angular/core';
+import { provideHttpClient, withInterceptorsFromDi, withFetch } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { providePrimeNG } from 'primeng/config';
-import Aura from '@primeng/themes/aura';
+import Aura from '@primeuix/themes/aura';
 import { provideServiceWorker } from '@angular/service-worker';
 import { provideRouter, RouteReuseStrategy, withComponentInputBinding } from '@angular/router';
 import { routes } from './app.routes';
@@ -11,8 +11,8 @@ import { CustomRouteReuseStrategy } from './strategies/custom-route-reuse-strate
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideExperimentalZonelessChangeDetection(),
-    provideHttpClient(withInterceptorsFromDi()),
+    provideZonelessChangeDetection(),
+    provideHttpClient(withInterceptorsFromDi(), withFetch()),
     provideAnimationsAsync(),
     provideRouter(routes, withComponentInputBinding()),
     provideServiceWorker('ngsw-worker.js', {
