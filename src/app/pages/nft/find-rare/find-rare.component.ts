@@ -36,6 +36,7 @@ import { MintButtonRendererComponent } from './mint-button-renderer.component';
 import { AnalyticsService } from '../../../services/analytics.service';
 import { DecimalPipe } from '@angular/common';
 import { bytesToHex } from 'viem'
+import { isWasmSupported } from '../../../utils/wasm-utils';
 
 @Component({
   selector: 'app-find-rare',
@@ -286,14 +287,6 @@ export class FindRareComponent {
     });
   }
 
-  private get wasmSupported(): boolean {
-    try {
-      return typeof WebAssembly === 'object' && WebAssembly.validate(new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0]));
-    } catch {
-      return false;
-    }
-  }
-
   detach() {
     if (this.isRunning()) {
       this.stop();
@@ -312,7 +305,7 @@ export class FindRareComponent {
     this.isRunning.set(true);
 
     const workerCount = navigator.hardwareConcurrency ?? 1;
-    const wasmSupported = this.wasmSupported;
+    const wasmSupported = isWasmSupported();
 
     for (let i = 0; i < workerCount; i++) {
       const worker = wasmSupported ? this.startWasmWorker() : this.startJsWorker();

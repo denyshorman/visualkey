@@ -57,6 +57,13 @@ export class MenuBarComponent {
       label: 'More',
       items: [
         {
+          label: 'Vanity Address Generator',
+          routerLink: ['/tools/vanity-address-generator'],
+        },
+        {
+          separator: true,
+        },
+        {
           label: 'Source Code',
           routerLink: ['/source-code'],
         },

@@ -163,6 +163,14 @@
     --p-progressbar-border-radius: 0;
     /*#endregion*/
 
+    /*#region Card*/
+    --p-card-border-radius: 0;
+    /*#endregion*/
+
+    /*#region Panel*/
+    --p-panel-border-radius: 0;
+    /*#endregion*/
+
     /*#endregion*/
   }
 

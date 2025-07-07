@@ -104,3 +104,13 @@ export function countLeadingZeroBits(num: bigint, length: number): number {
   }
   return count;
 }
+
+export function countSetBits(num: bigint, length: number): number {
+  let count = 0;
+  for (let i = 0; i < length; i++) {
+    if (getBit(num, i)) {
+      count++;
+    }
+  }
+  return count;
+}

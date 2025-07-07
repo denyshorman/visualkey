@@ -7,6 +7,7 @@ import { TokenComponent } from './pages/token/token.component';
 import { ViewAllNftsComponent } from './pages/nft/view-all-nfts/view-all-nfts.component';
 import { AcquireTokenComponent } from './pages/token/acquire-token/acquire-token.component';
 import { BurnTokenComponent } from './pages/token/burn-token/burn-token.component';
+import { ToolsComponent } from './pages/tools/tools.component';
 
 export const routes: Routes = [
   {
@@ -60,6 +61,21 @@ export const routes: Routes = [
         path: 'about',
         title: 'About Visual Keys',
         loadComponent: () => import('./pages/nft/about-nft/about-nft.component').then(m => m.AboutNftComponent),
+      },
+    ],
+  },
+  {
+    path: 'tools',
+    component: ToolsComponent,
+    title: 'Visual Key Tools',
+    children: [
+      {
+        path: 'vanity-address-generator',
+        title: 'Vanity Ethereum Address Generator',
+        loadComponent: () =>
+          import('./pages/tools/vanity-address-generator/vanity-address-generator.component').then(
+            m => m.VanityAddressGeneratorComponent,
+          ),
       },
     ],
   },
