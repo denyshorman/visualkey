@@ -26,7 +26,7 @@ export const routes: Routes = [
     component: TokenComponent,
     data: {
       description:
-        'Learn about the VKEY token, how to acquire it, and its role within the Visual Key ecosystem. Get details on tokenomics and utility.',
+        'Explore the VKEY token — the core utility token of the VisualKey ecosystem. Learn about VKEY tokenomics, its role in NFT minting, rarity boosting, and how to acquire, use, or burn VKEY for enhanced NFT value. Unlock exclusive features and maximize your VisualKey experience with VKEY.',
     },
     children: [
       {
@@ -35,7 +35,7 @@ export const routes: Routes = [
         component: AcquireTokenComponent,
         data: {
           description:
-            'Acquire VKEY tokens to participate in the Visual Key ecosystem. Find out how to get tokens to mint NFTs and access special features.',
+            'Acquire VKEY tokens to mint rare Visual Key NFTs, boost NFT rarity, and access exclusive features on the VisualKey platform. Secure your VKEY today and start building a valuable NFT collection powered by blockchain technology.',
         },
       },
       {
@@ -44,7 +44,7 @@ export const routes: Routes = [
         component: BurnTokenComponent,
         data: {
           description:
-            'Use the burn mechanism for VKEY tokens. Understand the process and implications of burning tokens within the Visual Key platform.',
+            'Burn VKEY tokens to decrease supply and increase scarcity, directly impacting the value of VKEY within the VisualKey NFT ecosystem. Support a deflationary token model and enhance the rarity of your digital assets.',
         },
       },
       {
@@ -53,7 +53,7 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/token/about-token/about-token.component').then(m => m.AboutTokenComponent),
         data: {
           description:
-            'Explore the fundamentals of the VKEY token, including its purpose, contract details, and the value it brings to the Visual Key project.',
+            'Discover everything about the VKEY token: its purpose, smart contract details, and how it empowers the VisualKey NFT ecosystem. Learn how VKEY drives rarity, value, and innovation in blockchain-based digital collectibles.',
         },
       },
     ],
@@ -64,7 +64,7 @@ export const routes: Routes = [
     title: 'Visual Key NFT',
     data: {
       description:
-        'Discover the Visual Key NFT collection. Browse, mint, and manage your unique, visually generated Ethereum-based NFTs.',
+        'Visual Key NFTs are unique, Ethereum-based digital collectibles generated from visual wallet addresses. Browse the NFT gallery, mint your own Visual Key NFT, and manage your blockchain art collection. Experience on-chain rarity, provable uniqueness, and the intersection of cryptography and digital art.',
     },
     children: [
       {
@@ -73,7 +73,7 @@ export const routes: Routes = [
         component: MintNftComponent,
         data: {
           description:
-            'Mint your own unique Visual Key NFT. Follow the steps to create a new, visually distinct NFT and add it to your collection.',
+            'Mint a one-of-a-kind Visual Key NFT from your unique Ethereum address. Secure your place in the VisualKey collection and own a provably rare digital asset on the blockchain.',
         },
       },
       {
@@ -82,7 +82,7 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/nft/view-nft/view-nft.component').then(m => m.ViewNftComponent),
         data: {
           description:
-            'View the details of a specific Visual Key NFT. See its visual representation, properties, and ownership information.',
+            'View detailed information about a specific Visual Key NFT, including its visual grid, on-chain rarity score, blockchain properties, and current owner.',
         },
       },
       {
@@ -91,7 +91,7 @@ export const routes: Routes = [
         component: ViewMyNftsComponent,
         data: {
           description:
-            'View and manage all the Visual Key NFTs you own. Access your personal collection and see the unique visual keys in your wallet.',
+            'Access your personal Visual Key NFT gallery. Manage, track, and showcase your owned NFTs. Connect your crypto wallet to view your exclusive collection of visual Ethereum addresses as digital art.',
         },
       },
       {
@@ -100,7 +100,7 @@ export const routes: Routes = [
         component: ViewAllNftsComponent,
         data: {
           description:
-            'Browse the complete collection of all minted Visual Key NFTs. Explore the variety of visual designs and find specific NFTs.',
+            'Browse the entire Visual Key NFT collection. Discover all minted NFTs, explore rarity rankings, and find inspiration in the world of visual blockchain art.',
         },
       },
       {
@@ -110,7 +110,7 @@ export const routes: Routes = [
         data: {
           reuseRoute: true,
           description:
-            'Use our tool to find rare Visual Key NFTs. Analyze traits and properties to identify the most unique and valuable NFTs in the collection.',
+            'Find and discover rare Visual Key NFTs with high rarity scores. Use advanced search tools to identify valuable and unique Ethereum address-based NFTs for your collection.',
         },
       },
       {
@@ -119,7 +119,7 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/nft/about-nft/about-nft.component').then(m => m.AboutNftComponent),
         data: {
           description:
-            'Learn about the Visual Key NFT project, the concept behind visually generated keys, and the technology that powers our unique NFT ecosystem.',
+            'Learn about Visual Key NFTs — an innovative project transforming Ethereum addresses into on-chain generative art. Discover the technology, rarity mechanics, and the vision behind the VisualKey NFT ecosystem.',
         },
       },
     ],
@@ -130,19 +130,19 @@ export const routes: Routes = [
     title: 'Visual Key Tools',
     data: {
       description:
-        'Access a suite of powerful tools for the Ethereum blockchain, including a vanity address generator and other utilities for developers and users.',
+        'Access powerful Ethereum and blockchain tools with VisualKey. Generate vanity wallet addresses, utilize developer utilities, and enhance your Web3 experience. Perfect for crypto enthusiasts and blockchain developers seeking advanced features.',
     },
     children: [
       {
         path: 'vanity-address-generator',
-        title: 'Vanity Ethereum Address Generator',
+        title: 'Ethereum Vanity Address Generator',
         loadComponent: () =>
           import('./pages/tools/vanity-address-generator/vanity-address-generator.component').then(
             m => m.VanityAddressGeneratorComponent,
           ),
         data: {
           description:
-            'Create a custom Ethereum address with a specific prefix or suffix. Our tool makes it easy to generate a personalized vanity address.',
+            'Generate custom Ethereum vanity wallet addresses securely in your browser with our high-performance WebAssembly tool. Personalize your Ethereum address for branding, identity, or privacy — no third-party servers, 100% client-side.',
         },
       },
     ],
@@ -154,7 +154,7 @@ export const routes: Routes = [
       import('./pages/terms-of-service/terms-of-service.component').then(m => m.TermsOfServiceComponent),
     data: {
       description:
-        'Read the Terms of Service for using the Visual Key application. Understand your rights and obligations when interacting with our platform.',
+        'Read the official Terms of Service for VisualKey. Understand your rights, responsibilities, and the rules for using our Ethereum wallet generator, NFT platform, and blockchain tools.',
     },
   },
   {
@@ -163,7 +163,7 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/privacy-policy/privacy-policy.component').then(m => m.PrivacyPolicyComponent),
     data: {
       description:
-        'Review our Privacy Policy to understand how we handle your data. Learn what information we collect, how it is used, and your rights regarding your data.',
+        'Review the VisualKey Privacy Policy to understand how your data is collected, used, and protected. Learn about your privacy rights and our commitment to data security on the VisualKey platform.',
     },
   },
   {
@@ -172,7 +172,7 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/source-code/source-code.component').then(m => m.SourceCodeComponent),
     data: {
       description:
-        'Explore the open-source code for the Visual Key project. Review our contracts and UI code on GitHub to see how it all works.',
+        'Access the open-source codebase of VisualKey, including smart contracts and frontend application, on GitHub. Verify, audit, or contribute to the VisualKey project and help shape the future of blockchain art and wallet security.',
     },
   },
   {
@@ -181,7 +181,7 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/contact/contact.component').then(m => m.ContactComponent),
     data: {
       description:
-        'Get in touch with the Visual Key team. Find our contact information or use the form to send us a message.',
+        "Contact the VisualKey team for support, feedback, or partnership inquiries. Reach out via our contact form or find our direct contact details. We're here to help you with all things VisualKey.",
     },
   },
   {
@@ -190,7 +190,7 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/admin/admin.component').then(m => m.AdminComponent),
     data: {
       description:
-        'Admin panel for managing the Visual Key project. Access to this area is restricted to authorized personnel.',
+        'Admin dashboard for managing the platform. Restricted access for authorized administrators to oversee project operations and user management.',
     },
   },
 ];
