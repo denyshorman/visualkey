@@ -30,6 +30,7 @@
             "assets": [
               "src/favicon.ico",
               "src/pwa.json",
+              "src/robots.txt",
               {
                 "glob": "**/*",
                 "input": "src/assets",
