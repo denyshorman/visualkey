@@ -1,0 +1,36 @@
+<div class="max-w-7xl mx-auto xl:my-10 px-8 pb-10 shadow xl:border border-neutral-700 xl:rounded-3xl">
+  <header class="text-center mt-10 xl:mt-18">
+    <h1 class="text-4xl xl:text-6xl font-bold">Contact Us</h1>
+  </header>
+
+  <section class="mt-10">
+    <div class="flex flex-col gap-4">
+      <p class="text-center">
+        Have a question or feedback? Reach out to us at
+        <a href="mailto:creator@visualkey.link">creator&#64;visualkey.link</a>
+        or use the form below.
+      </p>
+      <div class="flex flex-col gap-2">
+        <label for="name">Name</label>
+        <input id="name" type="text" pInputText [(ngModel)]="name" />
+      </div>
+      <div class="flex flex-col gap-2">
+        <label for="email">Email</label>
+        <input id="email" type="email" pInputText [(ngModel)]="email" />
+      </div>
+      <div class="flex flex-col gap-2">
+        <label for="message">Message</label>
+        <textarea id="message" pInputTextarea [(ngModel)]="message" rows="5"></textarea>
+      </div>
+      <p-button
+        (click)="sendEmail()"
+        label="Send"
+        severity="secondary"
+        styleClass="select-none w-full"
+        [outlined]="true"
+        size="small"
+      >
+      </p-button>
+    </div>
+  </section>
+</div>

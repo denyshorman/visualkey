@@ -148,12 +148,40 @@ export const routes: Routes = [
     ],
   },
   {
+    path: 'terms-of-service',
+    title: 'Terms of Service',
+    loadComponent: () =>
+      import('./pages/terms-of-service/terms-of-service.component').then(m => m.TermsOfServiceComponent),
+    data: {
+      description:
+        'Read the Terms of Service for using the Visual Key application. Understand your rights and obligations when interacting with our platform.',
+    },
+  },
+  {
+    path: 'privacy-policy',
+    title: 'Privacy Policy',
+    loadComponent: () => import('./pages/privacy-policy/privacy-policy.component').then(m => m.PrivacyPolicyComponent),
+    data: {
+      description:
+        'Review our Privacy Policy to understand how we handle your data. Learn what information we collect, how it is used, and your rights regarding your data.',
+    },
+  },
+  {
     path: 'source-code',
     title: 'Source Code',
     loadComponent: () => import('./pages/source-code/source-code.component').then(m => m.SourceCodeComponent),
     data: {
       description:
         'Explore the open-source code for the Visual Key project. Review our contracts and UI code on GitHub to see how it all works.',
+    },
+  },
+  {
+    path: 'contact',
+    title: 'Contact Us',
+    loadComponent: () => import('./pages/contact/contact.component').then(m => m.ContactComponent),
+    data: {
+      description:
+        'Get in touch with the Visual Key team. Find our contact information or use the form to send us a message.',
     },
   },
   {

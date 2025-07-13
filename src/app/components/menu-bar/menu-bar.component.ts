@@ -64,8 +64,20 @@ export class MenuBarComponent {
           separator: true,
         },
         {
+          label: 'Terms of Service',
+          routerLink: ['/terms-of-service'],
+        },
+        {
+          label: 'Privacy Policy',
+          routerLink: ['/privacy-policy'],
+        },
+        {
           label: 'Source Code',
           routerLink: ['/source-code'],
+        },
+        {
+          label: 'Contact',
+          routerLink: ['/contact'],
         },
       ],
     },
