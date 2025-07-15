@@ -5,7 +5,7 @@ import { InputText } from 'primeng/inputtext';
 import { formatEther, parseEther } from 'viem';
 import { WeiToEthPipe } from '../../../pipes/wei-to-eth.pipe';
 import { WalletService } from '../../../services/wallet.service';
-import { getTokenSaleAddress, VisualKeyTokenSaleContractService } from '../../../services/token-sale-contract.service';
+import { VisualKeyTokenSaleContractService } from '../../../services/token-sale-contract.service';
 import { VisualKeyTokenContractService } from '../../../services/token-contract.service';
 import { ConnectWalletGuardComponent } from '../../../components/connect-wallet-guard/connect-wallet-guard.component';
 import { InputGroup } from 'primeng/inputgroup';
@@ -172,29 +172,21 @@ export class AcquireTokenComponent {
 
   readonly price = resource({
     params: () => ({ chainId: this.wallet.chainId() }),
-    loader: async ({ params }) => {
-      if (params.chainId === undefined) {
-        return undefined;
-      } else {
-        return await this.tokenSaleContract.getPrice();
-      }
+    loader: ({ params }) => {
+      return this.tokenSaleContract.getPrice(params.chainId);
     },
   });
 
   readonly tokenSaleAmount = resource({
     params: () => ({ chainId: this.wallet.chainId() }),
     loader: async ({ params }) => {
-      if (params.chainId === undefined) {
-        return undefined;
-      }
-
-      const tokenSaleAddress = getTokenSaleAddress(params.chainId);
+      const tokenSaleAddress = this.tokenSaleContract.getContractAddress(params.chainId);
 
       if (tokenSaleAddress === undefined) {
         return undefined;
       }
 
-      return await this.tokenContract.balanceOf(tokenSaleAddress);
+      return await this.tokenContract.balanceOf(params.chainId, tokenSaleAddress);
     },
   });
 
@@ -250,9 +242,7 @@ export class AcquireTokenComponent {
   }
 
   async buy() {
-    const chainId = this.wallet.chainId();
-
-    if (chainId === undefined || !this.isFormValid()) {
+    if (!this.isFormValid()) {
       return;
     }
 
@@ -260,18 +250,15 @@ export class AcquireTokenComponent {
     this.txStatus()?.reset();
 
     try {
+      const chainId = this.wallet.chainId();
       const tokenAmount = this.tokenAmount()!;
       const ethAmountWei = this.ethAmountWei()!;
       const tokenAmountWei = this.tokenAmountWei()!;
+      const caller = this.wallet.accountAddress()!;
 
       this.txStatus()?.walletConfirmation();
 
-      const hash = await this.tokenSaleContract.buyTokens(ethAmountWei);
-
-      if (hash === undefined) {
-        this.txStatus()?.error('Transaction hash is undefined');
-        return;
-      }
+      const hash = await this.tokenSaleContract.buyTokens(chainId, ethAmountWei, caller);
 
       this.txStatus()?.processing(chainId, hash);
 

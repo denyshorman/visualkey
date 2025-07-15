@@ -76,8 +76,10 @@ export class TokenMintComponent {
 
   async mint() {
     const chainId = this.wallet.chainId();
+    const owner = this.wallet.accountAddress();
+    const recipient = this.recipientAddress();
 
-    if (!this.isValidAddress() || chainId === undefined) {
+    if (!this.isValidAddress() || owner === undefined || recipient === undefined) {
       return;
     }
 
@@ -87,7 +89,7 @@ export class TokenMintComponent {
     try {
       this.txStatus()?.walletConfirmation();
 
-      const hash = await this.tokenContract.mint(this.recipientAddress()!);
+      const hash = await this.tokenContract.mint(chainId, owner, recipient);
 
       this.txStatus()?.processing(chainId, hash);
 

@@ -127,18 +127,14 @@ export class BurnTokenComponent {
   }
 
   async burn() {
-    const chainId = this.wallet.chainId();
-
-    if (chainId === undefined) {
-      return;
-    }
-
     this.burning.set(true);
     this.txStatus()?.reset();
 
     try {
+      const chainId = this.wallet.chainId();
       const burnAmount = this.burnAmount();
       const burnAmountWei = this.burnAmountWei();
+      const caller = this.wallet.accountAddress();
 
       if (burnAmountWei === undefined) {
         const msg = `Invalid burn amount: ${burnAmount}`;
@@ -146,9 +142,15 @@ export class BurnTokenComponent {
         return;
       }
 
+      if (caller === undefined) {
+        const msg = 'No wallet connected';
+        this.txStatus()?.error(msg);
+        return;
+      }
+
       this.txStatus()?.walletConfirmation();
 
-      const hash = await this.tokenContract.burn(burnAmountWei);
+      const hash = await this.tokenContract.burn(chainId, burnAmountWei, caller);
 
       this.txStatus()?.processing(chainId, hash);
 

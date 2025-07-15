@@ -1,125 +1,122 @@
-import { computed, Injectable, Signal } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Hex, WriteContractReturnType } from 'viem';
 import { WalletService } from './wallet.service';
-import { readContract, simulateContract, writeContract } from '@wagmi/core';
+import { Config, readContract, simulateContract, writeContract } from '@wagmi/core';
 import { base, sepolia, hardhat } from 'viem/chains';
 
 @Injectable({
   providedIn: 'root',
 })
 export class VisualKeyTokenSaleContractService {
-  readonly contractAddress: Signal<Hex | undefined> = computed(() => {
-    return getTokenSaleAddress(this.wallet.chainId());
-  });
+  private readonly wagmiConfig: Config;
 
-  constructor(private wallet: WalletService) {}
-
-  async getOwner(): Promise<Hex | undefined> {
-    const contractAddr = this.contractAddress();
-    if (!contractAddr) return undefined;
-
-    return (await readContract(this.wallet.wagmiConfig, {
-      address: contractAddr,
-      abi: tokenSaleAbi,
-      functionName: 'owner',
-    })) as Hex;
+  constructor(wallet: WalletService) {
+    this.wagmiConfig = wallet.wagmiConfig;
   }
 
-  async buyTokens(ethAmount: bigint): Promise<WriteContractReturnType | undefined> {
-    const wagmiConfig = this.wallet.wagmiConfig;
-    const contractAddr = this.contractAddress();
-    if (!contractAddr) return undefined;
+  getContractAddress(chainId: number): Hex | undefined {
+    if (chainId === base.id) {
+      return BASE_TOKEN_SALE_ADDRESS;
+    } else if (chainId === sepolia.id) {
+      return SEPOLIA_TOKEN_SALE_ADDRESS;
+    } else if (chainId === hardhat.id) {
+      return HARDHAT_TOKEN_SALE_ADDRESS;
+    } else {
+      return undefined;
+    }
+  }
 
-    const { request } = await simulateContract(wagmiConfig, {
-      address: contractAddr,
+  getContractAddressOrThrow(chainId: number): Hex {
+    const contractAddress = this.getContractAddress(chainId);
+
+    if (contractAddress === undefined) {
+      throw new Error(`No contract address found for the chain ID ${chainId}`);
+    }
+
+    return contractAddress;
+  }
+
+  async getOwner(chainId: number): Promise<Hex> {
+    return await readContract(this.wagmiConfig, {
+      chainId,
+      address: this.getContractAddressOrThrow(chainId),
+      abi: tokenSaleAbi,
+      functionName: 'owner',
+    });
+  }
+
+  async buyTokens(chainId: number, ethAmount: bigint, caller: Hex): Promise<WriteContractReturnType> {
+    const { request } = await simulateContract(this.wagmiConfig, {
+      chainId,
+      account: caller,
+      address: this.getContractAddressOrThrow(chainId),
       abi: tokenSaleAbi,
       functionName: 'buyTokens',
       value: ethAmount,
     });
 
-    return writeContract(wagmiConfig, request);
+    return writeContract(this.wagmiConfig, request);
   }
 
-  async getPrice(): Promise<bigint | undefined> {
-    const contractAddr = this.contractAddress();
-    if (!contractAddr) return undefined;
-
-    return (await readContract(this.wallet.wagmiConfig, {
-      address: contractAddr,
+  async getPrice(chainId: number): Promise<bigint> {
+    return await readContract(this.wagmiConfig, {
+      chainId,
+      address: this.getContractAddressOrThrow(chainId),
       abi: tokenSaleAbi,
       functionName: 'getPrice',
-    })) as bigint;
+      blockTag: 'latest',
+    });
   }
 
-  async setPrice(newPriceInWei: bigint): Promise<WriteContractReturnType | undefined> {
-    const wagmiConfig = this.wallet.wagmiConfig;
-    const contractAddr = this.contractAddress();
-    if (!contractAddr) return undefined;
-
-    const { request } = await simulateContract(wagmiConfig, {
-      address: contractAddr,
+  async setPrice(chainId: number, newPriceInWei: bigint, owner: Hex): Promise<WriteContractReturnType> {
+    const { request } = await simulateContract(this.wagmiConfig, {
+      chainId,
+      account: owner,
+      address: this.getContractAddressOrThrow(chainId),
       abi: tokenSaleAbi,
       functionName: 'setPrice',
       args: [newPriceInWei],
     });
 
-    return writeContract(wagmiConfig, request);
+    return writeContract(this.wagmiConfig, request);
   }
 
-  async transferOwnership(newOwner: Hex): Promise<WriteContractReturnType | undefined> {
-    const wagmiConfig = this.wallet.wagmiConfig;
-    const contractAddr = this.contractAddress();
-    if (!contractAddr) return undefined;
-
-    const { request } = await simulateContract(wagmiConfig, {
-      address: contractAddr,
+  async transferOwnership(chainId: number, owner: Hex, newOwner: Hex): Promise<WriteContractReturnType> {
+    const { request } = await simulateContract(this.wagmiConfig, {
+      chainId,
+      account: owner,
+      address: this.getContractAddressOrThrow(chainId),
       abi: tokenSaleAbi,
       functionName: 'transferOwnership',
       args: [newOwner],
     });
 
-    return writeContract(wagmiConfig, request);
+    return writeContract(this.wagmiConfig, request);
   }
 
-  async withdrawETH(): Promise<WriteContractReturnType | undefined> {
-    const wagmiConfig = this.wallet.wagmiConfig;
-    const contractAddr = this.contractAddress();
-    if (!contractAddr) return undefined;
-
-    const { request } = await simulateContract(wagmiConfig, {
-      address: contractAddr,
+  async withdrawETH(chainId: number, owner: Hex): Promise<WriteContractReturnType> {
+    const { request } = await simulateContract(this.wagmiConfig, {
+      chainId,
+      account: owner,
+      address: this.getContractAddressOrThrow(chainId),
       abi: tokenSaleAbi,
       functionName: 'withdrawETH',
     });
 
-    return writeContract(wagmiConfig, request);
+    return writeContract(this.wagmiConfig, request);
   }
 
-  async withdrawERC20(tokenContractAddress: Hex, amount: bigint): Promise<WriteContractReturnType | undefined> {
-    const wagmiConfig = this.wallet.wagmiConfig;
-    const contractAddr = this.contractAddress();
-    if (!contractAddr) return undefined;
-
-    const { request } = await simulateContract(wagmiConfig, {
-      address: contractAddr,
+  async withdrawERC20(chainId: number, tokenContractAddress: Hex, owner: Hex, amount: bigint): Promise<WriteContractReturnType> {
+    const { request } = await simulateContract(this.wagmiConfig, {
+      chainId,
+      account: owner,
+      address: this.getContractAddressOrThrow(chainId),
       abi: tokenSaleAbi,
       functionName: 'withdrawERC20',
       args: [tokenContractAddress, amount],
     });
 
-    return writeContract(wagmiConfig, request);
-  }
-}
-
-export function getTokenSaleAddress(chainId: number | undefined): Hex | undefined {
-  if (chainId === base.id) {
-    return BASE_TOKEN_SALE_ADDRESS;
-  } else if (chainId === sepolia.id) {
-    return SEPOLIA_TOKEN_SALE_ADDRESS;
-  } else if (chainId === hardhat.id) {
-    return HARDHAT_TOKEN_SALE_ADDRESS;
-  } else {
-    return undefined;
+    return writeContract(this.wagmiConfig, request);
   }
 }
 

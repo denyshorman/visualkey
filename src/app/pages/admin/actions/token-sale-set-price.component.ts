@@ -96,11 +96,12 @@ export class TokenSaleSetPriceComponent {
     this.txStatus()?.reset();
 
     try {
-      const chainId = this.wallet.chainId()!;
+      const chainId = this.wallet.chainId();
+      const owner = this.wallet.accountAddress()!;
 
       this.txStatus()?.walletConfirmation();
 
-      const hash = (await this.tokenSaleContract.setPrice(newPriceWei))!;
+      const hash = await this.tokenSaleContract.setPrice(chainId, newPriceWei, owner);
 
       this.txStatus()?.processing(chainId, hash);
 

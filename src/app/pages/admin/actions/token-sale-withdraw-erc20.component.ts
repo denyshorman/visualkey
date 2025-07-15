@@ -1,4 +1,4 @@
-import { Component, computed, effect, linkedSignal, signal, viewChild } from '@angular/core';
+import { Component, computed, linkedSignal, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Button } from 'primeng/button';
 import { Message } from 'primeng/message';
@@ -75,7 +75,8 @@ import { EtherTxStatusComponent } from '../../../components/ether-tran-status/et
 })
 export class TokenSaleWithdrawErc20Component {
   readonly tokenAddress = linkedSignal(() => {
-    return this.vkeyTokenContract.contractAddress();
+    const chainId = this.wallet.chainId();
+    return this.vkeyTokenContract.getContractAddress(chainId);
   });
 
   readonly amount = signal('0');
@@ -110,12 +111,6 @@ export class TokenSaleWithdrawErc20Component {
     private vkeyTokenContract: VisualKeyTokenContractService,
     private tokenSaleContract: VisualKeyTokenSaleContractService,
   ) {
-    effect(() => {
-      const defaultAddress = this.vkeyTokenContract.contractAddress();
-      if (defaultAddress && this.tokenAddress() === '0x') {
-        this.tokenAddress.set(defaultAddress);
-      }
-    });
   }
 
   async withdraw() {
@@ -127,11 +122,14 @@ export class TokenSaleWithdrawErc20Component {
     this.txStatus()?.reset();
 
     try {
-      const chainId = this.wallet.chainId()!;
+      const chainId = this.wallet.chainId();
+      const tokenAddress = this.tokenAddress()!;
+      const amountWei = this.amountWei()!;
+      const owner = this.wallet.accountAddress()!;
 
       this.txStatus()?.walletConfirmation();
 
-      const hash = (await this.tokenSaleContract.withdrawERC20(this.tokenAddress()!, this.amountWei()!))!;
+      const hash = await this.tokenSaleContract.withdrawERC20(chainId, tokenAddress, owner, amountWei);
 
       this.txStatus()?.processing(chainId, hash);
 

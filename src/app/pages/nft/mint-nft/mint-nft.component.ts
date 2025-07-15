@@ -10,7 +10,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormsModule, NgModel } from '@angular/forms';
-import { ContractFunctionExecutionError, ContractFunctionRevertedError, Hex, parseEther } from 'viem';
+import { Hex, parseEther } from 'viem';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
@@ -270,25 +270,30 @@ export class MintNftComponent {
     loader: async ({ params }) => {
       const { chainId, tokenId } = params;
 
-      if (chainId === undefined || tokenId === undefined) {
+      if (tokenId === undefined) {
         return undefined;
       }
 
-      try {
-        return await this.nftContract.getInfo(tokenId);
-      } catch (e) {
-        if (e instanceof ContractFunctionExecutionError) {
-          const cause = e.cause;
+      const info = (await this.nftContract.getTokenDetailsBatch([chainId], tokenId))[0];
 
-          if (cause instanceof ContractFunctionRevertedError) {
-            if (cause.data?.errorName === 'ERC721NonexistentToken') {
-              return null;
-            }
-          }
-        }
-
-        throw e;
+      if (info.owner === null || info.rarity === null) {
+        return null;
       }
+
+      if (info.owner instanceof Error) {
+        const msg = `Failed to fetch owner for token ${tokenId} on chain ${chainId}: ${info.owner.message}`;
+        throw new Error(msg, { cause: info.owner });
+      }
+
+      if (info.rarity instanceof Error) {
+        const msg = `Failed to fetch rarity for token ${tokenId} on chain ${chainId}: ${info.rarity.message}`;
+        throw new Error(msg, { cause: info.rarity });
+      }
+
+      return {
+        owner: info.owner,
+        rarity: info.rarity,
+      };
     },
   });
 
@@ -315,8 +320,9 @@ export class MintNftComponent {
     const tokenPk = this.ethAccount()?.privateKeyHex;
     const tokenId = this.ethAccount()?.addressBigInt;
     const power = this.powerWei();
+    const caller = this.wallet.accountAddress();
 
-    if (chainId === undefined || tokenPk === undefined || power === undefined) {
+    if (tokenPk === undefined || power === undefined || caller === undefined) {
       return;
     }
 
@@ -326,12 +332,7 @@ export class MintNftComponent {
     try {
       this.txStatus()?.walletConfirmation();
 
-      const hash = await this.nftContract.mint(power, tokenPk as Hex);
-
-      if (hash === undefined) {
-        this.txStatus()?.error('Minting failed. Please try again.');
-        return;
-      }
+      const hash = await this.nftContract.mint(chainId, power, tokenPk as Hex, caller);
 
       this.txStatus()?.processing(chainId, hash);
 
@@ -362,8 +363,9 @@ export class MintNftComponent {
     const chainId = this.wallet.chainId();
     const tokenId = this.ethAccount()?.addressBigInt;
     const power = this.powerWei();
+    const caller = this.wallet.accountAddress();
 
-    if (chainId === undefined || tokenId === undefined || power === undefined) {
+    if (tokenId === undefined || power === undefined || caller === undefined) {
       return;
     }
 
@@ -373,7 +375,7 @@ export class MintNftComponent {
     try {
       this.txStatus()?.walletConfirmation();
 
-      const hash = await this.nftContract.increasePower(tokenId, power);
+      const hash = await this.nftContract.increasePower(chainId, tokenId, power, caller);
 
       this.txStatus()?.processing(chainId, hash);
 

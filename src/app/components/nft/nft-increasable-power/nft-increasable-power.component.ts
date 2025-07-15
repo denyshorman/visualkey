@@ -91,14 +91,15 @@ export class NftIncreasablePowerComponent {
       this.inputsDisabled.set(true);
       this.txStatus().reset();
 
-      const chainId = this.wallet.chainId()!;
+      const chainId = this.wallet.chainId();
       const tokenId = this.tokenId();
       const initialPower = this.power();
       const increaseAmount = this.increaseAmount()!;
+      const caller = this.wallet.accountAddress()!;
 
       this.txStatus().walletConfirmation();
 
-      const hash = await this.nftContractService.increasePower(tokenId, increaseAmount);
+      const hash = await this.nftContractService.increasePower(chainId, tokenId, increaseAmount, caller);
 
       this.txStatus().processing(chainId, hash);
 

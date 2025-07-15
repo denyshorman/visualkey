@@ -1,4 +1,4 @@
-import { DestroyRef, effect, Injectable, resource, ResourceRef, signal } from '@angular/core';
+import { computed, DestroyRef, effect, Injectable, resource, ResourceRef, signal } from '@angular/core';
 import { AppKitNetwork, base, Chain, hardhat, sepolia } from '@reown/appkit/networks';
 import { environment } from '../../environments/environment';
 import {
@@ -7,6 +7,7 @@ import {
   getAccount,
   type GetAccountReturnType,
   getBalance,
+  getChainId,
   http,
   injected,
   reconnect,
@@ -20,10 +21,8 @@ import { WagmiAdapter } from '@reown/appkit-adapter-wagmi';
 import { ThemeService } from './theme.service';
 import type { PublicStateControllerState } from '@reown/appkit-controllers';
 import {
-  BASE_VISUAL_KEY_TOKEN_ADDRESS,
-  getVkeyTokenAddress,
-  HARDHAT_VISUAL_KEY_TOKEN_ADDRESS,
-  SEPOLIA_VISUAL_KEY_TOKEN_ADDRESS,
+  getContractAddress as getVkeyTokenContractAddress,
+  getContractAddressOrThrow as getVkeyTokenContractAddressOrThrow,
 } from './token-contract.service';
 import { formatEther, Hex } from 'viem';
 import { ChainsService } from './chains.service';
@@ -34,18 +33,29 @@ import { ChainsService } from './chains.service';
 export class WalletService {
   readonly wagmiConfig: Config;
 
-  readonly chainId = signal<number | undefined>(undefined);
-  readonly chainName = signal<string | undefined>(undefined);
+  readonly chainId = signal<number>(0);
   readonly accountAddress = signal<Hex | undefined>(undefined);
   readonly accountStatus = signal<'disconnected' | 'connecting' | 'reconnecting' | 'connected'>('disconnected');
   readonly walletInitialized = signal(false);
   readonly walletOpen = signal(false);
   readonly walletLoading = signal(false);
 
+  readonly chainName = computed(() => {
+    const chainId = this.chainId();
+
+    const networkName = this.appKit.getCaipNetwork('eip155', chainId)?.name;
+
+    if (networkName === undefined) {
+      throw new Error(`Network name not found for chain ID ${chainId}`);
+    }
+
+    return networkName;
+  });
+
   readonly ethAmount: ResourceRef<bigint | undefined> = resource({
     params: () => ({ chainId: this.chainId(), account: this.accountAddress() }),
     loader: async ({ params }) => {
-      if (params.chainId === undefined || params.account === undefined) {
+      if (params.account === undefined) {
         return undefined;
       } else {
         const balance = await getBalance(this.wagmiConfig, {
@@ -59,13 +69,14 @@ export class WalletService {
       }
     },
   });
+
   readonly vkeyAmount: ResourceRef<bigint | undefined> = resource({
     params: () => ({ chainId: this.chainId(), account: this.accountAddress() }),
     loader: async ({ params }) => {
-      if (params.chainId === undefined || params.account === undefined) {
+      if (params.account === undefined) {
         return undefined;
       } else {
-        const tokenAddress = getVkeyTokenAddress(params.chainId);
+        const tokenAddress = getVkeyTokenContractAddress(params.chainId);
 
         if (tokenAddress === undefined) {
           console.warn('Visual Key token address is not defined for the current chain.');
@@ -85,8 +96,6 @@ export class WalletService {
     },
   });
 
-  private readonly defaultChain: Chain;
-  private readonly supportedChains: Chain[];
   private readonly appKit: AppKit;
 
   constructor(
@@ -97,22 +106,15 @@ export class WalletService {
     const chains: Chain[] = [base, sepolia];
 
     if (!environment.production) {
-      chains.unshift(hardhat);
+      chains.push(hardhat);
     }
-
-    this.supportedChains = chains;
-    this.defaultChain = environment.production ? base : hardhat;
 
     const projectId = environment.reownProjectId;
 
     const wagmiAdapter = new WagmiAdapter({
       projectId,
       networks: chains,
-      transports: {
-        [base.id]: this.getTransport(base.id),
-        [sepolia.id]: this.getTransport(sepolia.id),
-        [hardhat.id]: this.getTransport(hardhat.id),
-      },
+      transports: Object.fromEntries(chains.map(chain => [chain.id, this.getTransport(chain.id)])),
     });
 
     this.wagmiConfig = wagmiAdapter.wagmiConfig;
@@ -124,21 +126,17 @@ export class WalletService {
       features: {
         analytics: environment.production,
       },
-      defaultNetwork: this.defaultChain,
-      tokens: {
-        [`eip155:${base.id}`]: {
-          address: BASE_VISUAL_KEY_TOKEN_ADDRESS,
-          image: `${window.location.origin}/assets/token/32x32.svg`,
-        },
-        [`eip155:${sepolia.id}`]: {
-          address: SEPOLIA_VISUAL_KEY_TOKEN_ADDRESS,
-          image: `${window.location.origin}/assets/token/32x32.svg`,
-        },
-        [`eip155:${hardhat.id}`]: {
-          address: HARDHAT_VISUAL_KEY_TOKEN_ADDRESS,
-          image: `${window.location.origin}/assets/token/32x32.svg`,
-        },
-      },
+      defaultNetwork: chains[0],
+      defaultAccountTypes: { eip155: 'eoa' },
+      tokens: Object.fromEntries(
+        chains.map(chain => [
+          `eip155:${chain.id}`,
+          {
+            address: getVkeyTokenContractAddressOrThrow(chain.id),
+            image: `/assets/token/32x32.svg`,
+          },
+        ]),
+      ),
       themeMode: 'dark',
       themeVariables: {
         '--w3m-font-family': 'var(--default-font-family)',
@@ -147,8 +145,12 @@ export class WalletService {
         '--w3m-font-size-master': '0.66rem',
         '--w3m-z-index': 3301,
       },
+      privacyPolicyUrl: '/privacy-policy',
+      termsConditionsUrl: '/terms-of-service',
+      allowUnsupportedChain: false,
     });
 
+    this.processChainId(this.appKit.getChainId());
     this.processAccount(getAccount(this.wagmiConfig));
     this.processWalletState(this.appKit.getState());
 
@@ -162,8 +164,13 @@ export class WalletService {
       this.processWalletState(newState);
     });
 
+    const unwatchNetwork = this.appKit.subscribeNetwork(network => {
+      this.processChainId(network.chainId);
+    });
+
     destroyRef.onDestroy(() => {
       unwatchAccount();
+      unwatchNetwork();
       unwatchState();
     });
 
@@ -209,6 +216,10 @@ export class WalletService {
     return this.appKit.open({ view: 'Account' });
   }
 
+  viewNetworks() {
+    return this.appKit.open({ view: 'Networks', namespace: 'eip155' });
+  }
+
   waitForTransactionReceipt(chainId: number, hash: Hex): Promise<WaitForTransactionReceiptReturnType> {
     return waitForTransactionReceipt(this.wagmiConfig, {
       chainId,
@@ -225,22 +236,16 @@ export class WalletService {
   }
 
   private processAccount(account: GetAccountReturnType) {
-    const chainId = account.chainId;
-
-    if (chainId !== undefined && this.isChainSupported(chainId)) {
-      this.chainId.set(chainId);
-      this.chainName.set(account?.chain?.name ?? undefined);
-    } else {
-      this.chainId.set(undefined);
-      this.chainName.set(undefined);
-    }
-
     this.accountAddress.set(account.address);
     this.accountStatus.set(account.status);
   }
 
-  private isChainSupported(chainId: number): boolean {
-    return this.supportedChains.some(chain => chain.id === chainId);
+  private processChainId(chainId: number | string | undefined) {
+    if (chainId === undefined || typeof chainId === 'string') {
+      this.chainId.set(getChainId(this.wagmiConfig));
+    } else {
+      this.chainId.set(chainId);
+    }
   }
 
   private getTransport(chainId: number) {

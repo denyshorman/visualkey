@@ -1,7 +1,14 @@
-import { computed, Injectable, Signal } from '@angular/core';
-import { Hex, keccak256, TypedDataDomain, WriteContractReturnType } from 'viem';
+import { Injectable } from '@angular/core';
+import {
+  ContractFunctionExecutionError,
+  ContractFunctionRevertedError,
+  Hex,
+  keccak256,
+  TypedDataDomain,
+  WriteContractReturnType,
+} from 'viem';
 import { WalletService } from './wallet.service';
-import { readContract, readContracts, signTypedData, simulateContract, writeContract } from '@wagmi/core';
+import { Config, readContract, readContracts, signTypedData, simulateContract, writeContract } from '@wagmi/core';
 import { VisualKeyTokenContractService } from './token-contract.service';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base, sepolia, hardhat } from 'viem/chains';
@@ -21,47 +28,61 @@ export class NftContractService {
     ],
   };
 
-  readonly contractAddress: Signal<Hex | undefined> = computed(() => {
-    return getContractAddress(this.wallet.chainId());
-  });
+  private readonly wagmiConfig: Config;
 
-  readonly eip712Domain: Signal<TypedDataDomain | undefined> = computed(() => {
-    const chainId = this.wallet.chainId();
-    const contractAddress = this.contractAddress();
+  constructor(
+    wallet: WalletService,
+    private tokenContract: VisualKeyTokenContractService,
+  ) {
+    this.wagmiConfig = wallet.wagmiConfig;
+  }
 
-    if (chainId === undefined || contractAddress === undefined) {
+  getContractAddress(chainId: number): Hex | undefined {
+    if (chainId === base.id) {
+      return BASE_VISUAL_KEY_NFT_ADDRESS;
+    } else if (chainId === sepolia.id) {
+      return SEPOLIA_VISUAL_KEY_NFT_ADDRESS;
+    } else if (chainId === hardhat.id) {
+      return HARDHAT_VISUAL_KEY_NFT_ADDRESS;
+    } else {
       return undefined;
     }
+  }
 
+  getContractAddressOrThrow(chainId: number): Hex {
+    const contractAddress = this.getContractAddress(chainId);
+
+    if (contractAddress === undefined) {
+      throw new Error(`No contract address found for the chain ID ${chainId}`);
+    }
+
+    return contractAddress;
+  }
+
+  getEip712Domain(chainId: number): TypedDataDomain {
     return {
       name: 'Visual Keys',
       version: '1',
       chainId: chainId,
-      verifyingContract: contractAddress,
+      verifyingContract: this.getContractAddressOrThrow(chainId),
     };
-  });
+  }
 
-  constructor(
-    private wallet: WalletService,
-    private tokenContract: VisualKeyTokenContractService,
-  ) {}
-
-  async mint(paymentAmount: bigint, tokenIdentityPrivateKey: Hex): Promise<Hex | undefined> {
-    const wagmiConfig = this.wallet.wagmiConfig;
-
-    const userAddress = this.wallet.accountAddress()!;
-    const nftNonce = this.nonces(userAddress);
-    const tokenNonce = this.tokenContract.nonces(userAddress);
+  async mint(chainId: number, paymentAmount: bigint, tokenIdentityPrivateKey: Hex, caller: Hex): Promise<Hex> {
+    const contractAddress = this.getContractAddressOrThrow(chainId);
+    const nftNonce = this.nonces(chainId, caller);
+    const tokenNonce = this.tokenContract.nonces(chainId, caller);
     const deadline = BigInt(Math.floor(Date.now() / 1000 + 3600));
     const data = '0x';
 
-    const paymentSignature = await signTypedData(wagmiConfig, {
-      domain: this.tokenContract.eip712Domain()!,
+    const paymentSignature = await signTypedData(this.wagmiConfig, {
+      domain: this.tokenContract.getEip712Domain(chainId),
       types: this.tokenContract.permitTypes,
       primaryType: 'Permit',
+      account: caller,
       message: {
-        owner: userAddress,
-        spender: this.contractAddress()!,
+        owner: caller,
+        spender: contractAddress,
         value: paymentAmount,
         nonce: await tokenNonce,
         deadline: deadline,
@@ -69,11 +90,11 @@ export class NftContractService {
     });
 
     const tokenSignature = await privateKeyToAccount(tokenIdentityPrivateKey).signTypedData({
-      domain: this.eip712Domain()!,
+      domain: this.getEip712Domain(chainId),
       types: this.nftMintTypes,
       primaryType: 'Mint',
       message: {
-        receiver: userAddress,
+        receiver: caller,
         paymentAmount: paymentAmount,
         deadline: deadline,
         nonce: await nftNonce,
@@ -81,86 +102,95 @@ export class NftContractService {
       },
     });
 
-    const { request } = await simulateContract(wagmiConfig, {
-      address: this.contractAddress()!,
+    const { request } = await simulateContract(this.wagmiConfig, {
+      chainId,
+      account: caller,
+      address: contractAddress,
       functionName: 'mint',
       abi: nftAbi,
       args: [paymentAmount, deadline, paymentSignature, tokenSignature, data],
     });
 
-    return await writeContract(wagmiConfig, request);
+    return await writeContract(this.wagmiConfig, request);
   }
 
-  async rarity(tokenId: bigint): Promise<TokenRarity> {
-    return (await readContract(this.wallet.wagmiConfig, {
-      address: this.contractAddress()!,
+  async rarity(chainId: number, tokenId: bigint): Promise<TokenRarity> {
+    return await readContract(this.wagmiConfig, {
+      chainId,
+      address: this.getContractAddressOrThrow(chainId),
       abi: nftAbi,
       functionName: 'rarity',
       args: [tokenId],
-    })) as TokenRarity;
+      blockTag: 'latest',
+    });
   }
 
-  async increasePower(tokenId: bigint, amount: bigint): Promise<WriteContractReturnType> {
-    const wagmiConfig = this.wallet.wagmiConfig;
-
+  async increasePower(chainId: number, tokenId: bigint, amount: bigint, caller: Hex): Promise<WriteContractReturnType> {
     const deadline = BigInt(Math.floor(Date.now() / 1000 + 3600));
-    const userAddress = this.wallet.accountAddress()!;
-    const nonce = await this.tokenContract.nonces(userAddress);
+    const nonce = await this.tokenContract.nonces(chainId, caller);
 
-    const signature = await signTypedData(wagmiConfig, {
-      domain: this.tokenContract.eip712Domain()!,
+    const signature = await signTypedData(this.wagmiConfig, {
+      domain: this.tokenContract.getEip712Domain(chainId),
       types: this.tokenContract.permitTypes,
       primaryType: 'Permit',
+      account: caller,
       message: {
-        owner: userAddress,
-        spender: this.contractAddress()!,
+        owner: caller,
+        spender: this.getContractAddressOrThrow(chainId),
         value: amount,
         nonce: nonce,
         deadline: deadline,
       },
     });
 
-    const { request } = await simulateContract(wagmiConfig, {
-      address: this.contractAddress()!,
+    const { request } = await simulateContract(this.wagmiConfig, {
+      chainId,
+      account: caller,
+      address: this.getContractAddressOrThrow(chainId),
       functionName: 'increasePower',
       abi: nftAbi,
       args: [tokenId, amount, deadline, signature],
     });
 
-    return writeContract(wagmiConfig, request);
+    return writeContract(this.wagmiConfig, request);
   }
 
-  async nonces(owner: Hex): Promise<bigint> {
-    return (await readContract(this.wallet.wagmiConfig, {
-      address: this.contractAddress()!,
+  async nonces(chainId: number, account: Hex): Promise<bigint> {
+    return await readContract(this.wagmiConfig, {
+      chainId,
+      address: this.getContractAddressOrThrow(chainId),
       abi: nftAbi,
       functionName: 'nonces',
-      args: [owner],
-    })) as bigint;
+      args: [account],
+      blockTag: 'latest',
+    });
   }
 
-  async balanceOf(owner: Hex): Promise<bigint> {
-    return (await readContract(this.wallet.wagmiConfig, {
-      address: this.contractAddress()!,
+  async balanceOf(chainId: number, account: Hex): Promise<bigint> {
+    return await readContract(this.wagmiConfig, {
+      chainId,
+      address: this.getContractAddressOrThrow(chainId),
       abi: nftAbi,
       functionName: 'balanceOf',
-      args: [owner],
-    })) as bigint;
+      args: [account],
+      blockTag: 'latest',
+    });
   }
 
-  async totalSupply(): Promise<bigint> {
-    return (await readContract(this.wallet.wagmiConfig, {
-      address: this.contractAddress()!,
+  async totalSupply(chainId: number): Promise<bigint> {
+    return await readContract(this.wagmiConfig, {
+      chainId,
+      address: this.getContractAddressOrThrow(chainId),
       abi: nftAbi,
       functionName: 'totalSupply',
-    })) as bigint;
+      blockTag: 'latest',
+    });
   }
 
-  async ownedTokens(owner: Hex, offset: number, limit: number): Promise<Token[]> {
-    const wagmiConfig = this.wallet.wagmiConfig;
-    const contractAddress = this.contractAddress()!;
+  async ownedTokens(chainId: number, owner: Hex, offset: number, limit: number): Promise<Token[]> {
+    const contractAddress = this.getContractAddressOrThrow(chainId);
 
-    const balance = Number(await this.balanceOf(owner));
+    const balance = Number(await this.balanceOf(chainId, owner));
 
     if (offset >= balance || balance === 0) {
       return [];
@@ -173,13 +203,14 @@ export class NftContractService {
     }
 
     const tokenByIndexContracts = Array.from({ length: numTokensToFetch }, (_, i) => ({
+      chainId,
       address: contractAddress,
       abi: nftAbi,
       functionName: 'tokenOfOwnerByIndex',
       args: [owner, BigInt(offset + i)],
     }));
 
-    const tokenIds = (await readContracts(wagmiConfig, {
+    const tokenIds = (await readContracts(this.wagmiConfig, {
       contracts: tokenByIndexContracts,
       allowFailure: false,
       multicallAddress: DEFAULT_MULTICALL_ADDRESS,
@@ -190,13 +221,14 @@ export class NftContractService {
     }
 
     const rarityContracts = tokenIds.map(tokenId => ({
+      chainId,
       address: contractAddress,
       abi: nftAbi,
       functionName: 'rarity',
       args: [tokenId],
     }));
 
-    const rarities = (await readContracts(wagmiConfig, {
+    const rarities = (await readContracts(this.wagmiConfig, {
       contracts: rarityContracts,
       allowFailure: false,
       multicallAddress: DEFAULT_MULTICALL_ADDRESS,
@@ -209,11 +241,10 @@ export class NftContractService {
     }));
   }
 
-  async allTokens(offset: number, limit: number): Promise<Token[]> {
-    const wagmiConfig = this.wallet.wagmiConfig;
-    const contractAddr = this.contractAddress()!;
+  async allTokens(chainId: number, offset: number, limit: number): Promise<Token[]> {
+    const contractAddr = this.getContractAddressOrThrow(chainId);
 
-    const totalSupply = Number(await this.totalSupply());
+    const totalSupply = Number(await this.totalSupply(chainId));
 
     if (offset >= totalSupply || totalSupply === 0) {
       return [];
@@ -226,13 +257,14 @@ export class NftContractService {
     }
 
     const tokenByIndexContracts = Array.from({ length: numTokensToFetch }, (_, i) => ({
+      chainId,
       address: contractAddr,
       abi: nftAbi,
       functionName: 'tokenByIndex',
       args: [BigInt(offset + i)],
     }));
 
-    const tokenIds = (await readContracts(wagmiConfig, {
+    const tokenIds = (await readContracts(this.wagmiConfig, {
       contracts: tokenByIndexContracts,
       allowFailure: false,
       multicallAddress: DEFAULT_MULTICALL_ADDRESS,
@@ -244,12 +276,14 @@ export class NftContractService {
 
     const detailsContracts = tokenIds.flatMap(tokenId => [
       {
+        chainId,
         address: contractAddr,
         abi: nftAbi,
         functionName: 'ownerOf',
         args: [tokenId],
       },
       {
+        chainId,
         address: contractAddr,
         abi: nftAbi,
         functionName: 'rarity',
@@ -257,7 +291,7 @@ export class NftContractService {
       },
     ]);
 
-    const ownerRarity = await readContracts(wagmiConfig, {
+    const ownerRarity = await readContracts(this.wagmiConfig, {
       contracts: detailsContracts,
       allowFailure: false,
       multicallAddress: DEFAULT_MULTICALL_ADDRESS,
@@ -271,36 +305,53 @@ export class NftContractService {
     });
   }
 
-  async getInfo(tokenId: bigint): Promise<Token> {
-    const wagmiConfig = this.wallet.wagmiConfig;
-    const contractAddr = this.contractAddress()!;
+  async getTokenDetailsBatch(chainIds: number[], tokenId: bigint): Promise<ChainTokenInfo[]> {
+    const detailsContracts = chainIds.flatMap(chainId => {
+      const address = this.getContractAddressOrThrow(chainId);
 
-    const detailsContracts = [
-      {
-        address: contractAddr,
-        abi: nftAbi,
-        functionName: 'ownerOf',
-        args: [tokenId],
-      },
-      {
-        address: contractAddr,
-        abi: nftAbi,
-        functionName: 'rarity',
-        args: [tokenId],
-      },
-    ];
+      return [
+        {
+          chainId,
+          address,
+          abi: nftAbi,
+          functionName: 'ownerOf',
+          args: [tokenId],
+        },
+        {
+          chainId,
+          address,
+          abi: nftAbi,
+          functionName: 'rarity',
+          args: [tokenId],
+        },
+      ];
+    });
 
-    const ownerRarity = await readContracts(wagmiConfig, {
+    const chainOwnerRarity = await readContracts(this.wagmiConfig, {
       contracts: detailsContracts,
-      allowFailure: false,
       multicallAddress: DEFAULT_MULTICALL_ADDRESS,
     });
 
-    return {
-      id: tokenId,
-      owner: ownerRarity[0] as Hex,
-      rarity: ownerRarity[1] as unknown as TokenRarity,
-    };
+    return chainIds.map((chainId, index) => {
+      const ownerResp = chainOwnerRarity[2 * index];
+      const rarityResp = chainOwnerRarity[2 * index + 1];
+
+      const owner = ownerResp.status === 'success'
+        ? (ownerResp.result as Hex)
+        : mapNotExistentErrorToNull(ownerResp.error);
+
+      const rarity =
+        rarityResp.status === 'success'
+          ? (rarityResp.result as unknown as TokenRarity)
+          : mapNotExistentErrorToNull(rarityResp.error);
+
+      return {
+        chainId,
+        tokenId,
+        owner,
+        rarity,
+      };
+    });
   }
 }
 
@@ -308,6 +359,13 @@ export interface Token {
   id: bigint;
   owner: Hex;
   rarity: TokenRarity;
+}
+
+export interface ChainTokenInfo {
+  chainId: number;
+  tokenId: bigint;
+  owner: Hex | null | Error;
+  rarity: TokenRarity | null | Error;
 }
 
 export interface TokenRarity {
@@ -1477,14 +1535,16 @@ export const nftAbi = [
   },
 ] as const;
 
-export function getContractAddress(chainId: number | undefined): Hex | undefined {
-  if (chainId === base.id) {
-    return BASE_VISUAL_KEY_NFT_ADDRESS;
-  } else if (chainId === sepolia.id) {
-    return SEPOLIA_VISUAL_KEY_NFT_ADDRESS;
-  } else if (chainId === hardhat.id) {
-    return HARDHAT_VISUAL_KEY_NFT_ADDRESS;
-  } else {
-    return undefined;
+function mapNotExistentErrorToNull(error: Error): null | Error {
+  if (error instanceof ContractFunctionExecutionError) {
+    const cause = error.cause;
+
+    if (cause instanceof ContractFunctionRevertedError) {
+      if (cause.data?.errorName === 'ERC721NonexistentToken') {
+        return null;
+      }
+    }
   }
+
+  return error;
 }

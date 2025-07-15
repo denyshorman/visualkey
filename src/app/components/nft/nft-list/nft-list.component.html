@@ -1,4 +1,12 @@
-<app-connect-wallet-guard>
+@if (listType() === 'all') {
+  <ng-container *ngTemplateOutlet="nftListTemplate"></ng-container>
+} @else {
+  <app-connect-wallet-guard>
+    <ng-container *ngTemplateOutlet="nftListTemplate"></ng-container>
+  </app-connect-wallet-guard>
+}
+
+<ng-template #nftListTemplate>
   <div class="flex flex-col sm:flex-row sm:flex-wrap justify-center p-5 gap-2">
     @for (nft of nfts(); track nft.id) {
       <app-nft-info
@@ -42,4 +50,4 @@
       <p-progress-spinner strokeWidth="8" fill="transparent" animationDuration=".5s" />
     </div>
   }
-</app-connect-wallet-guard>
+</ng-template>

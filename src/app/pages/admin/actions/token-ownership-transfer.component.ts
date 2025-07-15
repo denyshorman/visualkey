@@ -118,11 +118,13 @@ export class TokenTransferOwnershipComponent {
     this.txStatus()?.reset();
 
     try {
-      const chainId = this.wallet.chainId()!;
+      const chainId = this.wallet.chainId();
+      const owner = this.wallet.accountAddress()!;
+      const newOwner = this.newOwnerAddress();
 
       this.txStatus()?.walletConfirmation();
 
-      const hash = await this.tokenContract.initiateOwnershipTransfer(this.newOwnerAddress());
+      const hash = await this.tokenContract.initiateOwnershipTransfer(chainId, owner, newOwner);
 
       this.txStatus()?.processing(chainId, hash);
 
@@ -146,11 +148,12 @@ export class TokenTransferOwnershipComponent {
     this.txStatus()?.reset();
 
     try {
-      const chainId = this.wallet.chainId()!;
+      const chainId = this.wallet.chainId();
+      const owner = this.wallet.accountAddress()!;
 
       this.txStatus()?.walletConfirmation();
 
-      const hash = await this.tokenContract.cancelOwnershipTransfer();
+      const hash = await this.tokenContract.cancelOwnershipTransfer(chainId, owner);
 
       this.txStatus()?.processing(chainId, hash);
 
@@ -173,11 +176,12 @@ export class TokenTransferOwnershipComponent {
     this.txStatus()?.reset();
 
     try {
-      const chainId = this.wallet.chainId()!;
+      const chainId = this.wallet.chainId();
+      const caller = this.wallet.accountAddress()!;
 
       this.txStatus()?.walletConfirmation();
 
-      const hash = await this.tokenContract.completeOwnershipTransfer();
+      const hash = await this.tokenContract.completeOwnershipTransfer(chainId, caller);
 
       this.txStatus()?.processing(chainId, hash);
 

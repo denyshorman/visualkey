@@ -76,11 +76,13 @@ export class TokenSaleTransferOwnershipComponent {
     this.txStatus()?.reset();
 
     try {
-      const chainId = this.wallet.chainId()!;
+      const chainId = this.wallet.chainId();
+      const owner = this.wallet.accountAddress()!;
+      const newOwner = this.newOwnerAddress();
 
       this.txStatus()?.walletConfirmation();
 
-      const hash = (await this.tokenSaleContract.transferOwnership(this.newOwnerAddress()))!;
+      const hash = await this.tokenSaleContract.transferOwnership(chainId, owner, newOwner);
 
       this.txStatus()?.processing(chainId, hash);
 

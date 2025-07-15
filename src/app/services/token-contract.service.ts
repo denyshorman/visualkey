@@ -1,7 +1,7 @@
-import { computed, Injectable, Signal } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Hex, TypedDataDomain, WriteContractReturnType } from 'viem';
 import { WalletService } from './wallet.service';
-import { readContract, signTypedData, simulateContract, writeContract } from '@wagmi/core';
+import { Config, readContract, signTypedData, simulateContract, writeContract } from '@wagmi/core';
 import { base, sepolia, hardhat } from 'viem/chains';
 
 @Injectable({
@@ -26,60 +26,121 @@ export class VisualKeyTokenContractService {
     ],
   };
 
-  readonly contractAddress: Signal<Hex | undefined> = computed(() => {
-    return getVkeyTokenAddress(this.wallet.chainId());
-  });
+  private readonly wagmiConfig: Config;
 
-  readonly eip712Domain: Signal<TypedDataDomain | undefined> = computed(() => {
-    const chainId = this.wallet.chainId();
-    const contractAddress = this.contractAddress();
+  constructor(wallet: WalletService) {
+    this.wagmiConfig = wallet.wagmiConfig;
+  }
 
-    if (chainId === undefined || contractAddress === undefined) {
-      return undefined;
-    }
+  getContractAddress(chainId: number): Hex | undefined {
+    return getContractAddress(chainId);
+  }
 
+  getContractAddressOrThrow(chainId: number): Hex {
+    return getContractAddressOrThrow(chainId);
+  }
+
+  getEip712Domain(chainId: number): TypedDataDomain {
     return {
       name: 'VisualKey Token',
       version: '1',
       chainId: chainId,
-      verifyingContract: contractAddress,
+      verifyingContract: this.getContractAddressOrThrow(chainId),
     };
-  });
+  }
 
-  constructor(private wallet: WalletService) {}
+  getMintAmount(chainId: number): bigint | undefined {
+    if (chainId === base.id) {
+      return 1_048_576n * 10n ** 18n;
+    } else if (chainId === sepolia.id) {
+      return 1_073_741_824n * 10n ** 18n;
+    } else if (chainId === hardhat.id) {
+      return 1_048_576n * 10n ** 18n;
+    } else {
+      return undefined;
+    }
+  }
 
-  async balanceOf(account: Hex): Promise<bigint> {
-    return (await readContract(this.wallet.wagmiConfig, {
-      address: this.contractAddress()!,
+  getMintInterval(chainId: number): bigint | undefined {
+    if (chainId === base.id) {
+      return 16n * 24n * 60n * 60n; // 16 days in seconds;
+    } else if (chainId === sepolia.id) {
+      return 4n * 24n * 60n * 60n; // 4 days in seconds;
+    } else if (chainId === hardhat.id) {
+      return 16n * 24n * 60n * 60n; // 16 days in seconds;
+    } else {
+      return undefined;
+    }
+  }
+
+  getMintWindow(chainId: number): bigint | undefined {
+    if (chainId === base.id || chainId === sepolia.id || chainId === hardhat.id) {
+      return 24n * 60n * 60n; // 24 hours in seconds
+    } else {
+      return undefined;
+    }
+  }
+
+  calcNextMintTimestamp(chainId: number, lastMintTimestamp: bigint): bigint | undefined {
+    const mintInterval = this.getMintInterval(chainId);
+    const mintWindow = this.getMintWindow(chainId);
+
+    if (mintInterval === undefined || mintWindow === undefined) {
+      return undefined;
+    }
+
+    if (lastMintTimestamp === 0n) {
+      return undefined;
+    }
+
+    const now = BigInt(Math.floor(Date.now() / 1000));
+
+    if (now < lastMintTimestamp + mintInterval) {
+      return lastMintTimestamp + mintInterval;
+    }
+
+    const numberOfIntervalsElapsed = (now - lastMintTimestamp) / mintInterval;
+    const currentPeriodStartTs = lastMintTimestamp + numberOfIntervalsElapsed * mintInterval;
+    const currentMintWindowEndTs = currentPeriodStartTs + mintWindow;
+
+    if (now <= currentMintWindowEndTs) {
+      return currentPeriodStartTs;
+    } else {
+      return currentPeriodStartTs + mintInterval;
+    }
+  }
+
+  async balanceOf(chainId: number, account: Hex): Promise<bigint> {
+    return await readContract(this.wagmiConfig, {
+      chainId,
+      address: this.getContractAddressOrThrow(chainId),
       abi: tokenAbi,
       functionName: 'balanceOf',
       args: [account],
-    })) as bigint;
+      blockTag: 'latest',
+    });
   }
 
-  async nonces(owner: Hex): Promise<bigint> {
-    return (await readContract(this.wallet.wagmiConfig, {
-      address: this.contractAddress()!,
+  async nonces(chainId: number, account: Hex): Promise<bigint> {
+    return await readContract(this.wagmiConfig, {
+      chainId,
+      address: this.getContractAddressOrThrow(chainId),
       abi: tokenAbi,
       functionName: 'nonces',
-      args: [owner],
-    })) as bigint;
+      args: [account],
+      blockTag: 'latest',
+    });
   }
 
-  async mint(recipient: Hex): Promise<WriteContractReturnType> {
-    const wagmiConfig = this.wallet.wagmiConfig;
-    const contractAddr = this.contractAddress();
-    const ownerAddress = this.wallet.accountAddress();
+  async mint(chainId: number, owner: Hex, recipient: Hex): Promise<WriteContractReturnType> {
+    const contractAddr = this.getContractAddressOrThrow(chainId);
 
-    if (!contractAddr || !ownerAddress) {
-      throw new Error('Wallet not connected or contract address not found');
-    }
-
-    const nonce = await this.nonces(ownerAddress);
+    const nonce = await this.nonces(chainId, owner);
     const deadline = BigInt(Math.floor(Date.now() / 1000 + 3600));
 
-    const signature = await signTypedData(wagmiConfig, {
-      domain: this.eip712Domain()!,
+    const signature = await signTypedData(this.wagmiConfig, {
+      account: owner,
+      domain: this.getEip712Domain(chainId),
       types: this.mintTypes,
       primaryType: 'Mint',
       message: {
@@ -89,86 +150,88 @@ export class VisualKeyTokenContractService {
       },
     });
 
-    const { request } = await simulateContract(wagmiConfig, {
+    const { request } = await simulateContract(this.wagmiConfig, {
+      chainId,
+      account: owner,
       address: contractAddr,
       abi: tokenAbi,
       functionName: 'mint',
       args: [recipient, deadline, signature],
     });
 
-    return writeContract(wagmiConfig, request);
+    return writeContract(this.wagmiConfig, request);
   }
 
-  async disableMinting(): Promise<WriteContractReturnType> {
-    const wagmiConfig = this.wallet.wagmiConfig;
-    const contractAddr = this.contractAddress();
-    if (!contractAddr) throw new Error('Contract address not found');
+  async disableMinting(chainId: number, owner: Hex): Promise<WriteContractReturnType> {
+    const contractAddr = this.getContractAddressOrThrow(chainId);
 
-    const { request } = await simulateContract(wagmiConfig, {
+    const { request } = await simulateContract(this.wagmiConfig, {
+      chainId,
+      account: owner,
       address: contractAddr,
       abi: tokenAbi,
       functionName: 'disableMinting',
     });
 
-    return writeContract(wagmiConfig, request);
+    return writeContract(this.wagmiConfig, request);
   }
 
-  async burn(amount: bigint): Promise<WriteContractReturnType> {
-    const wagmiConfig = this.wallet.wagmiConfig;
-    const contractAddr = this.contractAddress();
-    if (!contractAddr) throw new Error('Contract address not found');
+  async burn(chainId: number, amount: bigint, caller: Hex): Promise<WriteContractReturnType> {
+    const contractAddr = this.getContractAddressOrThrow(chainId);
 
-    const { request } = await simulateContract(wagmiConfig, {
+    const { request } = await simulateContract(this.wagmiConfig, {
+      chainId,
+      account: caller,
       address: contractAddr,
       abi: tokenAbi,
       functionName: 'burn',
       args: [amount],
     });
 
-    return writeContract(wagmiConfig, request);
+    return writeContract(this.wagmiConfig, request);
   }
 
-  async initiateOwnershipTransfer(newOwner: Hex): Promise<WriteContractReturnType> {
-    const wagmiConfig = this.wallet.wagmiConfig;
-    const contractAddr = this.contractAddress();
-    if (!contractAddr) throw new Error('Contract address not found');
+  async initiateOwnershipTransfer(chainId: number, owner: Hex, newOwner: Hex): Promise<WriteContractReturnType> {
+    const contractAddr = this.getContractAddressOrThrow(chainId);
 
-    const { request } = await simulateContract(wagmiConfig, {
+    const { request } = await simulateContract(this.wagmiConfig, {
+      chainId,
+      account: owner,
       address: contractAddr,
       abi: tokenAbi,
       functionName: 'transferOwnership',
       args: [newOwner],
     });
 
-    return writeContract(wagmiConfig, request);
+    return writeContract(this.wagmiConfig, request);
   }
 
-  async cancelOwnershipTransfer(): Promise<WriteContractReturnType> {
-    const wagmiConfig = this.wallet.wagmiConfig;
-    const contractAddr = this.contractAddress();
-    if (!contractAddr) throw new Error('Contract address not found');
+  async cancelOwnershipTransfer(chainId: number, owner: Hex): Promise<WriteContractReturnType> {
+    const contractAddr = this.getContractAddressOrThrow(chainId);
 
-    const { request } = await simulateContract(wagmiConfig, {
+    const { request } = await simulateContract(this.wagmiConfig, {
+      chainId,
+      account: owner,
       address: contractAddr,
       abi: tokenAbi,
       functionName: 'cancelOwnershipTransfer',
     });
 
-    return writeContract(wagmiConfig, request);
+    return writeContract(this.wagmiConfig, request);
   }
 
-  async completeOwnershipTransfer(): Promise<WriteContractReturnType> {
-    const wagmiConfig = this.wallet.wagmiConfig;
-    const contractAddr = this.contractAddress();
-    if (!contractAddr) throw new Error('Contract address not found');
+  async completeOwnershipTransfer(chainId: number, caller: Hex): Promise<WriteContractReturnType> {
+    const contractAddr = this.getContractAddressOrThrow(chainId);
 
-    const { request } = await simulateContract(wagmiConfig, {
+    const { request } = await simulateContract(this.wagmiConfig, {
+      chainId,
+      account: caller,
       address: contractAddr,
       abi: tokenAbi,
       functionName: 'completeOwnershipTransfer',
     });
 
-    return writeContract(wagmiConfig, request);
+    return writeContract(this.wagmiConfig, request);
   }
 }
 
@@ -1508,7 +1571,7 @@ export const tokenAbi = [
   },
 ] as const;
 
-export function getVkeyTokenAddress(chainId: number | undefined): Hex | undefined {
+export function getContractAddress(chainId: number): Hex | undefined {
   if (chainId === base.id) {
     return BASE_VISUAL_KEY_TOKEN_ADDRESS;
   } else if (chainId === sepolia.id) {
@@ -1520,67 +1583,12 @@ export function getVkeyTokenAddress(chainId: number | undefined): Hex | undefine
   }
 }
 
-export function getMintAmount(chainId: number | undefined): bigint | undefined {
-  if (chainId === base.id) {
-    return 1_048_576n * 10n ** 18n;
-  } else if (chainId === sepolia.id) {
-    return 1_073_741_824n * 10n ** 18n;
-  } else if (chainId === hardhat.id) {
-    return 1_048_576n * 10n ** 18n;
-  } else {
-    return undefined;
-  }
-}
+export function getContractAddressOrThrow(chainId: number): Hex {
+  const contractAddress = getContractAddress(chainId);
 
-export function getMintInterval(chainId: number | undefined): bigint | undefined {
-  if (chainId === base.id) {
-    return 16n * 24n * 60n * 60n; // 16 days in seconds;
-  } else if (chainId === sepolia.id) {
-    return 4n * 24n * 60n * 60n; // 4 days in seconds;
-  } else if (chainId === hardhat.id) {
-    return 16n * 24n * 60n * 60n; // 16 days in seconds;
-  } else {
-    return undefined;
-  }
-}
-
-export function getMintWindow(chainId: number | undefined): bigint | undefined {
-  if (chainId === base.id || chainId === sepolia.id || chainId === hardhat.id) {
-    return 24n * 60n * 60n; // 24 hours in seconds
-  } else {
-    return undefined;
-  }
-}
-
-export function calcNextMintTimestamp(chainId: number | undefined, lastMintTimestamp: bigint): bigint | undefined {
-  if (chainId === undefined) {
-    return undefined;
+  if (contractAddress === undefined) {
+    throw new Error(`No contract address found for the chain ID ${chainId}`);
   }
 
-  const mintInterval = getMintInterval(chainId);
-  const mintWindow = getMintWindow(chainId);
-
-  if (mintInterval === undefined || mintWindow === undefined) {
-    return undefined;
-  }
-
-  if (lastMintTimestamp === 0n) {
-    return undefined;
-  }
-
-  const now = BigInt(Math.floor(Date.now() / 1000));
-
-  if (now < lastMintTimestamp + mintInterval) {
-    return lastMintTimestamp + mintInterval;
-  }
-
-  const numberOfIntervalsElapsed = (now - lastMintTimestamp) / mintInterval;
-  const currentPeriodStartTs = lastMintTimestamp + numberOfIntervalsElapsed * mintInterval;
-  const currentMintWindowEndTs = currentPeriodStartTs + mintWindow;
-
-  if (now <= currentMintWindowEndTs) {
-    return currentPeriodStartTs;
-  } else {
-    return currentPeriodStartTs + mintInterval;
-  }
+  return contractAddress;
 }

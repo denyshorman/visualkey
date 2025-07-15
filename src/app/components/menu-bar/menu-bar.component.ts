@@ -1,17 +1,28 @@
-import { Component, computed } from '@angular/core';
+import { Component } from '@angular/core';
 import { MenuItem } from 'primeng/api';
 import { Menubar } from 'primeng/menubar';
-import { Button } from 'primeng/button';
-import { ThemeService } from '../../services/theme.service';
-import { faMoon } from '@fortawesome/free-solid-svg-icons';
-import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { WalletService } from '../../services/wallet.service';
-import { RouterLink } from '@angular/router';
+import { LogoButtonComponent } from './buttons/logo-button.component';
+import { ThemeButtonComponent } from './buttons/theme-button.component';
+import { NetworkSwitchButtonComponent } from './buttons/network-switch-button.component';
+import { ConnectButtonComponent } from './buttons/connect-button.component';
 
 @Component({
   selector: 'app-menu-bar',
-  imports: [Menubar, Button, FaIconComponent, RouterLink],
-  templateUrl: './menu-bar.component.html',
+  imports: [Menubar, LogoButtonComponent, ThemeButtonComponent, NetworkSwitchButtonComponent, ConnectButtonComponent],
+  template: `
+    <p-menubar [model]="menuItems">
+      <ng-template #start>
+        <app-menu-logo-button />
+      </ng-template>
+      <ng-template #end>
+        <div class="flex gap-1">
+          <app-menu-theme-button />
+          <app-menu-network-switch-button />
+          <app-menu-connect-button />
+        </div>
+      </ng-template>
+    </p-menubar>
+  `,
 })
 export class MenuBarComponent {
   readonly menuItems: MenuItem[] = [
@@ -82,23 +93,4 @@ export class MenuBarComponent {
       ],
     },
   ];
-
-  readonly icons = {
-    faMoon,
-  };
-
-  readonly accountFormatted = computed(() => {
-    const account = this.wallet.accountAddress();
-
-    if (account === undefined) {
-      return undefined;
-    }
-
-    return `${account.slice(0, 6)}...${account.slice(-4)}`;
-  });
-
-  constructor(
-    public theme: ThemeService,
-    public wallet: WalletService,
-  ) {}
 }

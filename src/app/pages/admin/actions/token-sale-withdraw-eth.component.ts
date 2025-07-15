@@ -39,11 +39,12 @@ export class TokenSaleWithdrawEthComponent {
     this.txStatus()?.reset();
 
     try {
-      const chainId = this.wallet.chainId()!;
+      const chainId = this.wallet.chainId();
+      const owner = this.wallet.accountAddress()!;
 
       this.txStatus()?.walletConfirmation();
 
-      const hash = (await this.tokenSaleContract.withdrawETH())!;
+      const hash = await this.tokenSaleContract.withdrawETH(chainId, owner);
 
       this.txStatus()?.processing(chainId, hash);
 

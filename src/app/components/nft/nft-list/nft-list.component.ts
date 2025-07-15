@@ -13,14 +13,14 @@ import { NftContractService, Token } from '../../../services/nft-contract.servic
 import { NftInfoComponent } from '../nft-info/nft-info.component';
 import { WalletService } from '../../../services/wallet.service';
 import { Button } from 'primeng/button';
-import { NgClass } from '@angular/common';
+import { NgClass, NgTemplateOutlet } from '@angular/common';
 import { ProgressSpinner } from 'primeng/progressspinner';
 import { Hex } from 'viem';
 import { ConnectWalletGuardComponent } from '../../connect-wallet-guard/connect-wallet-guard.component';
 
 @Component({
   selector: 'app-nft-list',
-  imports: [NftInfoComponent, Button, NgClass, ProgressSpinner, ConnectWalletGuardComponent],
+  imports: [NftInfoComponent, Button, NgClass, ProgressSpinner, ConnectWalletGuardComponent, NgTemplateOutlet],
   templateUrl: './nft-list.component.html',
   host: {
     class: 'flex flex-col grow',
@@ -48,7 +48,7 @@ export class NftListComponent {
   });
 
   // TODO: Optimize when loaded less than limit
-  readonly offset = linkedSignal<{ chainId: number | undefined; account: Hex | undefined }, number>({
+  readonly offset = linkedSignal<{ chainId: number; account: Hex | undefined }, number>({
     source: () => ({ chainId: this.chainId(), account: this.account() }),
     computation: (source, previous) => {
       const prevChainId = previous?.source?.chainId;
@@ -69,20 +69,16 @@ export class NftListComponent {
   readonly offsetNfts = resource({
     params: () => ({ chainId: this.chainId(), account: this.account(), offset: this.offset() }),
     loader: async ({ params }) => {
-      if (params.chainId === undefined) {
-        return [];
+      if (params.account === undefined) {
+        return await this.nftContractService.allTokens(params.chainId, params.offset, this.limit());
       } else {
-        if (params.account === undefined) {
-          return await this.nftContractService.allTokens(params.offset, this.limit());
-        } else {
-          return await this.nftContractService.ownedTokens(params.account, params.offset, this.limit());
-        }
+        return await this.nftContractService.ownedTokens(params.chainId, params.account, params.offset, this.limit());
       }
     },
     defaultValue: [],
   });
 
-  readonly nfts = linkedSignal<{ chainId: number | undefined; account: Hex | undefined; offsetNfts: Token[] }, Token[]>(
+  readonly nfts = linkedSignal<{ chainId: number; account: Hex | undefined; offsetNfts: Token[] }, Token[]>(
     {
       source: () => ({ chainId: this.chainId(), account: this.account(), offsetNfts: this.offsetNfts.value() }),
       computation: (source, previous) => {

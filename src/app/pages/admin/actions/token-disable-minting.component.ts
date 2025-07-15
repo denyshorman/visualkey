@@ -52,11 +52,12 @@ export class TokenDisableMintingComponent {
     this.txStatus()?.reset();
 
     try {
-      const chainId = this.wallet.chainId()!;
+      const chainId = this.wallet.chainId();
+      const owner = this.wallet.accountAddress()!;
 
       this.txStatus()?.walletConfirmation();
 
-      const hash = await this.tokenContract.disableMinting();
+      const hash = await this.tokenContract.disableMinting(chainId, owner);
 
       this.txStatus()?.processing(chainId, hash);
 

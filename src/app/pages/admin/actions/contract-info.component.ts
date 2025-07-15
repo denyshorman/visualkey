@@ -5,12 +5,7 @@ import { formatEther, Hex } from 'viem';
 import { readContracts } from '@wagmi/core';
 
 import { WalletService } from '../../../services/wallet.service';
-import {
-  calcNextMintTimestamp,
-  getMintAmount,
-  tokenAbi,
-  VisualKeyTokenContractService,
-} from '../../../services/token-contract.service';
+import { tokenAbi, VisualKeyTokenContractService } from '../../../services/token-contract.service';
 import { nftAbi, NftContractService } from '../../../services/nft-contract.service';
 import { tokenSaleAbi, VisualKeyTokenSaleContractService } from '../../../services/token-sale-contract.service';
 import { WeiToEthPipe } from '../../../pipes/wei-to-eth.pipe';
@@ -103,17 +98,11 @@ import { LocalizedDateTimePipe } from '../../../pipes/localized-date-time.pipe';
 })
 export class ContractInfoComponent {
   readonly info = resource({
-    params: () => ({
-      tokenAddress: this.tokenContract.contractAddress(),
-      nftAddress: this.nftContract.contractAddress(),
-      saleAddress: this.tokenSaleContract.contractAddress(),
-    }),
+    params: () => ({ chainId: this.wallet.chainId() }),
     loader: async ({ params }) => {
-      const { tokenAddress, nftAddress, saleAddress } = params;
-
-      if (!tokenAddress || !nftAddress || !saleAddress) {
-        throw new Error('Contract addresses not available for this network.');
-      }
+      const tokenAddress = this.tokenContract.getContractAddressOrThrow(params.chainId);
+      const nftAddress = this.nftContract.getContractAddressOrThrow(params.chainId);
+      const saleAddress = this.tokenSaleContract.getContractAddressOrThrow(params.chainId);
 
       const contracts = [
         { address: tokenAddress, abi: tokenAbi, functionName: 'totalSupply' },
@@ -131,6 +120,7 @@ export class ContractInfoComponent {
         contracts,
         allowFailure: true,
         multicallAddress: DEFAULT_MULTICALL_ADDRESS,
+        blockTag: 'latest',
       });
 
       return {
@@ -151,21 +141,16 @@ export class ContractInfoComponent {
     const chainId = this.wallet.chainId();
     const lastMintDate = this.info.value()?.lastMintDate;
 
-    if (chainId === undefined || lastMintDate === undefined) {
+    if (lastMintDate === undefined) {
       return undefined;
     }
 
-    return calcNextMintTimestamp(chainId, lastMintDate);
+    return this.tokenContract.calcNextMintTimestamp(chainId, lastMintDate);
   });
 
   readonly mintAmount = computed(() => {
     const chainId = this.wallet.chainId();
-
-    if (chainId === undefined) {
-      return undefined;
-    }
-
-    const amountWei = getMintAmount(chainId);
+    const amountWei = this.tokenContract.getMintAmount(chainId);
 
     if (amountWei === undefined) {
       return undefined;

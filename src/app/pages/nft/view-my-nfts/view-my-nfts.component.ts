@@ -2,7 +2,6 @@ import { Component, computed } from '@angular/core';
 import { NftListComponent } from '../../../components/nft/nft-list/nft-list.component';
 import { OpenseaService } from '../../../services/opensea.service';
 import { WalletService } from '../../../services/wallet.service';
-import { base } from 'viem/chains';
 
 @Component({
   selector: 'app-my-nft-collection',
@@ -35,8 +34,7 @@ import { base } from 'viem/chains';
 })
 export class ViewMyNftsComponent {
   readonly openSeaNftCollectionUrl = computed(() => {
-    const chainId = this.wallet.chainId() ?? base.id;
-    return this.openSeaService.getVisualKeysCollectionUrl(chainId);
+    return this.openSeaService.getVisualKeysCollectionUrl(this.wallet.chainId());
   });
 
   constructor(
